@@ -1,7 +1,9 @@
 source 'https://rubygems.org'
-ruby '2.1.5'
+ruby '2.2.2'
 
-gem 'rails', '~> 4.2.0'
+gem 'rails', git: 'https://github.com/rails/rails.git'
+# TODO: Remove next line before merging into master
+gem 'arel', git: 'https://github.com/rails/arel.git'
 gem 'psych', '~> 2.0.3'
 gem 'responders', '~> 2.0'
 
@@ -9,7 +11,10 @@ gem 'responders', '~> 2.0'
 gem 'pg', '~> 0.18.1'
 
 # Postgis
-gem 'activerecord-postgis-adapter', '~> 3.0.0'
+# TODO: Revert to official gem when possible
+gem 'activerecord-postgis-adapter', git: 'https://github.com/LocoDelAssembly/activerecord-postgis-adapter.git' #, '~> 3.0.0'
+# TODO: Remove the next line before merging into master
+gem 'rgeo-activerecord', git: 'https://github.com/LocoDelAssembly/rgeo-activerecord.git'
 
 # rgeo support
 gem 'ffi-geos'
@@ -92,7 +97,8 @@ gem 'sqed', '~> 0.1.5'
 
 group :test, :development do
   gem 'faker', '~> 1.4.3'
-  gem 'rspec-rails', '~> 3.3'
+  # TODO: Revert to official gem when possible
+  gem 'rspec-rails', git: 'https://github.com/LocoDelAssembly/rspec-rails.git' # , '~> 3.3'
   gem 'rspec-activemodel-mocks', '~> 1.0.1'
   gem 'inch'
   gem 'byebug', '~> 5.0', {}.merge(ENV['RM_INFO'] ? {require: false} : {})
