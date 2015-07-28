@@ -14,7 +14,7 @@ gem 'pg', '~> 0.18.1'
 # TODO: Revert to official gem when possible
 gem 'activerecord-postgis-adapter', git: 'https://github.com/dzjuck/activerecord-postgis-adapter.git', branch: 'rails_5' #, '~> 3.0.0'
 # TODO: Remove the next line before merging into master
-# gem 'rgeo-activerecord', git: 'https://github.com/LocoDelAssembly/rgeo-activerecord.git'
+gem 'rgeo-activerecord', git: 'https://github.com/dzjuck/rgeo-activerecord.git'
 
 # rgeo support
 gem 'ffi-geos'
