@@ -1,52 +1,65 @@
 <%= render(partial: 'layouts/map_header') -%>
 
-<h1>Task: Otu distribution</h1>
-<!--<p>-->
-<!--<%#= @otu.distribution_geoJSON.to_json.html_safe %>-->
-<!--</p>-->
+<h1>Task: <%= "#{@type_tag}" %>  distribution</h1>
 
 <div id="otu_distribution_widget">
   <div class="flexbox">
     <div class="item item1">
-      <h2>
-        <%= link_to(otu_tag(@otu), otu_path(@otu.to_param)) %> - an Otu
-      </h2>
-      <table border="1">
-        <tbody>
-        <tr>
-          <th><h1>Data</h1></th>
-          <th></th>
-        </tr>
-        <tr>
-          <td>
-            <%= check_box_tag("check_asserted_distribution", nil, true) %>
-          </td>
-          <td>
-            <%= "distributions (#{@otu.asserted_distributions.count}) (asserted distributions)" %>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <%= check_box_tag("check_collecting_event_georeference", nil, true) %>
-          </td>
-          <td>
-            <%= "collection_objects (#{@otu.collection_objects.count}) (collecting events georeferences)" %>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <%= check_box_tag("check_collecting_event_geographic area", nil, true) %>
-          </td>
-          <td>
-            <%= "collecting event gazeteer records (#{@otu.collecting_events.count}) (collecting events geographic area)" %>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+      <% @distribution.otus.each do |otu| %>
+          <table border="1">
+            <tbody>
+            <tr>
+              <th><h3>Otu</h3></th>
+              <th>
+                <h3>
+                  <%= link_to(otu_tag(otu), otu_path(otu.to_param), {name: "link_otu_#{otu.id}"}) %>
+                </h3>
+              </th>
+            </tr>
+            <% unless otu.asserted_distributions.empty? %>
+                <tr>
+                  <td>
+                    <%= check_box_tag("check_asserted_distribution_#{otu.id}", nil, true) %>
+                  </td>
+                  <td>
+                    <span id='<%= "span_asserted_distributions_otu_id_#{otu.id}" %>'>
+                    <%= "distributions (#{otu.asserted_distributions.count}) (asserted distributions)" %>
+                        </span>
+                  </td>
+                </tr>
+            <% end %>
+            <% unless otu.collection_objects.empty? %>
+                <tr>
+                  <td>
+                    <%= check_box_tag("check_collecting_event_georeference_#{otu.id}", nil, true) %>
+                  </td>
+                  <td>
+                    <span id="<%= "span_collecting_events_georeferences_otu_id_#{otu.id}" %>">
+                        <%= "collection_objects (#{otu.collection_objects.count}) (collecting events georeferences)" %>
+                    </span>
+                  </td>
+                </tr>
+            <% end %>
+            <% unless otu.collecting_events.empty? %>
+                <tr>
+                  <td>
+                    <%= check_box_tag("check_collecting_event_geographic area_#{otu.id}", nil, true) %>
+                  </td>
+                  <td>
+                    <span id="<%= "span_collecting_events_geographic_area_otu_id_#{otu.id}" %>">
+                        <%= "collecting event gazeteer records (#{otu.collecting_events.count}) (collecting events geographic area)" %>
+                    </span>
+                  </td>
+                </tr>
+            <% end %>
+            </tbody>
+          </table>
+      <% end %>
     </div>
     <div class="item item2">
+      <%#=	 break_it_here %>
       <div id="_displayed_distribution_form"
-           data-feature-collection='<%= @distribution.to_json[@otu.id].to_json.html_safe -%>'
+           data-feature-collection='<%= @distribution.to_json.to_json -%>'
            data-map-center='POINT (0.0 0.0 0.0)'
            data-map-canvas="displayed_distribution_canvas"
       >
@@ -54,6 +67,7 @@
           <tr>
             <td>
               <div id="displayed_distribution_canvas" style="width:512px; height: 256px;"></div>
+              <span id="map_coords"></span>
             </td>
           </tr>
           <tr>

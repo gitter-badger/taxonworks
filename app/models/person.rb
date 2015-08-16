@@ -1,3 +1,31 @@
+# A human. Data only, not users. There are two classes of people, vetted, and unvetted.
+#
+# A vetted person
+# * Has two or more roles
+# * Has one or more annotations
+#
+# An unvetted person
+# * Has no or 1 role.
+# * Has no annotations
+#
+# A unvetted person becomes automatically vetted when they have > 1 roles or they 
+# have an annotation associated with them.
+#
+# @!attribute last_name 
+#   @return [String] the last/family name
+#     
+# @!attribute first name 
+#   @return [String] the first name, includes initials if the are provided 
+#
+# @!attribute prefix 
+#   @return [String] string preceeding the *last/family* name
+#
+# @!attribute suffix
+#   @return [String]  string following the *last/family* name
+#
+# @!attribute type
+#   @return [String] Person::Vetted or Person::Unvetted 
+#
 class Person < ActiveRecord::Base
   include Housekeeping::Users
   include Shared::AlternateValues
@@ -130,10 +158,9 @@ class Person < ActiveRecord::Base
   end
 
   def self.find_for_autocomplete(params)
-    where('last_name ILIKE ? or last_name ILIKE ? or last_name = ?', "#{params[:term]}%", "%#{params[:term]}%", params[:term]) # todo: Is last_name correct?
+    where('cached ILIKE ? OR cached ILIKE ? OR cached = ?', "#{params[:term]}%", "%#{params[:term]}%", params[:term]) 
   end
 
-  # set cached values and copies active record relations into bibtex values
   def set_cached
     self.cached = self.bibtex_name if self.errors.empty?
   end

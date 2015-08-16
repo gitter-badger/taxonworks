@@ -1,6 +1,6 @@
 <%= content_for :do do -%>
     <ul class="no_bullets">
-      <%= content_tag(:li, link_to('Add Google map georeference',  new_georeferences_google_map_path(georeference: {collecting_event_id: @collecting_event.to_param}),  'data-no-turbolink' => true )) %>
+      <%= content_tag(:li, link_to('Add Google map georeference', new_georeferences_google_map_path(georeference: {collecting_event_id: @collecting_event.to_param}), 'data-no-turbolink' => true)) %>
     </ul>
 <% end %>
 
@@ -12,10 +12,16 @@
     <% end %>
 <% end %>
 
-<%= content_for :tasks do %>
-    <!--<ul class="no_bullets">-->
-    <!--<%#= content_tag(:li, link_to('Georeference', new_georeference_path(georeference: {collecting_event_id: @collecting_event.to_param}))) -%>-->
-    <!--</ul>-->
+
+<%= content_for :related_attributes do %>
+    <% if @collecting_event.collectors.any? %>
+        <h3>Collectors</h3>
+        <ul>
+          <% @collecting_event.collectors.each do |collector| %>
+            <%= content_tag(:li, object_link(collector)) %>
+          <% end %>
+        </ul>
+    <% end %>
 <% end %>
 
 <%= render(partial: 'shared/data/project/show', locals: {object: @collecting_event}) -%>

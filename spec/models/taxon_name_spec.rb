@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe TaxonName, :type => :model do
+describe TaxonName, type: :model, group: [:nomenclature] do
 
   let(:taxon_name) { TaxonName.new }
 
@@ -81,7 +81,7 @@ describe TaxonName, :type => :model do
           # TaxonNameRelationships in which the taxon name is the subject OR object
           specify 'respond to all_taxon_name_relationships' do
             expect(@taxon_name).to respond_to (:all_taxon_name_relationships)
-            expect(@taxon_name.all_taxon_name_relationships.map { |i| i.type_name }).to eq([@relationship1.type_name, @relationship2.type_name])
+            expect(@taxon_name.all_taxon_name_relationships.map{ |i| i.type_name }).to contain_exactly(@relationship1.type_name, @relationship2.type_name)
           end
 
           # TaxonNames related by all_taxon_name_relationships
@@ -393,7 +393,8 @@ describe TaxonName, :type => :model do
             expect(@subspecies.get_original_combination).to eq('<em>Errorneura</em> [sic] <em>vitata</em>')
             expect(@subspecies.get_author_and_year).to eq ('(McAtee, 1900)')
           end
-
+         
+          # What code is this supposed to catch? 
           specify 'moving nominotypical taxon' do
             sp           = FactoryGirl.create(:iczn_species, name: 'aaa', parent: @genus)
             subsp        = FactoryGirl.create(:iczn_subspecies, name: 'aaa', parent: sp)
