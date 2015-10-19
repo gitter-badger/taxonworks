@@ -221,14 +221,42 @@
             var resizeBorder = 10;
 
             // Change cursor
-            if (relativeX < resizeBorder && relativeY < resizeBorder) {
-                this.attr('cursor', 'nw-resize');
-            } else if (relativeX > shapeWidth - resizeBorder && relativeY < resizeBorder) {
-                this.attr('cursor', 'ne-resize');
-            } else if (relativeX > shapeWidth - resizeBorder && relativeY > shapeHeight - resizeBorder) {
-                this.attr('cursor', 'se-resize');
-            } else if (relativeX < resizeBorder && relativeY > shapeHeight - resizeBorder) {
+//            if (relativeX < resizeBorder && relativeY < resizeBorder) {
+//                this.attr('cursor', 'nw-resize');
+//            } else if (relativeX > shapeWidth - resizeBorder && relativeY < resizeBorder) {
+//                this.attr('cursor', 'ne-resize');
+//            } else if (relativeX > shapeWidth - resizeBorder && relativeY > shapeHeight - resizeBorder) {
+//                this.attr('cursor', 'se-resize');
+//            } else if (relativeX < resizeBorder && relativeY > shapeHeight - resizeBorder) {
+//                this.attr('cursor', 'sw-resize');
+            if (relativeX < resizeBorder) {     // left (west) border, so see if also a corner
+                this.attr('cursor', 'w-resize');
+                if(relativeY < resizeBorder) {
+                    this.attr('cursor', 'nw-resize');
+                } else if (relativeY > shapeHeight - resizeBorder) {
                 this.attr('cursor', 'sw-resize');
+                }
+            } else if (relativeX > shapeWidth - resizeBorder) {     // right (east) border, so see if also a corner
+                this.attr('cursor', 'e-resize');
+                if(relativeY > shapeHeight - resizeBorder) {
+                    this.attr('cursor', 'se-resize');
+                } else if (relativeY < resizeBorder) {
+                    this.attr('cursor', 'ne-resize');
+                }
+            } else if (relativeY > shapeHeight - resizeBorder) {     // bottom (south) border, so see if also a corner
+                this.attr('cursor', 's-resize');
+                if (relativeX > shapeWidth - resizeBorder) {
+                    this.attr('cursor', 'se-resize');
+                } else if (relativeX < resizeBorder) {
+                    this.attr("cursor", 'sw-resize');
+                }
+            } else if (relativeY < resizeBorder) {     // top (north) border, so see if also a corner
+                this.attr('cursor', 'n-resize');
+                if(relativeX < resizeBorder) {
+                    this.attr('cursor', 'sw-resize');
+                } else if(relativeX > shapeWidth - resizeBorder){
+                    this.attr('cursor', 'sw-resize');
+                }
             } else {
                 this.attr('cursor', 'move');
             }
@@ -252,6 +280,15 @@
             // Inspect cursor to determine which resize/move process to use
             switch (this.attr('cursor')) {
 
+                case 'w-resize' :
+                    this.attr({
+                        x: this.ox + dx,
+//                        y: this.oy + dy,
+                        width: this.ow - dx,
+//                        height: this.oh - dy
+                    });
+                    break;
+
                 case 'nw-resize' :
                     this.attr({
                         x: this.ox + dx,
@@ -269,23 +306,49 @@
                     });
                     break;
 
+                case 'e-resize' :
+                    this.attr({                   // not changing x of origin in this case
+//                        y: this.oy + dy,
+                        width: this.ow + dx,
+//                        height: this.oh - dy
+                    });
+                    break;
+
                 case 'se-resize' :
-                    this.attr({
+                    this.attr({                  // not changing x or y of origin in this case
                         width: this.ow + dx,
                         height: this.oh + dy
                     });
                     break;
 
                 case 'sw-resize' :
-                    this.attr({
+                    this.attr({                   // ARE changing x of origin in this case
                         x: this.ox + dx,
                         width: this.ow - dx,
                         height: this.oh + dy
                     });
                     break;
 
+                case 'n-resize' :
+                    this.attr({                   // ARE changing y of origin in this case
+                        y: this.oy + dy,
+//                        width: this.ow + dx,
+                        height: this.oh - dy
+                    });
+                    break;
+
+
+                case 's-resize' :
+                    this.attr({                   // not changing x or y of origin in this case
+//                        y: this.oy + dy,
+//                        width: this.ow + dx,
+                        height: this.oh + dy
+                    });
+                    break;
+
+
                 default :
-                    this.attr({
+                    this.attr({                   // default is <move> if not explicitly so (e.g., muffed n/s/e/w)
                         x: this.ox + dx,
                         y: this.oy + dy
                     });
