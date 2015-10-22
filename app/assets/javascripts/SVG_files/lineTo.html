@@ -19,13 +19,15 @@
 
     <script>
         var sketcher = null;
-        var xS;
-        var yS;
+        var xC;
+        var yC;
         var cursorMode;
         var zoom = 0;
         var canvas;
         var context;
         var image = new Image();
+        var svg = [];           // collect the collections here
+        var thisSvg = '';            // collect points as strings here
         //image.src = undefined;
         image.src = "../../../../spec/support/images/frost_stage.jpg";
         //          SVG_files\javascripts\assets\app\ to "root" then /spec...
@@ -40,8 +42,8 @@
         });
 
         $(image).load(function () {
-            xS = 0;
-            yS = 0;
+            xC = 0;
+            yC = 0;
             zoom = 0;
             canvas = document.getElementById("sketch");
             context = canvas.getContext("2d");
@@ -51,8 +53,8 @@
 
         function clearCanvas() {
             sketcher.clear();
-            xS = 0;
-            yS = 0;
+            xC = 0;
+            yC = 0;
             renderImage();
         }
         function setDraw() {
@@ -73,56 +75,91 @@
             zoom = zoom + 1;
             var factor = Math.pow(2, zoom);
             $("#zoom").html("Zoom:" + zoom);
-            context.scale(factor, factor);
-//            renderImage();
+//            context.scale(factor, factor);
+            renderImage();
         }
         function zoomOut() {
             if (zoom > 0) {
                 zoom = zoom - 1;
                 var factor = Math.pow(2, zoom);
                 $("#zoom").html("Zoom:" + zoom);
-                context.scale(factor, factor);
-//                renderImage();
+//                context.scale(factor, factor);
+                renderImage();
             }
         }
-        function panLeft() {
-            xS = xS - 100;
-            renderImage();
-        }
-
-        function panRight() {
-            xS = xS + 100;
-            renderImage();
-        }
-
-        function panUp() {
-            yS = yS - 100;
-            renderImage();
-        }
-
-        function panDown() {
-            yS = yS + 100;
-            renderImage();
-        }
+//        function panLeft() {
+//            xC = xC - 100;
+//            renderImage();
+//        }
+//
+//        function panRight() {
+//            xC = xC + 100;
+//            renderImage();
+//        }
+//
+//        function panUp() {
+//            yC = yC - 100;
+//            renderImage();
+//        }
+//
+//        function panDown() {
+//            yC = yC + 100;
+//            renderImage();
+//        }
 
         function renderImage() {
-            if (xS >= image.width - canvas.width) {
-                xS = image.width - canvas.width;
-            }
-            if (yS >=  image.height - canvas.height) {
-                yS = image.height - canvas.height;
-            }
-            if (xS < 0) {
-                xS = 0;
-            }
-            if (yS < 0) {
-                yS = 0;
-            }
+//            if (xC >= image.width - canvas.width) {
+//                xC = image.width - canvas.width;
+//            }
+//    xC, yC is -left, -top boundary of canvas, also source point of image
+//    want to window the image into the canvas isometrically
+//    and proportional to zoom level
 
-//            context.drawImage(image, xS, yS, image.width / Math.pow(2, zoom), image.height / Math.pow(2, zoom),
+            if ((xC - image.width) * zoom  >= canvas.width) {   // clip on xC
+                xC = (image.width - canvas.width) * zoom;
+            }
+            if (yC >= image.height - canvas.height) {
+                yC = image.height - canvas.height;
+            }
+            if (xC < 0) {
+                xC = 0;
+            }
+            if (yC < 0) {
+                yC = 0;
+            }
+//            context.fillOpacity = "0.0";
+            context.clearRect(0, 0, canvas.width, canvas.height);
+//            context.drawImage(image, 0, 0, image.width / Math.pow(2, zoom), image.height / Math.pow(2, zoom),
 //                    0, 0, canvas.width, canvas.height);
-//            context.drawImage(image, xS, yS, image.width, image.height, 0, 0, canvas.width, canvas.height);
-            context.drawImage(image, xS, yS);
+            context.drawImage(image, xC, yC, image.width / Math.pow(2, zoom), image.height / Math.pow(2, zoom),
+                    0, 0, canvas.width, canvas.height);
+//            context.drawImage(image, xC, yC, image.width, image.height, 0, 0, canvas.width, canvas.height);
+//            context.drawImage(image, xC, yC);
+//            context.drawImage(image, 0, 0);
+            var theseSvgs;
+            var element;
+            for(i=0; i<svg.length; i++) {
+                theseSvgs += svg[i];
+            }
+            element = svgLayer.appendChild(document.createElementNS(svg,'line'));
+            element.innerHTML=theseSvgs;
+//            if( this.elt === null )
+//            {
+//                var svg = 'http://www.w3.org/2000/svg';
+//                this.elt = document.createElementNS(svg,'line');
+//                this.elt.setAttributeNS(null,'stroke','green');
+//                this.elt.setAttributeNS(null,'stroke-width','3');
+//                this.elt.setAttributeNS(null,'stroke-opacity','0.5');
+//                Display().appendChild( this.elt );
+//            }
+//
+//            this.elt.setAttributeNS(null,'x1',old_x);
+//            this.elt.setAttributeNS(null,'y1',old_y);
+//
+//            this.elt.setAttributeNS(null,'x2',this.x);
+//            this.elt.setAttributeNS(null,'y2',this.y);
+//        }
+
         }
 
         // TODO:
@@ -131,6 +168,13 @@
         // capture svg data
         // source image from http://
     </script>
+    <style type='text/css'>
+        #container {
+            overflow: hidden;
+            width: 800px;
+            height: 600px;
+        }
+    </style>
 
 </head>
 
@@ -156,12 +200,12 @@
                     <span id="zoom">Zoom: 0</span>
                     <input type="button" value="Zoom OUT" onclick="zoomOut();"/>
                     <!--<input type="hidden" id="zoom" value="0" />-->
-                    <!--<input type="hidden" id="xS" value="0" />-->
+                    <!--<input type="hidden" id="xC" value="0" />-->
                     <!--<input type="button" value="Down" onclick="panDown();" />-->
                     <!--<input type="button" value="Up" onclick="panUp();" />-->
                     <!--<input type="button" value="Left" onclick="panLeft();" />-->
                     <!--<input type="button" value="Right" onclick="panRight();" />-->
-                    <!--<input type="hidden" id="yS" value="0" />-->
+                    <!--<input type="hidden" id="yC" value="0" />-->
                 </ul>
             </div>
         </div>
@@ -169,6 +213,13 @@
     </div>
     <!-- /topbar -->
 </div>
-<canvas id="sketch" width="1024" height="640"></canvas>
+<div id="container">
+    <canvas id="sketch" width="800" height="600" style="left: 0; top: 0; position: relative;">
+        <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
+             style="left: 0; top: 0; position: relative;">
+            <circle id='cursor' cx='250' cy='180' r='20' fill='#ff0000' fill-opacity='1.0'/>
+        </svg>
+    </canvas>
+</div>
 </body>
 </html>

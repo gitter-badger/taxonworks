@@ -26,8 +26,10 @@ function Sketcher( canvasID, brushImage ) {
 Sketcher.prototype.onCanvasMouseDown = function () {
   var self = this;
   return function(event) {
-    self.mouseMoveHandler = self.onCanvasMouseMove()
-    self.mouseUpHandler = self.onCanvasMouseUp()
+    //self.context.save();
+
+    self.mouseMoveHandler = self.onCanvasMouseMove();
+    self.mouseUpHandler = self.onCanvasMouseUp();
 
     $(document).bind( self.mouseMoveEvent, self.mouseMoveHandler );
     $(document).bind( self.mouseUpEvent, self.mouseUpHandler );
@@ -35,7 +37,7 @@ Sketcher.prototype.onCanvasMouseDown = function () {
     self.updateMousePosition( event );
     self.renderFunction( event );
   }
-}
+};
 
 Sketcher.prototype.onCanvasMouseMove = function () {
   var self = this;
@@ -61,7 +63,7 @@ var Trig = {
     var dy = point2.y - point1.y;
     return Math.atan2( dx, dy );
   }
-}
+};
 
 Sketcher.prototype.onCanvasMouseUp = function (event) {
   var self = this;
@@ -72,9 +74,19 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
 
     self.mouseMoveHandler = null;
     self.mouseUpHandler = null;
+    //self.context.restore();
     setMove();
+    if (cursorMode == "DRAW") {
+      if (thisSvg != undefined) {
+        //if (thisSvg.length > 0) {
+        svg.push(thisSvg);
+        //}
+        //;    // save this graphic item for replot
+        thisSvg = '';      // and clear the collector
+      }
+    }
   }
-}
+};
 
 Sketcher.prototype.updateMousePosition = function (event) {
   var target;
@@ -89,26 +101,47 @@ Sketcher.prototype.updateMousePosition = function (event) {
   this.lastMousePoint.x = target.pageX - offset.left;
   this.lastMousePoint.y = target.pageY - offset.top;
 
-}
+};
 
 Sketcher.prototype.updateCanvasByLine = function (event) {
   if(cursorMode == "DRAW") {          // modified for move/draw mode JRF
-    this.context.beginPath();
+    this.context.beginPath();        // interdigitate canvas draw and record svg
     this.context.moveTo(this.lastMousePoint.x, this.lastMousePoint.y);
+     thisSvg += '<line stroke="red" x1="' + this.lastMousePoint.x + '" y1="' + this.lastMousePoint.y + '" ';
     this.updateMousePosition(event);
     this.context.lineTo(this.lastMousePoint.x, this.lastMousePoint.y);
+     thisSvg += 'x2="' + this.lastMousePoint.x + '" y2="' + this.lastMousePoint.y + '">\n';
     this.context.stroke();
   }
-  else {
+  //else {    // this version depends on xC, yC resampling the image to re-origin the image
+  //  var oldX = this.lastMousePoint.x;   //latch the x and y
+  //  var oldY = this.lastMousePoint.y;
+  //  //this.context.moveTo(this.lastMousePoint.x, this.lastMousePoint.y);  // move the context (why?)
+  //  this.updateMousePosition(event);                                    //  presumably a new point
+  //  //this.context.moveTo(this.lastMousePoint.x, this.lastMousePoint.y);
+  //  xC = xC + oldX - this.lastMousePoint.x;
+  //  yC = yC + oldY - this.lastMousePoint.y;
+  //  //this.context.translate(-(oldX - this.lastMousePoint.x), -(oldY - this.lastMousePoint.y));
+  //  renderImage();
+  //}
+  else {    // this version assumes manipulating the left and top attributes of the canvas
     var oldX = this.lastMousePoint.x;
     var oldY = this.lastMousePoint.y;
-    this.context.moveTo(this.lastMousePoint.x, this.lastMousePoint.y);
     this.updateMousePosition(event);
-    this.context.moveTo(this.lastMousePoint.x, this.lastMousePoint.y);
-    //xS = xS + oldX - this.lastMousePoint.x;
-    //yS = yS + oldY - this.lastMousePoint.y;
+    xC = xC + oldX - this.lastMousePoint.x;
+    yC = yC + oldY - this.lastMousePoint.y;
+    var newX = this.lastMousePoint.x;
+    var newY = this.lastMousePoint.y;
+    if (oldX == newX && oldY == newY) return false;
+    //var style = $("#svgLayer")[0].style;
+    //style.left = (style.left.split('px')[0] - (oldX - newX)).toString() + 'px';
+    //style.top = (style.top.split('px')[0] + newY - oldY).toString() + 'px';
+    style = $("#sketch")[0].style;
+    style.left = (-xC /*+ parseInt(style.left.split('px')[0]) - (newX - oldX)*/).toString() + 'px';
+    style.top = (-yC /*+ parseInt(style.top.split('px')[0]) + (newY - oldY)*/).toString() + 'px';
+    //this.context.translate(-(oldX - this.lastMousePoint.x), -(oldY - this.lastMousePoint.y));
     //renderImage();
-    this.context.translate(-(oldX - this.lastMousePoint.x), -(oldY - this.lastMousePoint.y));
+    u = 0;
   }
 }
 
@@ -132,7 +165,7 @@ Sketcher.prototype.updateCanvasByBrush = function (event) {
     //console.log( x, y, angle, z );
     this.context.drawImage(this.brush, x, y);
   }
-}
+};
 
 Sketcher.prototype.toString = function () {
 
@@ -141,16 +174,16 @@ Sketcher.prototype.toString = function () {
   dataString = dataString.substring( index );
 
   return dataString;
-}
+};
 
 Sketcher.prototype.toDataURL = function () {
 
   var dataString = this.canvas.get(0).toDataURL("image/png");
   return dataString;
-}
+};
 
 Sketcher.prototype.clear = function () {
 
   var c = this.canvas[0];
   this.context.clearRect( 0, 0, c.width, c.height );
-}
+};
