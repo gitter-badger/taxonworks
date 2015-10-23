@@ -77,14 +77,13 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
     //self.context.restore();
     if (cursorMode == "DRAW") {
       if (thisSvg != undefined) {
-        //if (thisSvg.length > 0) {
-        svg.push(thisSvg);
-        //}
-        //;    // save this graphic item for replot
-        thisSvg = [];      // and clear the collector
+        if (thisSvg.length > 0) {
+        svg.push(thisSvg);    // save this graphic item for replot
+        };
       }
     }
-    setMove();
+    thisSvg = [];      // and clear the collector
+    setMove();      // AFTER checking cursorMode, revert to MOVE
   }
 };
 

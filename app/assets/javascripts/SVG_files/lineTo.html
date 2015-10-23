@@ -87,25 +87,25 @@
                 renderImage();
             }
         }
-//        function panLeft() {
-//            xC = xC - 100;
-//            renderImage();
-//        }
-//
-//        function panRight() {
-//            xC = xC + 100;
-//            renderImage();
-//        }
-//
-//        function panUp() {
-//            yC = yC - 100;
-//            renderImage();
-//        }
-//
-//        function panDown() {
-//            yC = yC + 100;
-//            renderImage();
-//        }
+        //        function panLeft() {
+        //            xC = xC - 100;
+        //            renderImage();
+        //        }
+        //
+        //        function panRight() {
+        //            xC = xC + 100;
+        //            renderImage();
+        //        }
+        //
+        //        function panUp() {
+        //            yC = yC - 100;
+        //            renderImage();
+        //        }
+        //
+        //        function panDown() {
+        //            yC = yC + 100;
+        //            renderImage();
+        //        }
 
         function renderImage() {
 //            if (xC >= image.width - canvas.width) {
@@ -138,22 +138,23 @@
 //            context.drawImage(image, 0, 0);
             var theseSvgs;
             var element;
+            svgLayer.innerHTML = '';
             for (i = 0; i < svg.length; i++) {
                 thisSvg = svg[i];
-                for (j=0; j < thisSvg.length; j++) {
+                for (j = 0; j < thisSvg.length; j++) {
 
-                element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                element.setAttributeNS(null, 'stroke', 'red');
-                element.setAttributeNS(null, 'stroke-width', '3');
-                element.setAttributeNS(null, 'stroke-opacity', '0.5');
-                svgLayer.appendChild(element);
-                element.setAttributeNS(null, 'x1', thisSvg[j][0]);
-                element.setAttributeNS(null, 'y1',  thisSvg[j][1]);
-            j += 1;
-                element.setAttributeNS(null, 'x2', thisSvg[j][0]);
-                element.setAttributeNS(null, 'y2', thisSvg[j][1]);
+                    element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    element.setAttributeNS(null, 'stroke', 'red');
+                    element.setAttributeNS(null, 'stroke-width', '3');
+                    element.setAttributeNS(null, 'stroke-opacity', '0.5');
+                    svgLayer.appendChild(element);
+                    element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
+                    element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
+                    j += 1;
+                    element.setAttributeNS(null, 'x2', thisSvg[j][0]);      // end x
+                    element.setAttributeNS(null, 'y2', thisSvg[j][1]);      // end y
+                }
             }
-        }
         }
 
         // TODO:
