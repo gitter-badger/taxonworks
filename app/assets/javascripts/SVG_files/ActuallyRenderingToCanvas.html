@@ -1,0 +1,27 @@
+// Set up our canvas on the page before doing anything.
+var myCanvas = document.createElement('canvas');
+myCanvas.width = 640;
+myCanvas.height = 480;
+document.getElementsByTagName('body') [0].appendChild(myCanvas);
+
+// Get drawing context for the Canvas
+var myCanvasContext = myCanvas.getContext('2d');
+
+// Load up our image.
+var source = new Image();
+source.src = 'http://example.org/myfile.svg';
+source.width = '100';
+source.height = '100';
+// Render our SVG image to the canvas once it loads.
+source.onload = function(){
+myCanvasContext.drawImage(source,0,0);
+}
+
+// My SVG file as s string.
+var mySVG = '<svg […]';
+
+// Create a Data URI.
+var mySrc = 'data:image/svg+xml;base64,'+window.btoa(mySVG);
+
+// Load up our image.
+var source = new Image();

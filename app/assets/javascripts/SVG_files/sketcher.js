@@ -75,16 +75,16 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
     self.mouseMoveHandler = null;
     self.mouseUpHandler = null;
     //self.context.restore();
-    setMove();
     if (cursorMode == "DRAW") {
       if (thisSvg != undefined) {
         //if (thisSvg.length > 0) {
         svg.push(thisSvg);
         //}
         //;    // save this graphic item for replot
-        thisSvg = '';      // and clear the collector
+        thisSvg = [];      // and clear the collector
       }
     }
+    setMove();
   }
 };
 
@@ -107,10 +107,12 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
   if(cursorMode == "DRAW") {          // modified for move/draw mode JRF
     this.context.beginPath();        // interdigitate canvas draw and record svg
     this.context.moveTo(this.lastMousePoint.x, this.lastMousePoint.y);
-     thisSvg += '<line stroke="red" x1="' + this.lastMousePoint.x + '" y1="' + this.lastMousePoint.y + '" ';
+     //thisSvg += '<line stroke="red" x1="' + this.lastMousePoint.x + '" y1="' + this.lastMousePoint.y + '" ';
+    thisSvg.push([this.lastMousePoint.x, this.lastMousePoint.y]);
     this.updateMousePosition(event);
     this.context.lineTo(this.lastMousePoint.x, this.lastMousePoint.y);
-     thisSvg += 'x2="' + this.lastMousePoint.x + '" y2="' + this.lastMousePoint.y + '">\n';
+     //thisSvg += 'x2="' + this.lastMousePoint.x + '" y2="' + this.lastMousePoint.y + '">\n';
+    thisSvg.push([this.lastMousePoint.x, this.lastMousePoint.y]);
     this.context.stroke();
   }
   //else {    // this version depends on xC, yC resampling the image to re-origin the image

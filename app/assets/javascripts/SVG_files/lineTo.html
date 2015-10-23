@@ -27,7 +27,7 @@
         var context;
         var image = new Image();
         var svg = [];           // collect the collections here
-        var thisSvg = '';            // collect points as strings here
+        var thisSvg = [];            // collect points as [x,y]
         //image.src = undefined;
         image.src = "../../../../spec/support/images/frost_stage.jpg";
         //          SVG_files\javascripts\assets\app\ to "root" then /spec...
@@ -115,7 +115,7 @@
 //    want to window the image into the canvas isometrically
 //    and proportional to zoom level
 
-            if ((xC - image.width) * zoom  >= canvas.width) {   // clip on xC
+            if ((xC - image.width) * zoom >= canvas.width) {   // clip on xC
                 xC = (image.width - canvas.width) * zoom;
             }
             if (yC >= image.height - canvas.height) {
@@ -138,28 +138,22 @@
 //            context.drawImage(image, 0, 0);
             var theseSvgs;
             var element;
-            for(i=0; i<svg.length; i++) {
-                theseSvgs += svg[i];
-            }
-            element = svgLayer.appendChild(document.createElementNS(svg,'line'));
-            element.innerHTML=theseSvgs;
-//            if( this.elt === null )
-//            {
-//                var svg = 'http://www.w3.org/2000/svg';
-//                this.elt = document.createElementNS(svg,'line');
-//                this.elt.setAttributeNS(null,'stroke','green');
-//                this.elt.setAttributeNS(null,'stroke-width','3');
-//                this.elt.setAttributeNS(null,'stroke-opacity','0.5');
-//                Display().appendChild( this.elt );
-//            }
-//
-//            this.elt.setAttributeNS(null,'x1',old_x);
-//            this.elt.setAttributeNS(null,'y1',old_y);
-//
-//            this.elt.setAttributeNS(null,'x2',this.x);
-//            this.elt.setAttributeNS(null,'y2',this.y);
-//        }
+            for (i = 0; i < svg.length; i++) {
+                thisSvg = svg[i];
+                for (j=0; j < thisSvg.length; j++) {
 
+                element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                element.setAttributeNS(null, 'stroke', 'red');
+                element.setAttributeNS(null, 'stroke-width', '3');
+                element.setAttributeNS(null, 'stroke-opacity', '0.5');
+                svgLayer.appendChild(element);
+                element.setAttributeNS(null, 'x1', thisSvg[j][0]);
+                element.setAttributeNS(null, 'y1',  thisSvg[j][1]);
+            j += 1;
+                element.setAttributeNS(null, 'x2', thisSvg[j][0]);
+                element.setAttributeNS(null, 'y2', thisSvg[j][1]);
+            }
+        }
         }
 
         // TODO:
