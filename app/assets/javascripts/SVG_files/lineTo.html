@@ -25,14 +25,14 @@
         var zoom = 0;
         var canvas;
         var context;
-        var image = new Image();
+        var canvas_image = new Image();
         var svg = [];           // collect the collections here
         var thisSvg = [];            // collect points as [x,y]
-        //image.src = undefined;
-        image.src = "../../../../spec/support/images/frost_stage.jpg";
+        //canvas_image.src = undefined;
+        canvas_image.src = "../../../../spec/support/images/frost_stage.jpg";
         //          SVG_files\javascripts\assets\app\ to "root" then /spec...
-        //image.src = "file:///Users/jrflood/src/taxonworks/spec/support/images/frost_stage.jpg";
-        //image.src = 'frost_stage.jpg';
+        //canvas_image.src = "file:///Users/jrflood/src/taxonworks/spec/support/images/frost_stage.jpg";
+        //canvas_image.src = 'frost_stage.jpg';
         $(document).ready(function (e) {
             sketcher = new Sketcher("sketch");
 //    canvas = document.getElementById("sketch");
@@ -41,7 +41,7 @@
 //    renderImage();
         });
 
-        $(image).load(function () {
+        $(canvas_image).load(function () {
             xC = 0;
             yC = 0;
             zoom = 0;
@@ -76,6 +76,11 @@
             var factor = Math.pow(2, zoom);
             $("#zoom").html("Zoom:" + zoom);
 //            context.scale(factor, factor);
+            $("#svgLayer").attr('currentScale',  zoom.toString() + '.0');
+            $("#svgLayer").removeAttr('viewBox');
+            $("#svgLayer").removeAttr('viewbox');
+            $("#svgLayer").attr('viewBox',  (xC*(zoom+1)).toString() + ' ' + (yC*(zoom+1)).toString() + ' ' +  (canvas.width/(zoom+1)).toString() + ' ' +  (canvas.height/(zoom+1)).toString() );
+//            $("#svgLayer").attr('viewbox',  (xC*(zoom+1)).toString() + ' ' + (yC*(zoom+1)).toString() + ' ' +  (canvas.width/(zoom+1)).toString() + ' ' +  (canvas.height/(zoom+1)).toString() );
             renderImage();
         }
         function zoomOut() {
@@ -84,6 +89,11 @@
                 var factor = Math.pow(2, zoom);
                 $("#zoom").html("Zoom:" + zoom);
 //                context.scale(factor, factor);
+                $("#svgLayer").attr('currentScale',  zoom.toString() + '.0');
+                $("#svgLayer").removeAttr('viewBox');
+                $("#svgLayer").removeAttr('viewbBox');
+                $("#svgLayer").attr('viewBox',  (xC*(zoom+1)).toString() + ' ' + (yC*(zoom+1)).toString() + ' ' +  (canvas.width/(zoom+1)).toString() + ' ' +  (canvas.height/(zoom+1)).toString() );
+//                $("#svgLayer").attr('viewbox',  (xC*(zoom+1)).toString() + ' ' + (yC*(zoom+1)).toString() + ' ' +  (canvas.width/(zoom+1)).toString() + ' ' +  (canvas.height/(zoom+1)).toString() );
                 renderImage();
             }
         }
@@ -108,18 +118,18 @@
         //        }
 
         function renderImage() {
-//            if (xC >= image.width - canvas.width) {
-//                xC = image.width - canvas.width;
-//            }
-//    xC, yC is -left, -top boundary of canvas, also source point of image
-//    want to window the image into the canvas isometrically
+            if (xC >= canvas_image.width - canvas.width) {
+                xC = canvas_image.width - canvas.width;
+            }
+//    xC, yC is -left, -top boundary of canvas, also source point of canvas_image
+//    want to window the canvas_image into the canvas isometrically
 //    and proportional to zoom level
 
-            if ((xC - image.width) * zoom >= canvas.width) {   // clip on xC
-                xC = (image.width - canvas.width) * zoom;
-            }
-            if (yC >= image.height - canvas.height) {
-                yC = image.height - canvas.height;
+//            if ((xC - canvas_image.width) * zoom >= canvas.width) {   // clip on xC
+//                xC = (canvas_image.width - canvas.width) * zoom;
+//            }
+            if (yC >= canvas_image.height - canvas.height) {
+                yC = canvas_image.height - canvas.height;
             }
             if (xC < 0) {
                 xC = 0;
@@ -128,33 +138,44 @@
                 yC = 0;
             }
 //            context.fillOpacity = "0.0";
-            context.clearRect(0, 0, canvas.width, canvas.height);
-//            context.drawImage(image, 0, 0, image.width / Math.pow(2, zoom), image.height / Math.pow(2, zoom),
+           context.clearRect(0, 0, canvas.width, canvas.height);
+//            context.drawImage(canvas_image, 0, 0, canvas_image.width / Math.pow(2, zoom), canvas_image.height / Math.pow(2, zoom),
 //                    0, 0, canvas.width, canvas.height);
-            context.drawImage(image, xC, yC, image.width / Math.pow(2, zoom), image.height / Math.pow(2, zoom),
-                    0, 0, canvas.width, canvas.height);
-//            context.drawImage(image, xC, yC, image.width, image.height, 0, 0, canvas.width, canvas.height);
-//            context.drawImage(image, xC, yC);
-//            context.drawImage(image, 0, 0);
-            var theseSvgs;
-            var element;
-            svgLayer.innerHTML = '';
-            for (i = 0; i < svg.length; i++) {
-                thisSvg = svg[i];
-                for (j = 0; j < thisSvg.length; j++) {
+// ***           context.drawImage(canvas_image, xC, yC, canvas_image.width / Math.pow(2, zoom), canvas_image.height / Math.pow(2, zoom),
+// ***                  0, 0, canvas.width, canvas.height);
+//            context.drawImage(canvas_image, xC, yC, canvas_image.width, canvas_image.height, 0, 0, canvas.width, canvas.height);
+//            context.drawImage(canvas_image, xC, yC);
+//            context.drawImage(canvas_image, 0, 0);
+             var element;
+//  ***            svgLayer.innerHTML = '';
+     //   image x="0" y="0" width="400" height="357" preserveAspectRatio="none" href="/images/3/scale_to_box/0/640/2640/2360/400/400
+//            element = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+//            svgLayer.appendChild(element);
+//            element.setAttributeNS(null, 'x', '0');
+//            element.setAttributeNS(null, 'y', '0');
+//            element.setAttributeNS(null, 'width', '800');       // svgLayer.width);
+//            element.setAttributeNS(null, 'height', '600');      // svgLayer.height);
+//            element.setAttributeNS(null, 'preserveAspectRatio', 'none');
+////            element.setAttributeNS(null, 'href', '/images/3/scale_to_box/0/640/2640/2360/800/600');
+//            element.setAttributeNS(null, 'xlink:href', '/frost_stage.jpg');
 
-                    element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    element.setAttributeNS(null, 'stroke', 'red');
-                    element.setAttributeNS(null, 'stroke-width', '3');
-                    element.setAttributeNS(null, 'stroke-opacity', '0.5');
-                    svgLayer.appendChild(element);
-                    element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
-                    element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
-                    j += 1;
-                    element.setAttributeNS(null, 'x2', thisSvg[j][0]);      // end x
-                    element.setAttributeNS(null, 'y2', thisSvg[j][1]);      // end y
-                }
-            }
+//            for (i = 0; i < svg.length; i++) {
+//                thisSvg = svg[i];
+//      // only add new elements
+//                for (j = 0; j < thisSvg.length; j++) {
+//
+//                    element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+//                    element.setAttributeNS(null, 'stroke', 'red');
+//                    element.setAttributeNS(null, 'stroke-width', '3');
+//                    element.setAttributeNS(null, 'stroke-opacity', '0.5');
+//                    svgLayer.appendChild(element);
+//                    element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
+//                    element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
+//                    j += 1;
+//                    element.setAttributeNS(null, 'x2', thisSvg[j][0]);      // end x
+//                    element.setAttributeNS(null, 'y2', thisSvg[j][1]);      // end y
+//                }
+//            }
         }
 
         // TODO:
@@ -208,13 +229,15 @@
     </div>
     <!-- /topbar -->
 </div>
-<div id="container">
-    <canvas id="sketch" width="800" height="600" style="left: 0; top: 0; position: relative;">
-        <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
-             style="left: 0; top: 0; position: relative;">
-            <circle id='cursor' cx='250' cy='180' r='20' fill='#ff0000' fill-opacity='1.0'/>
+<div id="container" style="overflow: hidden">
+    <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
+             style="left: 50px; top: 125px; position: absolute;" currentScale="1.0" viewBox="0 0 800 600">
+            <image x="0" y="0" width="800" height="600" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>
+            <circle id='cursor' cx='250' cy='180' r='20' fill='#ff0000' fill-opacity='0.5'/>
         </svg>
+    <canvas id="sketch" width="800" height="600" style="left: 50px; top: 125px; position: absolute; opacity: 0.8">
     </canvas>
+
 </div>
 </body>
 </html>

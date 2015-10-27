@@ -79,6 +79,21 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
       if (thisSvg != undefined) {
         if (thisSvg.length > 0) {
         svg.push(thisSvg);    // save this graphic item for replot
+          var element;
+          for (j = 0; j < thisSvg.length; j++) {
+
+            element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            element.setAttributeNS(null, 'stroke', 'red');
+            element.setAttributeNS(null, 'stroke-width', '3');
+            element.setAttributeNS(null, 'stroke-opacity', '0.5');
+            svgLayer.appendChild(element);
+            element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
+            element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
+            j += 1;
+            element.setAttributeNS(null, 'x2', thisSvg[j][0]);      // end x
+            element.setAttributeNS(null, 'y2', thisSvg[j][1]);      // end y
+          }
+          renderImage();
         };
       }
     }
@@ -114,6 +129,12 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     thisSvg.push([this.lastMousePoint.x, this.lastMousePoint.y]);
     this.context.stroke();
   }
+  ////////////////////
+  //
+  //  DRAW mode needs to be expanded to Circle, Rectangle, Text, Line, PolyLine, Marker(?)
+  //  mouseDown/Up will need to articulate for above shapes also
+  //
+  ////////////////////
   //else {    // this version depends on xC, yC resampling the image to re-origin the image
   //  var oldX = this.lastMousePoint.x;   //latch the x and y
   //  var oldY = this.lastMousePoint.y;
