@@ -76,11 +76,17 @@
             var factor = Math.pow(2, zoom);
             $("#zoom").html("Zoom:" + zoom);
 //            context.scale(factor, factor);
-            $("#svgLayer").attr('currentScale',  zoom.toString() + '.0');
-            $("#svgLayer").removeAttr('viewBox');
-            $("#svgLayer").removeAttr('viewbox');
-            $("#svgLayer").attr('viewBox',  (xC*(zoom+1)).toString() + ' ' + (yC*(zoom+1)).toString() + ' ' +  (canvas.width/(zoom+1)).toString() + ' ' +  (canvas.height/(zoom+1)).toString() );
+//            $("#svgLayer").attr('currentScale',  zoom.toString() + '.0');
+//            $("#svgLayer").removeAttr('viewBox');
+//            $("#svgLayer").removeAttr('viewbox');
+//            $("#svgLayer").attr('viewBox',  (xC*(zoom+1)).toString() + ' ' + (yC*(zoom+1)).toString() + ' ' +  (canvas.width/(zoom+1)).toString() + ' ' +  (canvas.height/(zoom+1)).toString() );
 //            $("#svgLayer").attr('viewbox',  (xC*(zoom+1)).toString() + ' ' + (yC*(zoom+1)).toString() + ' ' +  (canvas.width/(zoom+1)).toString() + ' ' +  (canvas.height/(zoom+1)).toString() );
+//            var xlt = document.getElementById('xlt');         // DOM svg element g xlt
+//            var transform = xlt.attributes['transform'].value;          // string of transform="translate( x, y )scale(n.m)"
+//            var trans_scale = transform.split('scale');
+//            transform = trans_scale[0] + "scale(" + factor.toString() + ')';
+//            xlt.attributes['transform'].value = transform;
+            zoom_trans(null, null, factor);
             renderImage();
         }
         function zoomOut() {
@@ -89,11 +95,12 @@
                 var factor = Math.pow(2, zoom);
                 $("#zoom").html("Zoom:" + zoom);
 //                context.scale(factor, factor);
-                $("#svgLayer").attr('currentScale',  zoom.toString() + '.0');
-                $("#svgLayer").removeAttr('viewBox');
-                $("#svgLayer").removeAttr('viewbBox');
-                $("#svgLayer").attr('viewBox',  (xC*(zoom+1)).toString() + ' ' + (yC*(zoom+1)).toString() + ' ' +  (canvas.width/(zoom+1)).toString() + ' ' +  (canvas.height/(zoom+1)).toString() );
+//                $("#svgLayer").attr('currentScale',  zoom.toString() + '.0');
+//                $("#svgLayer").removeAttr('viewBox');
+//                $("#svgLayer").removeAttr('viewbBox');
+//                $("#svgLayer").attr('viewBox',  (xC*(zoom+1)).toString() + ' ' + (yC*(zoom+1)).toString() + ' ' +  (canvas.width/(zoom+1)).toString() + ' ' +  (canvas.height/(zoom+1)).toString() );
 //                $("#svgLayer").attr('viewbox',  (xC*(zoom+1)).toString() + ' ' + (yC*(zoom+1)).toString() + ' ' +  (canvas.width/(zoom+1)).toString() + ' ' +  (canvas.height/(zoom+1)).toString() );
+                zoom_trans(null, null, factor);
                 renderImage();
             }
         }
@@ -116,6 +123,15 @@
         //            yC = yC + 100;
         //            renderImage();
         //        }
+
+        function zoom_trans(x, y, factor) {
+            var xlt = document.getElementById('xlt');         // DOM svg element g xlt
+            var transform = xlt.attributes['transform'].value;          // string of transform="translate( x, y )scale(n.m)"
+            var trans_scale = transform.split('scale');
+            var translate =
+            transform = 'translate(' + xC.toString() + ', ' + yC.toString() + ')scale(' + factor.toString() + ')';
+            xlt.attributes['transform'].value = transform;
+        }
 
         function renderImage() {
             if (xC >= canvas_image.width - canvas.width) {
@@ -232,8 +248,10 @@
 <div id="container" style="overflow: hidden">
     <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
              style="left: 50px; top: 125px; position: absolute;" currentScale="1.0" viewBox="0 0 800 600">
+        <g id="xlt" transform="translate(0,0)scale(1.0)">
             <image x="0" y="0" width="800" height="600" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>
             <circle id='cursor' cx='250' cy='180' r='20' fill='#ff0000' fill-opacity='0.5'/>
+        </g>
         </svg>
     <canvas id="sketch" width="800" height="600" style="left: 50px; top: 125px; position: absolute; opacity: 0.8">
     </canvas>

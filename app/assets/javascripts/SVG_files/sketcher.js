@@ -18,10 +18,20 @@ function Sketcher( canvasID, brushImage ) {
     this.mouseDownEvent = "mousedown";
     this.mouseMoveEvent = "mousemove";
     this.mouseUpEvent = "mouseup";
+    this.mouseWheelEvent = "handleScroll";
   }
 
   this.canvas.bind( this.mouseDownEvent, this.onCanvasMouseDown() );
 }
+Sketcher.prototype.handleScroll = function(e)
+{
+  var delta = e.wheelDelta ? e.wheelDelta/100 : e.detail ? -e.detail/6 : 0;
+  if (delta)
+    zoom(null, null, delta);
+  return e.preventDefault() && false;
+};
+//this.canvas.addEventListener('DOMMouseScroll',handleScroll,false);  // not sure I want scroll
+//this.canvas.addEventListener('mousewheel',handleScroll,false);
 
 Sketcher.prototype.onCanvasMouseDown = function () {
   var self = this;
@@ -86,7 +96,8 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
             element.setAttributeNS(null, 'stroke', 'red');
             element.setAttributeNS(null, 'stroke-width', '3');
             element.setAttributeNS(null, 'stroke-opacity', '0.5');
-            svgLayer.appendChild(element);
+            //svgLayer.appendChild(element);
+            document.getElementById("xlt").appendChild(element);
             element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
             element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
             j += 1;
@@ -120,13 +131,17 @@ Sketcher.prototype.updateMousePosition = function (event) {
 Sketcher.prototype.updateCanvasByLine = function (event) {
   if(cursorMode == "DRAW") {          // modified for move/draw mode JRF
     this.context.beginPath();        // interdigitate canvas draw and record svg
-    this.context.moveTo(this.lastMousePoint.x, this.lastMousePoint.y);
+    var thisX = this.lastMousePoint.x;
+    var thisY = this.lastMousePoint.y;
+    this.context.moveTo(thisX, thisY);
      //thisSvg += '<line stroke="red" x1="' + this.lastMousePoint.x + '" y1="' + this.lastMousePoint.y + '" ';
-    thisSvg.push([this.lastMousePoint.x, this.lastMousePoint.y]);
+    thisSvg.push([(thisX-xC)/Math.pow(2, zoom), (thisY-yC)/Math.pow(2, zoom)]);
     this.updateMousePosition(event);
-    this.context.lineTo(this.lastMousePoint.x, this.lastMousePoint.y);
+    var thisX = this.lastMousePoint.x;
+    var thisY = this.lastMousePoint.y;
+    this.context.lineTo(thisX, thisY);
      //thisSvg += 'x2="' + this.lastMousePoint.x + '" y2="' + this.lastMousePoint.y + '">\n';
-    thisSvg.push([this.lastMousePoint.x, this.lastMousePoint.y]);
+    thisSvg.push([(thisX-xC)/Math.pow(2, zoom), (thisY-yC)/Math.pow(2, zoom)]);
     this.context.stroke();
   }
   ////////////////////
@@ -150,17 +165,20 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     var oldX = this.lastMousePoint.x;
     var oldY = this.lastMousePoint.y;
     this.updateMousePosition(event);
-    xC = xC + oldX - this.lastMousePoint.x;
-    yC = yC + oldY - this.lastMousePoint.y;
+    xC = xC - (oldX - this.lastMousePoint.x);
+    yC = yC - (oldY - this.lastMousePoint.y);
     var newX = this.lastMousePoint.x;
     var newY = this.lastMousePoint.y;
+    //xC = newX;
+    //yC = newY;
     if (oldX == newX && oldY == newY) return false;
     //var style = $("#svgLayer")[0].style;
     //style.left = (style.left.split('px')[0] - (oldX - newX)).toString() + 'px';
     //style.top = (style.top.split('px')[0] + newY - oldY).toString() + 'px';
-    style = $("#sketch")[0].style;
-    style.left = (-xC /*+ parseInt(style.left.split('px')[0]) - (newX - oldX)*/).toString() + 'px';
-    style.top = (-yC /*+ parseInt(style.top.split('px')[0]) + (newY - oldY)*/).toString() + 'px';
+    //style = $("#sketch")[0].style;
+    //style.left = (-xC /*+ parseInt(style.left.split('px')[0]) - (newX - oldX)*/).toString() + 'px';
+    //style.top = (-yC /*+ parseInt(style.top.split('px')[0]) + (newY - oldY)*/).toString() + 'px';
+    zoom_trans(xC, yC, Math.pow(2, zoom));
     //this.context.translate(-(oldX - this.lastMousePoint.x), -(oldY - this.lastMousePoint.y));
     //renderImage();
     u = 0;

@@ -101,7 +101,7 @@
 
         var scaleFactor = 1.1;
         var zoom = function(clicks){
-            var pt = ctx.transformedPoint(lastX,lastY);
+            var pt = ctx.transformedPoint(lastX,lastY);         // this is the point the zoom centers on?
             ctx.translate(pt.x,pt.y);
             var factor = Math.pow(scaleFactor,clicks);
             ctx.scale(factor,factor);

@@ -1,0 +1,214 @@
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>B1 - Zoom SVG World Map with Canvas</title>
+    <script type="text/javascript" src="bowser.js"></script>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body style='padding:0px;font-family:arial'>
+<center>
+    <h4>Zoom SVG World Map with Canvas</h4>
+    <div style='width:90%;background-color:gainsboro;text-align:justify;padding:10px;border-radius:10px;'>
+        First loads svg image file into DOM to determine width and height (or Viewbox). Then inserts the svg as an image into canvas. Provides <b>Mouse Wheel</b> zoom. Uses <b>matrix transforms</b>.  IE/CH zoom the svg image, *FF converts it to raster image. **CH has problem with svg text element</td>
+    </div>
+
+    <div  id=canvasDiv style='background-color:#c7e9c0;overflow:hidden;width:800px;height:400px;border:2px solid green;border-radius:20px;'>
+        <canvas id=Canvas ></canvas>
+    </div>
+
+    <br />Javascript:<br />
+    <textarea id=jsValue style='border-radius:26px;font-size:110%;font-weight:bold;color:midnightblue;padding:16px;background-color:beige;border-width:0px;font-size:100%;font-family:lucida console;width:90%;height:400px'></textarea>
+
+</center>
+<div id='browserDiv' style='padding:3px;position:absolute;top:5px;left:5px;background-color:gainsboro;'></div>
+<script id=myScript>
+
+    //---select onChange---
+    function loadSVGasXML()
+    {
+        var SVGFile="world.svg"
+        var loadXML = new XMLHttpRequest;
+        function handler()
+        {
+            if(loadXML.readyState == 4)
+            {
+                if (loadXML.status == 200) //---loaded ok---
+                {
+                    var xmlString=loadXML.responseText
+                    //---used to access elements--
+                    var parser = new DOMParser();
+                    var XMLDoc=parser.parseFromString(xmlString,"text/xml").documentElement ;
+
+                    var widthSVG=parseFloat(XMLDoc.getAttribute("width"))
+                    var heightSVG=parseFloat(XMLDoc.getAttribute("height"))
+                    canvasZoomInit(SVGFile,widthSVG,heightSVG)
+                }
+            }
+        }
+        if (loadXML != null)
+        {
+            loadXML.open("GET", SVGFile, true);
+            loadXML.onreadystatechange = handler;
+            loadXML.send();
+        }
+    }
+    var ctx
+    function canvasZoomInit(SVGFile,svgWidth,svgHeight)
+    {
+        Canvas.width = svgWidth;
+        Canvas.height = svgHeight;
+        canvasDiv.style.left=svgWidth+"px"
+        canvasDiv.style.top=svgHeight+"px"
+
+        ctx = Canvas.getContext('2d');
+
+        function redraw()
+        {
+            ctx = Canvas.getContext('2d');
+            // Clear the entire Canvas
+            var p1 = ctx.transformedPoint(0,0);
+            var p2 = ctx.transformedPoint(Canvas.width,Canvas.height);
+            ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
+
+            // Alternatively:
+            //----works in all browsers---
+            ctx.save();
+            ctx.setTransform(1,0,0,1,0,0);
+            ctx.clearRect(0,0,Canvas.width,Canvas.height);
+            ctx.restore();
+
+            ctx.drawImage(img,0,0);
+        }
+        // Adds ctx.getTransform() - returns an SVGMatrix
+        // Adds ctx.transformedPoint(x,y) - returns an SVGPoint
+        function trackTransforms()
+        {
+            var svg = document.createElementNS("http://www.w3.org/2000/svg",'svg');
+            var xform = svg.createSVGMatrix();
+            ctx.getTransform = function(){ return xform; };
+
+            var savedTransforms = [];
+            var save = ctx.save;
+            ctx.save = function(){
+                savedTransforms.push(xform.translate(0,0));
+                return save.call(ctx);
+            };
+            var restore = ctx.restore;
+            ctx.restore = function(){
+                xform = savedTransforms.pop();
+                return restore.call(ctx);
+            };
+
+            var scale = ctx.scale;
+            ctx.scale = function(sx,sy){
+                xform = xform.scaleNonUniform(sx,sy);
+                return scale.call(ctx,sx,sy);
+            };
+            var rotate = ctx.rotate;
+            ctx.rotate = function(radians){
+                xform = xform.rotate(radians*180/Math.PI);
+                return rotate.call(ctx,radians);
+            };
+            var translate = ctx.translate;
+            ctx.translate = function(dx,dy){
+                xform = xform.translate(dx,dy);
+                return translate.call(ctx,dx,dy);
+            };
+            var transform = ctx.transform;
+            ctx.transform = function(a,b,c,d,e,f){
+                var m2 = svg.createSVGMatrix();
+                m2.a=a; m2.b=b; m2.c=c; m2.d=d; m2.e=e; m2.f=f;
+                xform = xform.multiply(m2);
+                return transform.call(ctx,a,b,c,d,e,f);
+            };
+            var setTransform = ctx.setTransform;
+            ctx.setTransform = function(a,b,c,d,e,f){
+                xform.a = a;
+                xform.b = b;
+                xform.c = c;
+                xform.d = d;
+                xform.e = e;
+                xform.f = f;
+                return setTransform.call(ctx,a,b,c,d,e,f);
+            };
+            var pt  = svg.createSVGPoint();
+            ctx.transformedPoint = function(x,y){
+                pt.x=x; pt.y=y;
+                return pt.matrixTransform(xform.inverse());
+            }
+        }
+
+        var img = new Image;
+        img.src = SVGFile;
+        img.onload=function()
+        {
+            var lastX=Canvas.width/2, lastY=Canvas.height/2;
+            var dragStart,dragged;
+            Canvas.addEventListener('mousedown',function(evt)
+            {
+                document.body.style.mozUserSelect = document.body.style.webkitUserSelect = document.body.style.userSelect = 'none';
+                lastX = evt.offsetX || (evt.pageX - Canvas.offsetLeft);
+                lastY = evt.offsetY || (evt.pageY - Canvas.offsetTop);
+                dragStart = ctx.transformedPoint(lastX,lastY);
+                dragged = false;
+            },false);
+            Canvas.addEventListener('mousemove',function(evt)
+            {
+                lastX = evt.offsetX || (evt.pageX - Canvas.offsetLeft);
+                lastY = evt.offsetY || (evt.pageY - Canvas.offsetTop);
+                dragged = true;
+                if (dragStart)
+                {
+                    var pt = ctx.transformedPoint(lastX,lastY);
+                    ctx.translate(pt.x-dragStart.x,pt.y-dragStart.y);
+                    redraw();
+                }
+            },false);
+            Canvas.addEventListener('mouseup',function(evt)
+            {
+                dragStart = null;
+                if (!dragged)
+                    zoom(evt.shiftKey ? -1 : 1 );
+            },false);
+
+            var scaleFactor = 1.1;
+            var zoom = function(clicks)
+            {
+                var pt = ctx.transformedPoint(lastX,lastY);
+                ctx.translate(pt.x,pt.y);
+                var factor = Math.pow(scaleFactor,clicks);
+                ctx.scale(factor,factor);
+                ctx.translate(-pt.x,-pt.y);
+                redraw();
+            }
+
+            handleScroll = function(e)
+            {
+                var delta = e.wheelDelta ? e.wheelDelta/100 : e.detail ? -e.detail/6 : 0;
+                if (delta)
+                    zoom(delta);
+                return e.preventDefault() && false;
+            };
+            Canvas.addEventListener('DOMMouseScroll',handleScroll,false);
+            Canvas.addEventListener('mousewheel',handleScroll,false);
+            trackTransforms();
+            setTimeout(redraw,600)
+        };
+
+    }
+</script>
+<script>
+    document.addEventListener("onload",init(),false)
+
+    function init()
+    {
+        browserVersion()
+        loadSVGasXML()
+        jsValue.value=myScript.text
+
+    }
+</script>
+</body>
+
+</html>
