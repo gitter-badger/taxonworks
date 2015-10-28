@@ -45,7 +45,7 @@
         $(canvas_image).load(function () {
             xC = 0;
             yC = 0;
-            zoom = 0;
+            zoom = 1;
             canvas = document.getElementById("sketch");
             context = canvas.getContext("2d");
             setMove();
@@ -81,7 +81,7 @@
         function setPath() {drawMode = "PATH"}
 
         function zoomIn() {
-            zoom = zoom + 1;
+            zoom = zoom * 1.25;
             var factor = Math.pow(2, zoom);
             $("#zoom").html("Zoom:" + zoom);
             zoom_trans(null, null, factor);
@@ -90,10 +90,10 @@
         }
         function zoomOut() {
             if (zoom > 0) {
-                zoom = zoom - 1;
+                zoom = zoom * 0.8;
                 var factor = Math.pow(2, zoom);
                 $("#zoom").html("Zoom:" + zoom);
-                zoom_trans(null, null, factor);
+                zoom_trans(null, null, zoom);
                 setMove();
 //                renderImage();
             }

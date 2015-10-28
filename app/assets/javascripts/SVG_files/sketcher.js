@@ -188,7 +188,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     //style = $("#sketch")[0].style;
     //style.left = (-xC /*+ parseInt(style.left.split('px')[0]) - (newX - oldX)*/).toString() + 'px';
     //style.top = (-yC /*+ parseInt(style.top.split('px')[0]) + (newY - oldY)*/).toString() + 'px';
-    zoom_trans(xC, yC, Math.pow(2, zoom));
+    zoom_trans(xC, yC, zoom);
     //this.context.translate(-(oldX - this.lastMousePoint.x), -(oldY - this.lastMousePoint.y));
     //renderImage();
     u = 0;
