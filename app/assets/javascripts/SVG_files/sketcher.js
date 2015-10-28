@@ -96,6 +96,7 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
             element.setAttributeNS(null, 'stroke', 'red');
             element.setAttributeNS(null, 'stroke-width', '3');
             element.setAttributeNS(null, 'stroke-opacity', '0.5');
+            element.setAttributeNS(null, 'stroke-linecap', 'round');
             //svgLayer.appendChild(element);
             document.getElementById("xlt").appendChild(element);
             element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
@@ -104,12 +105,12 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
             element.setAttributeNS(null, 'x2', thisSvg[j][0]);      // end x
             element.setAttributeNS(null, 'y2', thisSvg[j][1]);      // end y
           }
-          renderImage();
+          sketcher.clear();       // do not change any cursor-related values
         };
       }
     }
     thisSvg = [];      // and clear the collector
-    setMove();      // AFTER checking cursorMode, revert to MOVE
+    //setMove();      // AFTER checking cursorMode, revert to MOVE
   }
 };
 
@@ -130,26 +131,35 @@ Sketcher.prototype.updateMousePosition = function (event) {
 
 Sketcher.prototype.updateCanvasByLine = function (event) {
   if(cursorMode == "DRAW") {          // modified for move/draw mode JRF
-    this.context.beginPath();        // interdigitate canvas draw and record svg
-    var thisX = this.lastMousePoint.x;
-    var thisY = this.lastMousePoint.y;
-    this.context.moveTo(thisX, thisY);
-     //thisSvg += '<line stroke="red" x1="' + this.lastMousePoint.x + '" y1="' + this.lastMousePoint.y + '" ';
-    thisSvg.push([(thisX-xC)/Math.pow(2, zoom), (thisY-yC)/Math.pow(2, zoom)]);
-    this.updateMousePosition(event);
-    var thisX = this.lastMousePoint.x;
-    var thisY = this.lastMousePoint.y;
-    this.context.lineTo(thisX, thisY);
-     //thisSvg += 'x2="' + this.lastMousePoint.x + '" y2="' + this.lastMousePoint.y + '">\n';
-    thisSvg.push([(thisX-xC)/Math.pow(2, zoom), (thisY-yC)/Math.pow(2, zoom)]);
-    this.context.stroke();
+    ////////////////////
+    //
+    //  DRAW mode needs to be expanded to Circle, Rectangle, Text, Line, PolyLine, Marker(?)
+    //  mouseDown/Up will need to articulate for above shapes also
+    //
+    ////////////////////
+    if (drawMode == "PATH") {
+      this.context.beginPath();        // interdigitate canvas draw and record svg
+      var thisX = this.lastMousePoint.x;
+      var thisY = this.lastMousePoint.y;
+      this.context.moveTo(thisX, thisY);
+      //thisSvg += '<line stroke="red" x1="' + this.lastMousePoint.x + '" y1="' + this.lastMousePoint.y + '" ';
+      thisSvg.push([(thisX - xC) / Math.pow(2, zoom), (thisY - yC) / Math.pow(2, zoom)]);
+      this.updateMousePosition(event);
+      var thisX = this.lastMousePoint.x;
+      var thisY = this.lastMousePoint.y;
+      this.context.lineTo(thisX, thisY);
+      //thisSvg += 'x2="' + this.lastMousePoint.x + '" y2="' + this.lastMousePoint.y + '">\n';
+      thisSvg.push([(thisX - xC) / Math.pow(2, zoom), (thisY - yC) / Math.pow(2, zoom)]);
+      this.context.strokeStyle = "#0066FF";
+      this.context.stroke();
+    }
+  } else if (drawMode == "POLYGON") {
+    //need aditional articulation of mouseDown/Up/Click to begin/end each segment of polygon
+  } else if (drawMode == "CIRCLE") {
+
+  } else if (drawMode == "LINE") {
+
   }
-  ////////////////////
-  //
-  //  DRAW mode needs to be expanded to Circle, Rectangle, Text, Line, PolyLine, Marker(?)
-  //  mouseDown/Up will need to articulate for above shapes also
-  //
-  ////////////////////
   //else {    // this version depends on xC, yC resampling the image to re-origin the image
   //  var oldX = this.lastMousePoint.x;   //latch the x and y
   //  var oldY = this.lastMousePoint.y;
