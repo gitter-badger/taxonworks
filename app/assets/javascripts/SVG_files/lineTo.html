@@ -21,9 +21,9 @@
         var sketcher = null;
         var xC;
         var yC;
-        var cursorMode;
-        var drawMode = "PATH";
-        var zoom = 0;
+        var cursorMode = "MOVE";
+        var cursorColor = '#ff0000'
+        var zoom = 1.0;
         var canvas;
         var context;
         var canvas_image = new Image();
@@ -72,27 +72,41 @@
             document.getElementById("mode").textContent = cursorMode;
         }
 
-        function setPolygon() {drawMode = "POLYGON"}
+        function setPolygon() {
+            cursorMode = "POLYGON"
+        }
 
-        function setLine() {drawMode = "LINE"}
+        function setLine() {
+            cursorMode = "LINE"
+        }
 
-        function setCircle() {drawMode = "CIRCLE"}
+        function setCircle() {
+            cursorMode = "CIRCLE"
+        }
 
-        function setPath() {drawMode = "PATH"}
+        function setPath() {
+            cursorMode = "PATH"
+        }
+
+        function setText() {
+            cursorMode = "TEXT"
+        }
+
+        function indicatecursorMode() {
+
+        }
 
         function zoomIn() {
             zoom = zoom * 1.25;
-            var factor = Math.pow(2, zoom);
-            $("#zoom").html("Zoom:" + zoom);
-            zoom_trans(null, null, factor);
+            $("#zoom").html("Zoom:" + zoom.toFixed(3));
+            zoom_trans(null, null, zoom);
             setMove();
 //            renderImage();
         }
         function zoomOut() {
             if (zoom > 0) {
                 zoom = zoom * 0.8;
-                var factor = Math.pow(2, zoom);
-                $("#zoom").html("Zoom:" + zoom);
+                $("#zoom").html("Zoom:" + zoom.toFixed(3));
                 zoom_trans(null, null, zoom);
                 setMove();
 //                renderImage();
@@ -100,11 +114,16 @@
         }
 
         function zoom_trans(x, y, factor) {
+            if (x == null) {x = 0}
+            if (y == null) {y = 0}
+//            xC = 0.5 * (xC - x);
+//            yC = 0.5 * (yC - y);
             var xlt = document.getElementById('xlt');         // DOM svg element g xlt
             var transform = xlt.attributes['transform'].value;          // string of transform="translate( x, y )scale(n.m)"
-            var trans_scale = transform.split('scale');
-            var translate =
-            transform = 'translate(' + xC.toString() + ', ' + yC.toString() + ')scale(' + factor.toString() + ')';
+//            var trans_scale = transform.split('scale');
+            transform = 'translate(' + ((xC)).toString() + ', ' + ((yC)).toString() + ')scale(' + factor.toString() + ')';
+//            transform = 'translate(' + ((xC - x) / zoom).toString() + ', ' + ((yC - y) / zoom).toString() + ')scale(' + factor.toString() + ')';
+//            transform = 'translate(' + (xC / zoom).toString() + ', ' + (yC / zoom).toString() + ')scale(' + factor.toString() + ')';
             xlt.attributes['transform'].value = transform;
         }
 
@@ -130,43 +149,6 @@
             }
 //            context.fillOpacity = "0.0";
            context.clearRect(0, 0, canvas.width, canvas.height);
-//            context.drawImage(canvas_image, 0, 0, canvas_image.width / Math.pow(2, zoom), canvas_image.height / Math.pow(2, zoom),
-//                    0, 0, canvas.width, canvas.height);
-// ***           context.drawImage(canvas_image, xC, yC, canvas_image.width / Math.pow(2, zoom), canvas_image.height / Math.pow(2, zoom),
-// ***                  0, 0, canvas.width, canvas.height);
-//            context.drawImage(canvas_image, xC, yC, canvas_image.width, canvas_image.height, 0, 0, canvas.width, canvas.height);
-//            context.drawImage(canvas_image, xC, yC);
-//            context.drawImage(canvas_image, 0, 0);
-             var element;
-//  ***            svgLayer.innerHTML = '';
-     //   image x="0" y="0" width="400" height="357" preserveAspectRatio="none" href="/images/3/scale_to_box/0/640/2640/2360/400/400
-//            element = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-//            svgLayer.appendChild(element);
-//            element.setAttributeNS(null, 'x', '0');
-//            element.setAttributeNS(null, 'y', '0');
-//            element.setAttributeNS(null, 'width', '800');       // svgLayer.width);
-//            element.setAttributeNS(null, 'height', '600');      // svgLayer.height);
-//            element.setAttributeNS(null, 'preserveAspectRatio', 'none');
-////            element.setAttributeNS(null, 'href', '/images/3/scale_to_box/0/640/2640/2360/800/600');
-//            element.setAttributeNS(null, 'xlink:href', '/frost_stage.jpg');
-
-//            for (i = 0; i < svg.length; i++) {
-//                thisSvg = svg[i];
-//      // only add new elements
-//                for (j = 0; j < thisSvg.length; j++) {
-//
-//                    element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-//                    element.setAttributeNS(null, 'stroke', 'red');
-//                    element.setAttributeNS(null, 'stroke-width', '3');
-//                    element.setAttributeNS(null, 'stroke-opacity', '0.5');
-//                    svgLayer.appendChild(element);
-//                    element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
-//                    element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
-//                    j += 1;
-//                    element.setAttributeNS(null, 'x2', thisSvg[j][0]);      // end x
-//                    element.setAttributeNS(null, 'y2', thisSvg[j][1]);      // end y
-//                }
-//            }
         }
 
         // TODO:
@@ -203,11 +185,12 @@
                     <input type="button" class="btn error" value="Line" onclick="setLine();"/>
                     <input type="button" class="btn error" value="Circle" onclick="setCircle();"/>
                     <input type="button" class="btn error" value="Path" onclick="setPath();"/>
-                    <input type="button" value="Draw" onclick="setDraw();"/>
+                    <input type="button" value="Draw" onclick="setDraw(); this.backgroundColor='#993333';"/>
                     <span id="mode"></span>
                     <input type="button" value="Move" onclick="setMove();"/>
+                    <input type="button" value="Text" onclick="setText();"/>
                     <input type="button" value="Zoom IN" onclick="zoomIn();"/>
-                    <span id="zoom">Zoom: 0</span>
+                    <span id="zoom">Zoom: 1</span>
                     <input type="button" value="Zoom OUT" onclick="zoomOut();"/>
                     <!--<input type="hidden" id="zoom" value="0" />-->
                     <!--<input type="hidden" id="xC" value="0" />-->
@@ -225,7 +208,7 @@
 </div>
 <div id="container" style="overflow: hidden">
     <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
-             style="left: 50px; top: 125px; position: absolute;" currentScale="1.0" viewBox="0 0 800 600">
+             style="left: 50px; top: 125px; position: absolute;" >
         <g id="xlt" transform="translate(0,0)scale(1.0)">
             <image x="0" y="0" width="800" height="600" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>
             <circle id='cursor' cx='250' cy='180' r='20' fill='#ff0000' fill-opacity='0.5'/>
