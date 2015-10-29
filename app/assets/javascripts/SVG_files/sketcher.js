@@ -52,6 +52,9 @@ Sketcher.prototype.onCanvasMouseDown = function () {
 
     self.updateMousePosition( event );
     self.renderFunction( event );
+    if (cursorMode == "TEXT"){
+      thisSvg.push([self.lastMousePoint.x / zoom, self.lastMousePoint.y / zoom]);
+    }
   }
 };
 
@@ -116,9 +119,27 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
           sketcher.clear();       // do not change any cursor-related values
         };
       }
+    } else if (cursorMode == "TEXT") {
+      var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
+      svg.push(group);    // insert container group
+      document.getElementById("xlt").appendChild(group);
+      var element;
+      for (j = 0; j < thisSvg.length; j++) {
+
+        element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        document.getElementById(group.id).appendChild(element);
+        element.setAttributeNS(null, 'stroke', cursorColor);
+        element.setAttributeNS(null, 'stroke-width', '1');
+        element.setAttributeNS(null, 'stroke-opacity', '1.0');
+        element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
+        element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
+        element.innerHTML = "Testing 1, 2, 3...";      // end y
+      }
+
     }
     thisSvg = [];      // and clear the collector
-    //setMove();      // AFTER checking cursorMode, revert to MOVE
+    //setMove();      // AFTER checking cursorMode, revert to MOVE // now leave cursor mode until MOVE set
   }
 };
 
@@ -178,17 +199,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     var newX = this.lastMousePoint.x;
     var newY = this.lastMousePoint.y;
     if (oldX == newX && oldY == newY) return false;
-    //var style = $("#svgLayer")[0].style;
-    //style.left = (style.left.split('px')[0] - (oldX - newX)).toString() + 'px';
-    //style.top = (style.top.split('px')[0] + newY - oldY).toString() + 'px';
-    //style = $("#sketch")[0].style;
-    //style.left = (-xC /*+ parseInt(style.left.split('px')[0]) - (newX - oldX)*/).toString() + 'px';
-    //style.top = (-yC /*+ parseInt(style.top.split('px')[0]) + (newY - oldY)*/).toString() + 'px';
-    //zoom_trans(xC, yC, zoom);
     zoom_trans(null, null, zoom);
-    //this.context.translate(-(oldX - this.lastMousePoint.x), -(oldY - this.lastMousePoint.y));
-    //renderImage();
-    u = 0;
   }
 };
 
