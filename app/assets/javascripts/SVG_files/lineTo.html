@@ -19,37 +19,35 @@
 
     <script>
         var sketcher = null;
-        var xC;
-        var yC;
+        var xC = 0;
+        var yC = 0;
         var cursorMode = "MOVE";
         var cursorColor = '#ff0000'
-        var zoom = 1.0;
+        var zoom = 0.2;         /////////////////////////////
         var canvas;
         var context;
-        var canvas_image = new Image();
+        var svgImage = new Image();
         var svg = [];           // collect the collections here
         var thisSvg = [];            // collect points as [x,y]
         //canvas_image.src = undefined;
-        canvas_image.src = "../../../../spec/support/images/frost_stage.jpg";
-        //          SVG_files\javascripts\assets\app\ to "root" then /spec...
-        //canvas_image.src = "file:///Users/jrflood/src/taxonworks/spec/support/images/frost_stage.jpg";
-        //canvas_image.src = 'frost_stage.jpg';
+        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
+        svgImage.src = 'frost_stage.jpg';
         $(document).ready(function (e) {
             sketcher = new Sketcher("sketch");
+            indicateMode();
 //    canvas = document.getElementById("sketch");
 //    context = canvas.getContext("2d");
 //    setMove();
 //    renderImage();
         });
 
-        $(canvas_image).load(function () {
+        $(svgImage).load(function () {
             xC = 0;
             yC = 0;
-            zoom = 1;
+            zoom = document.getElementById('svgLayer').width.baseVal.value / svgImage.width;     // in general more complicated than this
             canvas = document.getElementById("sketch");
             context = canvas.getContext("2d");
             setMove();
-            renderImage();
         });
 
         function clearCanvas() {
@@ -59,7 +57,7 @@
             renderImage();
         }
         function setDraw() {
-            cursorMode = "DRAW";
+            cursorMode = "PATH";
             indicateMode();
         }
 
@@ -70,30 +68,17 @@
 
         function indicateMode() {
             document.getElementById("mode").textContent = cursorMode;
+            $("#zoom").html("Zoom:" + zoom.toFixed(3));
         }
 
-        function setPolygon() {
-            cursorMode = "POLYGON"
+        function clearGroup() {
+            var xlt=document.getElementById("xlt");
+            xlt.lastChild.remove();
         }
 
-        function setLine() {
-            cursorMode = "LINE"
-        }
-
-        function setCircle() {
-            cursorMode = "CIRCLE"
-        }
-
-        function setPath() {
-            cursorMode = "PATH"
-        }
-
-        function setText() {
-            cursorMode = "TEXT"
-        }
-
-        function indicatecursorMode() {
-
+        function setCursorMode(mode) {
+            cursorMode = mode;
+            indicateMode();
         }
 
         function zoomIn() {
@@ -125,6 +110,7 @@
 //            transform = 'translate(' + ((xC - x) / zoom).toString() + ', ' + ((yC - y) / zoom).toString() + ')scale(' + factor.toString() + ')';
 //            transform = 'translate(' + (xC / zoom).toString() + ', ' + (yC / zoom).toString() + ')scale(' + factor.toString() + ')';
             xlt.attributes['transform'].value = transform;
+            $("#zoom").html("Zoom:" + zoom.toFixed(3));
         }
 
         function renderImage() {
@@ -148,13 +134,13 @@
                 yC = 0;
             }
 //            context.fillOpacity = "0.0";
-           context.clearRect(0, 0, canvas.width, canvas.height);
+            context.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         // TODO:
         // bounds check on move (in sketcher.js)
         // aspect ratio compensation source to target canvas
-        // capture svg data
+        // capture svg data - DONE
         // source image from http://
     </script>
     <style type='text/css'>
@@ -180,25 +166,17 @@
                 </ul>
 
                 <ul class="nav secondary-nav">
-                    <input type="button" class="btn error" value="clear" onclick="clearCanvas();"/>
-                    <input type="button" class="btn error" value="Polygon" onclick="setPolygon();"/>
-                    <input type="button" class="btn error" value="Line" onclick="setLine();"/>
-                    <input type="button" class="btn error" value="Circle" onclick="setCircle();"/>
-                    <input type="button" class="btn error" value="Path" onclick="setPath();"/>
-                    <input type="button" value="Draw" onclick="setDraw(); this.backgroundColor='#993333';"/>
+                    <input type="button" class="btn error" value="clear" onclick="clearGroup();"/>
+                    <input type="button" class="btn error" value="Polygon" onclick="setCursorMode('POLY');"/>
+                    <input type="button" class="btn error" value="Line" onclick="setCursorMode('LINE');"/>
+                    <input type="button" class="btn error" value="Circle" onclick="setCursorMode('CIRCLE');"/>
+                    <input type="button" class="btn error" value="Path" onclick="setCursorMode('PATH');"/>
                     <span id="mode"></span>
                     <input type="button" value="Move" onclick="setMove();"/>
-                    <input type="button" value="Text" onclick="setText();"/>
+                    <input type="button" value="Text" onclick="setCursorMode('TEXT');"/>
                     <input type="button" value="Zoom IN" onclick="zoomIn();"/>
-                    <span id="zoom">Zoom: 1</span>
+                    <span id="zoom">Zoom: ---</span>
                     <input type="button" value="Zoom OUT" onclick="zoomOut();"/>
-                    <!--<input type="hidden" id="zoom" value="0" />-->
-                    <!--<input type="hidden" id="xC" value="0" />-->
-                    <!--<input type="button" value="Down" onclick="panDown();" />-->
-                    <!--<input type="button" value="Up" onclick="panUp();" />-->
-                    <!--<input type="button" value="Left" onclick="panLeft();" />-->
-                    <!--<input type="button" value="Right" onclick="panRight();" />-->
-                    <!--<input type="hidden" id="yC" value="0" />-->
                 </ul>
             </div>
         </div>
@@ -208,12 +186,13 @@
 </div>
 <div id="container" style="overflow: hidden">
     <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
-             style="left: 50px; top: 125px; position: absolute;" >
-        <g id="xlt" transform="translate(0,0)scale(1.0)">
-            <image x="0" y="0" width="800" height="600" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>
+         style="left: 50px; top: 125px; position: absolute;" >
+        <g id="xlt" transform="translate(0,0)scale(0.20)">
+            <!--<image id="xltImage" x="0" y="0" width="4000" height="3000" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>-->
+            <image id="xltImage" x="0" y="0" width="4000" height="3000" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>
             <circle id='cursor' cx='250' cy='180' r='20' fill='#ff0000' fill-opacity='0.5'/>
         </g>
-        </svg>
+    </svg>
     <canvas id="sketch" width="800" height="600" style="left: 50px; top: 125px; position: absolute; opacity: 0.8">
     </canvas>
 

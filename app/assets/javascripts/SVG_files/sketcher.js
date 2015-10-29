@@ -31,6 +31,7 @@ function Sketcher( canvasID, brushImage ) {
       var zoomY = e.originalEvent.clientY - this.offsetTop;
       //zoom_trans(zoomX, zoomY, zoom);
       zoom_trans(null, null, zoom);
+      setMove();
       return e.preventDefault() && false;
     });
   }
@@ -93,17 +94,19 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
     if (cursorMode == "PATH") {
       if (thisSvg != undefined) {
         if (thisSvg.length > 0) {
-        svg.push(thisSvg);    // save this graphic item for replot
+          var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
+        svg.push(group);    // insert container group
+          document.getElementById("xlt").appendChild(group);
           var element;
           for (j = 0; j < thisSvg.length; j++) {
 
             element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            element.setAttributeNS(null, 'stroke', 'red');
-            element.setAttributeNS(null, 'stroke-width', '3');
+            document.getElementById(group.id).appendChild(element);
+            element.setAttributeNS(null, 'stroke', cursorColor);
+            element.setAttributeNS(null, 'stroke-width', '10');
             element.setAttributeNS(null, 'stroke-opacity', '1.0');
             element.setAttributeNS(null, 'stroke-linecap', 'round');
-            //svgLayer.appendChild(element);
-            document.getElementById("xlt").appendChild(element);
             element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
             element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
             j += 1;
