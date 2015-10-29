@@ -169,17 +169,6 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
 
     }
   }
-  //else {    // this version depends on xC, yC resampling the image to re-origin the image
-  //  var oldX = this.lastMousePoint.x;   //latch the x and y
-  //  var oldY = this.lastMousePoint.y;
-  //  //this.context.moveTo(this.lastMousePoint.x, this.lastMousePoint.y);  // move the context (why?)
-  //  this.updateMousePosition(event);                                    //  presumably a new point
-  //  //this.context.moveTo(this.lastMousePoint.x, this.lastMousePoint.y);
-  //  xC = xC + oldX - this.lastMousePoint.x;
-  //  yC = yC + oldY - this.lastMousePoint.y;
-  //  //this.context.translate(-(oldX - this.lastMousePoint.x), -(oldY - this.lastMousePoint.y));
-  //  renderImage();
-  //}
   else {    // this version assumes manipulating the left and top attributes of the canvas (?)
     var oldX = this.lastMousePoint.x;
     var oldY = this.lastMousePoint.y;
@@ -201,7 +190,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     //renderImage();
     u = 0;
   }
-}
+};
 
 Sketcher.prototype.updateCanvasByBrush = function (event) {
   var halfBrushW = this.brush.width/2;

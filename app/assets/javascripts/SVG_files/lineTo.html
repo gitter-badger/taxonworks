@@ -27,10 +27,11 @@
         var canvas;
         var context;
         var svgImage = new Image();
+        var instanceImage;
         var svg = [];           // collect the collections here
         var thisSvg = [];            // collect points as [x,y]
         //canvas_image.src = undefined;
-        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
+//        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';
         $(document).ready(function (e) {
             sketcher = new Sketcher("sketch");
@@ -45,7 +46,19 @@
             xC = 0;
             yC = 0;
             zoom = document.getElementById('svgLayer').width.baseVal.value / svgImage.width;     // in general more complicated than this
-            canvas = document.getElementById("sketch");
+       // insert the svg base image into the transformable group <g id='xlt'>
+            var xlt = document.getElementById('xlt');
+            var xltImage = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+            xltImage.setAttributeNS(null, 'id', "xltImage");
+            xltImage.setAttributeNS(null, 'x', "0");
+            xltImage.setAttributeNS(null, 'y', "0");
+            xltImage.setAttributeNS(null, 'width', svgImage.width.toString());
+            xltImage.setAttributeNS(null, 'height', svgImage.height.toString());
+            xltImage.setAttributeNS(null, 'preserveAspectRatio', "none");
+            xltImage.setAttributeNS('http://www.w3.org/1999/xlink','href', svgImage.src);
+            xlt.appendChild(xltImage);
+
+            canvas = document.getElementById("sketch");     // set up the dynamic draw layer
             context = canvas.getContext("2d");
             setMove();
         });
@@ -158,10 +171,11 @@
     <div class="topbar" data-dropdown="dropdown">
         <div class="topbar-inner">
             <div class="container">
-                <h3><a href="#">HTML5 drag and draw on canvas</a></h3>
+                <h3><a href="#">Image annotation using HTML5 drag and draw on canvas overlaying svg</a></h3>
 
                 <ul class="nav">
-                    <li class="active"><a href="#">sketch app using "lineTo(x,y)" drawing and moveTo(x,y) dragging</a>
+                    <li class="active">Annotate image using sketcher app using "lineTo(x,y)" drawing and moveTo(x,y), dragging<br>
+                        and scroll zoom implemented.  Text, Circle, Polygon, Line to follow.
                     </li>
                 </ul>
 
@@ -186,14 +200,14 @@
 </div>
 <div id="container" style="overflow: hidden">
     <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
-         style="left: 50px; top: 125px; position: absolute;" >
+         style="left: 50px; top: 150px; position: absolute;" >
         <g id="xlt" transform="translate(0,0)scale(0.20)">
             <!--<image id="xltImage" x="0" y="0" width="4000" height="3000" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>-->
-            <image id="xltImage" x="0" y="0" width="4000" height="3000" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>
+            <!--<image id="xltImage" x="0" y="0" width="0" height="0" preserveAspectRatio="none"></image>-->
             <circle id='cursor' cx='250' cy='180' r='20' fill='#ff0000' fill-opacity='0.5'/>
         </g>
     </svg>
-    <canvas id="sketch" width="800" height="600" style="left: 50px; top: 125px; position: absolute; opacity: 0.8">
+    <canvas id="sketch" width="800" height="600" style="left: 50px; top: 150px; position: absolute; opacity: 0.8">
     </canvas>
 
 </div>
