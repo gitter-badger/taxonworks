@@ -30,6 +30,7 @@
         var instanceImage;
         var svg = [];           // collect the collections here
         var thisSvg = [];            // collect points as [x,y]
+        var thisSvgText;            // pointer to svg control currently being populated
         //canvas_image.src = undefined;
 //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';
@@ -126,6 +127,9 @@
             $("#zoom").html("Zoom:" + zoom.toFixed(3));
         }
 
+        function updateSvg() {
+            thisSvgText.innerHTML =document.getElementById("text4svg").value;
+        }
         function renderImage() {
             if (xC >= canvas_image.width - canvas.width) {
                 xC = canvas_image.width - canvas.width;
@@ -191,6 +195,14 @@
                     <input type="button" value="Zoom IN" onclick="zoomIn();"/>
                     <span id="zoom">Zoom: ---</span>
                     <input type="button" value="Zoom OUT" onclick="zoomOut();"/>
+                    <input type="text" id="text4svg" onkeyup="updateSvg();" />
+                    <br>
+                        <input type="button" id="setRed" style="background-color: #FF0000" onclick="cursorColor='#FF0000';" />
+                        <input type="button" id="setBlue" style="background-color: #0000FF" onclick="cursorColor='#0000FF';" />
+                        <input type="button" id="setGreen" style="background-color: #00FF00" onclick="cursorColor='#00FF00';" />
+                        <input type="button" id="setBlack" style="background-color: #000000" onclick="cursorColor='#000000';" />
+                    <input type="text" value="#88888" onchange="cursorColor=this.value;" />
+                    </li>
                 </ul>
             </div>
         </div>
@@ -209,7 +221,6 @@
     </svg>
     <canvas id="sketch" width="800" height="600" style="left: 50px; top: 150px; position: absolute; opacity: 0.8">
     </canvas>
-
 </div>
 </body>
 </html>

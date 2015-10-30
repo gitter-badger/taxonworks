@@ -128,13 +128,17 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
       for (j = 0; j < thisSvg.length; j++) {
 
         element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        document.getElementById(group.id).appendChild(element);
+        //document.getElementById(group.id).appendChild(element);
+        group.appendChild(element);
+        thisSvgText = group.children[0];
         element.setAttributeNS(null, 'stroke', cursorColor);
         element.setAttributeNS(null, 'stroke-width', '1');
         element.setAttributeNS(null, 'stroke-opacity', '1.0');
         element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
         element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
-        element.innerHTML = "Testing 1, 2, 3...";      // end y
+        element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
+        element.setAttributeNS(null, 'font-size', 100);
+        document.getElementById('text4svg').focus();
       }
 
     }
