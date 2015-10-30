@@ -37,6 +37,7 @@
         $(document).ready(function (e) {
             sketcher = new Sketcher("sketch");
             indicateMode();
+            document.getElementById("text4svg").onkeyup = updateSvgText;
 //    canvas = document.getElementById("sketch");
 //    context = canvas.getContext("2d");
 //    setMove();
@@ -127,9 +128,22 @@
             $("#zoom").html("Zoom:" + zoom.toFixed(3));
         }
 
-        function updateSvg() {
-            thisSvgText.innerHTML =document.getElementById("text4svg").value;
+        function updateSvgText(event) {
+            var text4svg = document.getElementById("text4svg");
+            if( thisSvgText == null) {return false}
+            thisSvgText.innerHTML = text4svg.value;
+            if (event.keyCode == 13) {      // terminate this input
+                closeSvgText();
+            }
         }
+
+        function closeSvgText() {
+            var text4svg = document.getElementById("text4svg");
+            text4svg.value = '';
+            thisSvgText = null;         // remove the target
+            thisSvg = [];               // clear the container
+        }
+
         function renderImage() {
             if (xC >= canvas_image.width - canvas.width) {
                 xC = canvas_image.width - canvas.width;
@@ -195,7 +209,7 @@
                     <input type="button" value="Zoom IN" onclick="zoomIn();"/>
                     <span id="zoom">Zoom: ---</span>
                     <input type="button" value="Zoom OUT" onclick="zoomOut();"/>
-                    <input type="text" id="text4svg" onkeyup="updateSvg();" />
+                    <input type="text" id="text4svg" onchange="closeSvgText();" />
                     <br>
                         <input type="button" id="setRed" style="background-color: #FF0000" onclick="cursorColor='#FF0000';" />
                         <input type="button" id="setBlue" style="background-color: #0000FF" onclick="cursorColor='#0000FF';" />

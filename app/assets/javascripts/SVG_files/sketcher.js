@@ -52,10 +52,29 @@ Sketcher.prototype.onCanvasMouseDown = function () {
 
     self.updateMousePosition( event );
     self.renderFunction( event );
-    if (cursorMode == "TEXT"){
-      thisSvg.push([self.lastMousePoint.x / zoom, self.lastMousePoint.y / zoom]);
+    if (cursorMode == "TEXT") {
+      thisSvg.push([(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom]);
+      var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
+      svg.push(group);    // insert container group
+      document.getElementById("xlt").appendChild(group);
+      var element;
+      for (j = 0; j < thisSvg.length; j++) {
+        element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        //document.getElementById(group.id).appendChild(element);
+        group.appendChild(element);
+        thisSvgText = group.children[0];
+        element.setAttributeNS(null, 'stroke', cursorColor);
+        element.setAttributeNS(null, 'stroke-width', '1');
+        element.setAttributeNS(null, 'stroke-opacity', '1.0');
+        element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
+        element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
+        element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
+        element.setAttributeNS(null, 'font-size', 100);
+        document.getElementById('text4svg').focus();
+      }
+      }
     }
-  }
 };
 
 Sketcher.prototype.onCanvasMouseMove = function () {
@@ -120,27 +139,27 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
         };
       }
     } else if (cursorMode == "TEXT") {
-      var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
-      svg.push(group);    // insert container group
-      document.getElementById("xlt").appendChild(group);
-      var element;
-      for (j = 0; j < thisSvg.length; j++) {
-
-        element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        //document.getElementById(group.id).appendChild(element);
-        group.appendChild(element);
-        thisSvgText = group.children[0];
-        element.setAttributeNS(null, 'stroke', cursorColor);
-        element.setAttributeNS(null, 'stroke-width', '1');
-        element.setAttributeNS(null, 'stroke-opacity', '1.0');
-        element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
-        element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
-        element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
-        element.setAttributeNS(null, 'font-size', 100);
+      //var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      //group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
+      //svg.push(group);    // insert container group
+      //document.getElementById("xlt").appendChild(group);
+      //var element;
+      //for (j = 0; j < thisSvg.length; j++) {
+      //
+      //  element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      //  //document.getElementById(group.id).appendChild(element);
+      //  group.appendChild(element);
+      //  thisSvgText = group.children[0];
+      //  element.setAttributeNS(null, 'stroke', cursorColor);
+      //  element.setAttributeNS(null, 'stroke-width', '1');
+      //  element.setAttributeNS(null, 'stroke-opacity', '1.0');
+      //  element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
+      //  element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
+      //  element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
+      //  element.setAttributeNS(null, 'font-size', 100);
         document.getElementById('text4svg').focus();
-      }
-
+      //}
+      //
     }
     thisSvg = [];      // and clear the collector
     //setMove();      // AFTER checking cursorMode, revert to MOVE // now leave cursor mode until MOVE set
