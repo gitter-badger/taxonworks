@@ -28,10 +28,10 @@
         var context;
         var svgImage = new Image();
         var instanceImage;
-        var svg = [];           // collect the collections here
+//        var svg = [];           // collect the collections here
         var thisSvg = [];            // collect points as [x,y]
         var thisSvgText;            // pointer to svg control currently being populated
-        var textHeight = 100;
+        var textHeight = 75;
         //canvas_image.src = undefined;
 //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';
@@ -132,6 +132,13 @@
         function updateSvgText(event) {
             var text4svg = document.getElementById("text4svg");
             if( thisSvgText == null) {return false}
+            if (event.keyCode == 27) {      // terminate this text block on ESC
+                if (thisSvgText.parentElement.lastChild.innerHTML.length == 0) {
+                    thisSvgText.parentElement.lastChild.remove();
+                }
+                closeSvgText();
+                return false;
+            }
             thisSvgText.innerHTML = text4svg.value;
             var nextX = thisSvgText.attributes['x'].value;
             var nextY = parseInt(thisSvgText.attributes['y'].value) + textHeight;
@@ -144,12 +151,7 @@
                 thisSvgText = nextLine;
                 text4svg.value = '';
             }
-            if (event.keyCode == 27) {      // terminate this text block on ESC
-                if (thisSvgText.parentElement.lastChild.innerHTML.length == 0) {
-                    thisSvgText.parentElement.lastChild.remove();
-                }
-                closeSvgText();
-            }
+
         }
 
         function closeSvgText() {
@@ -158,6 +160,11 @@
             thisSvgText = null;         // remove the target
             thisSvg = [];               // clear the container
             setCursorMode('MOVE');
+        }
+
+        function setCursorColor(color) {
+            cursorColor = color;
+            document.getElementById('cursorColor').attributes['style']['background-color'] = cursorColor;
         }
 
         function renderImage() {
@@ -222,16 +229,19 @@
                     <span id="mode"></span>
                     <input type="button" value="Move" onclick="setMove();"/>
                     <input type="button" value="Text" onclick="setCursorMode('TEXT');"/>
-                    <input type="button" value="Zoom IN" onclick="zoomIn();"/>
+                    <!--<input type="button" value="Zoom IN" onclick="zoomIn();"/>-->
                     <span id="zoom">Zoom: ---</span>
-                    <input type="button" value="Zoom OUT" onclick="zoomOut();"/>
+                    <!--<input type="button" value="Zoom OUT" onclick="zoomOut();"/>-->
+                    Text size:
+                    <input id=textSize type="number" min="5" max="300" step="5" value ="75" style="width: 4em" onchange="textHeight=this.value;"/>
                     <input type="text" id="text4svg" onblur="closeSvgText();" />
-                     <br>
-                        <input type="button" id="setRed" style="background-color: #FF0000" onclick="cursorColor='#FF0000';" />
-                        <input type="button" id="setBlue" style="background-color: #0000FF" onclick="cursorColor='#0000FF';" />
-                        <input type="button" id="setGreen" style="background-color: #00FF00" onclick="cursorColor='#00FF00';" />
-                        <input type="button" id="setBlack" style="background-color: #000000" onclick="cursorColor='#000000';" />
-                    <input type="text" value="#88888" onchange="cursorColor=this.value;" />
+                    <br>
+                        <input type="button" id="setRed" style="background-color: #FF0000" onclick="setCursorColor('#FF0000');" />
+                        <input type="button" id="setBlue" style="background-color: #0000FF" onclick="setCursorColor{'#0000FF'};" />
+                        <input type="button" id="setGreen" style="background-color: #00FF00" onclick="setCursorColor('#00FF00');" />
+                        <input type="button" id="setBlack" style="background-color: #000000" onclick="setCursorColor('#000000');" />
+                    <input id="userColor" type="text" value="#88888" style="width: 6em"onchange="setCursorColor(this.value);" />
+                    <input type="button" id="cursorColor" style="background-color: #FFFFFF" />
                     </li>
                 </ul>
             </div>

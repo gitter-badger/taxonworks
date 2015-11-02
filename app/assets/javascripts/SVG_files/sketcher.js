@@ -81,10 +81,11 @@ Sketcher.prototype.onCanvasMouseDown = function () {
     if (cursorMode == "TEXT") {
       thisSvg.push([(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom]);
       var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
-      svg.push(group);    // insert container group
+      var nextGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
+      group.setAttributeNS(null, 'id', nextGroupID);
+      //svg.push(group);    // insert container group
       document.getElementById("xlt").appendChild(group);
-      for (j = 0; j < thisSvg.length; j++) {
+      for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
         var element;
         element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         //document.getElementById(group.id).appendChild(element);
@@ -142,13 +143,14 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
     //self.context.restore();
     if (cursorMode == "PATH") {
       if (thisSvg != undefined) {
-        if (thisSvg.length > 0) {
+        if (thisSvg.length > 0) {   // thisSvg was collected through updateCanvasByLine
           var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-          group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
-          svg.push(group);    // insert container group
+          var nextGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
+          group.setAttributeNS(null, 'id', nextGroupID);
+          //svg.push(group);    // insert container group
           document.getElementById("xlt").appendChild(group);
-          var element;
-          for (j = 0; j < thisSvg.length; j++) {
+          var element;                              //
+          for (j = 0; j < thisSvg.length; j++) {    // make "orthodox" line entroes for this group
 
             element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             document.getElementById(group.id).appendChild(element);
@@ -166,32 +168,8 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
         }
         ;
       }
-    } else if (cursorMode == "TEXT") {
-      //var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      //group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
-      //svg.push(group);    // insert container group
-      //document.getElementById("xlt").appendChild(group);
-      //var element;
-      //for (j = 0; j < thisSvg.length; j++) {
-      //
-      //  element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      //  //document.getElementById(group.id).appendChild(element);
-      //  group.appendChild(element);
-      //  thisSvgText = group.children[0];
-      //  element.setAttributeNS(null, 'stroke', cursorColor);
-      //  element.setAttributeNS(null, 'stroke-width', '1');
-      //  element.setAttributeNS(null, 'stroke-opacity', '1.0');
-      //  element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
-      //  element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
-      //  element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
-      //  element.setAttributeNS(null, 'font-size', 100);
+    } else if (cursorMode == "TEXT") {    // focus on the text entry input since this fails in mouseDown
       document.getElementById('text4svg').focus();
-      //var thisX = thisSvg[0][0] * zoom + xC;
-      //var thisY = thisSvg[0][1] * zoom + yC;
-      //text4svg.setAttribute('style', 'display: inline; position: absolute; top: ' + thisY + '; left: ' + thisX + ';')
-     //text4svg.focus();
-      //}
-      //
     }
     thisSvg = [];      // and clear the collector
     //setMove();      // AFTER checking cursorMode, revert to MOVE // now leave cursor mode until MOVE set
@@ -226,11 +204,10 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       var thisX = this.lastMousePoint.x;
       var thisY = this.lastMousePoint.y;
       this.context.moveTo(thisX, thisY);
-//  this still needs scaling to original image extent
       thisSvg.push([(thisX - xC) / zoom, (thisY - yC) / zoom]);
       this.updateMousePosition(event);
-      var thisX = this.lastMousePoint.x;
-      var thisY = this.lastMousePoint.y;
+      thisX = this.lastMousePoint.x;
+      thisY = this.lastMousePoint.y;
       this.context.lineTo(thisX, thisY);
       thisSvg.push([(thisX - xC) / zoom, (thisY - yC) / zoom]);
       this.context.strokeStyle = "#0066FF";
