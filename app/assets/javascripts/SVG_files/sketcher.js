@@ -1,13 +1,13 @@
-function Sketcher( canvasID, brushImage ) {
+function Sketcher(canvasID, brushImage) {
   this.renderFunction = (brushImage == null || brushImage == undefined) ? this.updateCanvasByLine : this.updateCanvasByBrush;
   this.brush = brushImage;
   this.touchSupported = Modernizr.touch;
   this.canvasID = canvasID;
-  this.canvas = $("#"+canvasID);
+  this.canvas = $("#" + canvasID);
   this.context = this.canvas.get(0).getContext("2d");
   this.context.strokeStyle = "#000000";
   this.context.lineWidth = 3;
-  this.lastMousePoint = {x:0, y:0};
+  this.lastMousePoint = {x: 0, y: 0};
 
   if (this.touchSupported) {
     this.mouseDownEvent = "touchstart";
@@ -19,12 +19,14 @@ function Sketcher( canvasID, brushImage ) {
     this.mouseMoveEvent = "mousemove";
     this.mouseUpEvent = "mouseup";
 
-    this.canvas.bind('DOMMouseScroll mousewheel', function(e)     // inline function vs cutout to prototype
+    this.canvas.bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
     {
       e.stopImmediatePropagation();
       e.stopPropagation();
       var deltaDiv = 1000;                              // default for non-FireFox
-     if (e.type == "DOMMouseScroll") {deltaDiv = 100}   // adjust for FireFox
+      if (e.type == "DOMMouseScroll") {
+        deltaDiv = 100
+      }   // adjust for FireFox
       var delta = parseInt(e.originalEvent.wheelDelta || -e.originalEvent.detail);
       zoom += delta / deltaDiv;
       var zoomX = e.originalEvent.clientX - this.offsetLeft;
@@ -35,31 +37,55 @@ function Sketcher( canvasID, brushImage ) {
       return e.preventDefault() && false;
     });
   }
+  //this.canvas.bind(this.click, function () {
+  //  if (cursorMode == "TEXT") {
+  //    thisSvg.push([(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom]);
+  //    var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  //    group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
+  //    svg.push(group);    // insert container group
+  //    document.getElementById("xlt").appendChild(group);
+  //    var element;
+  //    for (j = 0; j < thisSvg.length; j++) {
+  //      element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  //      //document.getElementById(group.id).appendChild(element);
+  //      group.appendChild(element);
+  //      thisSvgText = group.children[0];
+  //      element.setAttributeNS(null, 'stroke', cursorColor);
+  //      element.setAttributeNS(null, 'stroke-width', '1');
+  //      element.setAttributeNS(null, 'stroke-opacity', '1.0');
+  //      element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
+  //      element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
+  //      element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
+  //      element.setAttributeNS(null, 'font-size', 100);
+  //      document.getElementById('text4svg').focus();
+  //    }
+  //  }
+  //});
 
-  this.canvas.bind( this.mouseDownEvent, this.onCanvasMouseDown() );
+  this.canvas.bind(this.mouseDownEvent, this.onCanvasMouseDown());
 }
 
 Sketcher.prototype.onCanvasMouseDown = function () {
   var self = this;
-  return function(event) {
+  return function (event) {
     //self.context.save();
 
     self.mouseMoveHandler = self.onCanvasMouseMove();
     self.mouseUpHandler = self.onCanvasMouseUp();
 
-    $(document).bind( self.mouseMoveEvent, self.mouseMoveHandler );
-    $(document).bind( self.mouseUpEvent, self.mouseUpHandler );
+    $(document).bind(self.mouseMoveEvent, self.mouseMoveHandler);
+    $(document).bind(self.mouseUpEvent, self.mouseUpHandler);
 
-    self.updateMousePosition( event );
-    self.renderFunction( event );
+    self.updateMousePosition(event);
+    self.renderFunction(event);
     if (cursorMode == "TEXT") {
       thisSvg.push([(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom]);
       var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
       svg.push(group);    // insert container group
       document.getElementById("xlt").appendChild(group);
-      var element;
       for (j = 0; j < thisSvg.length; j++) {
+        var element;
         element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         //document.getElementById(group.id).appendChild(element);
         group.appendChild(element);
@@ -70,45 +96,46 @@ Sketcher.prototype.onCanvasMouseDown = function () {
         element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
         element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
         element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
-        element.setAttributeNS(null, 'font-size', 100);
-        document.getElementById('text4svg').focus();
-      }
+        element.setAttributeNS(null, 'font-size', textHeight);
+        //document.getElementById('text4svg').focus();
       }
     }
+  }
 };
+
 
 Sketcher.prototype.onCanvasMouseMove = function () {
   var self = this;
-  return function(event) {
+  return function (event) {
 
-    self.renderFunction( event );
+    self.renderFunction(event);
     event.preventDefault();
     return false;
   }
 };
 
 var Trig = {
-  distanceBetween2Points: function ( point1, point2 ) {
+  distanceBetween2Points: function (point1, point2) {
 
     var dx = point2.x - point1.x;
     var dy = point2.y - point1.y;
-    return Math.sqrt( Math.pow( dx, 2 ) + Math.pow( dy, 2 ) );
+    return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
   },
 
-  angleBetween2Points: function ( point1, point2 ) {
+  angleBetween2Points: function (point1, point2) {
 
     var dx = point2.x - point1.x;
     var dy = point2.y - point1.y;
-    return Math.atan2( dx, dy );
+    return Math.atan2(dx, dy);
   }
 };
 
 Sketcher.prototype.onCanvasMouseUp = function (event) {
   var self = this;
-  return function(event) {
+  return function (event) {
 
-    $(document).unbind( self.mouseMoveEvent, self.mouseMoveHandler );
-    $(document).unbind( self.mouseUpEvent, self.mouseUpHandler );
+    $(document).unbind(self.mouseMoveEvent, self.mouseMoveHandler);
+    $(document).unbind(self.mouseUpEvent, self.mouseUpHandler);
 
     self.mouseMoveHandler = null;
     self.mouseUpHandler = null;
@@ -118,7 +145,7 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
         if (thisSvg.length > 0) {
           var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
           group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
-        svg.push(group);    // insert container group
+          svg.push(group);    // insert container group
           document.getElementById("xlt").appendChild(group);
           var element;
           for (j = 0; j < thisSvg.length; j++) {
@@ -136,7 +163,8 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
             element.setAttributeNS(null, 'y2', thisSvg[j][1]);      // end y
           }
           sketcher.clear();       // do not change any cursor-related values
-        };
+        }
+        ;
       }
     } else if (cursorMode == "TEXT") {
       //var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -157,7 +185,11 @@ Sketcher.prototype.onCanvasMouseUp = function (event) {
       //  element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
       //  element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
       //  element.setAttributeNS(null, 'font-size', 100);
-        document.getElementById('text4svg').focus();
+      document.getElementById('text4svg').focus();
+      //var thisX = thisSvg[0][0] * zoom + xC;
+      //var thisY = thisSvg[0][1] * zoom + yC;
+      //text4svg.setAttribute('style', 'display: inline; position: absolute; top: ' + thisY + '; left: ' + thisX + ';')
+     //text4svg.focus();
       //}
       //
     }
@@ -182,7 +214,7 @@ Sketcher.prototype.updateMousePosition = function (event) {
 };
 
 Sketcher.prototype.updateCanvasByLine = function (event) {
-  if(cursorMode != "MOVE") {          // modified for move/draw mode JRF
+  if (cursorMode != "MOVE") {          // modified for move/draw mode JRF
     ////////////////////
     //
     //  DRAW mode needs to be expanded to Circle, Rectangle, Text, Line, PolyLine, Marker(?)
@@ -227,20 +259,19 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
 };
 
 Sketcher.prototype.updateCanvasByBrush = function (event) {
-  var halfBrushW = this.brush.width/2;
-  var halfBrushH = this.brush.height/2;
+  var halfBrushW = this.brush.width / 2;
+  var halfBrushH = this.brush.height / 2;
 
-  var start = { x:this.lastMousePoint.x, y: this.lastMousePoint.y };
-  this.updateMousePosition( event );
-  var end = { x:this.lastMousePoint.x, y: this.lastMousePoint.y };
+  var start = {x: this.lastMousePoint.x, y: this.lastMousePoint.y};
+  this.updateMousePosition(event);
+  var end = {x: this.lastMousePoint.x, y: this.lastMousePoint.y};
 
-  var distance = parseInt( Trig.distanceBetween2Points( start, end ) );
-  var angle = Trig.angleBetween2Points( start, end );
+  var distance = parseInt(Trig.distanceBetween2Points(start, end));
+  var angle = Trig.angleBetween2Points(start, end);
 
-  var x,y;
+  var x, y;
 
-  for ( var z=0; (z<=distance || z==0); z++ )
-  {
+  for (var z = 0; (z <= distance || z == 0); z++) {
     x = start.x + (Math.sin(angle) * z) - halfBrushW;
     y = start.y + (Math.cos(angle) * z) - halfBrushH;
     //console.log( x, y, angle, z );
@@ -266,5 +297,5 @@ Sketcher.prototype.updateCanvasByBrush = function (event) {
 Sketcher.prototype.clear = function () {
 
   var c = this.canvas[0];
-  this.context.clearRect( 0, 0, c.width, c.height );
+  this.context.clearRect(0, 0, c.width, c.height);
 };

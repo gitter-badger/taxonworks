@@ -31,6 +31,7 @@
         var svg = [];           // collect the collections here
         var thisSvg = [];            // collect points as [x,y]
         var thisSvgText;            // pointer to svg control currently being populated
+        var textHeight = 100;
         //canvas_image.src = undefined;
 //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';
@@ -132,7 +133,21 @@
             var text4svg = document.getElementById("text4svg");
             if( thisSvgText == null) {return false}
             thisSvgText.innerHTML = text4svg.value;
-            if (event.keyCode == 13) {      // terminate this input
+            var nextX = thisSvgText.attributes['x'].value;
+            var nextY = parseInt(thisSvgText.attributes['y'].value) + textHeight;
+            var nextLine = thisSvgText.cloneNode();
+            if (event.keyCode == 13) {      // line feed on ENTER/CR
+//                var nextLine = thisSvgText.parentElement.children[thisSvgText.parentElement.childElementCount - 1];
+                nextLine.attributes['x'].value = nextX;
+                nextLine.attributes['y'].value = nextY;
+                thisSvgText.parentElement.appendChild(nextLine);
+                thisSvgText = nextLine;
+                text4svg.value = '';
+            }
+            if (event.keyCode == 27) {      // terminate this text block on ESC
+                if (thisSvgText.parentElement.lastChild.innerHTML.length == 0) {
+                    thisSvgText.parentElement.lastChild.remove();
+                }
                 closeSvgText();
             }
         }
@@ -142,6 +157,7 @@
             text4svg.value = '';
             thisSvgText = null;         // remove the target
             thisSvg = [];               // clear the container
+            setCursorMode('MOVE');
         }
 
         function renderImage() {
@@ -209,8 +225,8 @@
                     <input type="button" value="Zoom IN" onclick="zoomIn();"/>
                     <span id="zoom">Zoom: ---</span>
                     <input type="button" value="Zoom OUT" onclick="zoomOut();"/>
-                    <input type="text" id="text4svg" onchange="closeSvgText();" />
-                    <br>
+                    <input type="text" id="text4svg" onblur="closeSvgText();" />
+                     <br>
                         <input type="button" id="setRed" style="background-color: #FF0000" onclick="cursorColor='#FF0000';" />
                         <input type="button" id="setBlue" style="background-color: #0000FF" onclick="cursorColor='#0000FF';" />
                         <input type="button" id="setGreen" style="background-color: #00FF00" onclick="cursorColor='#00FF00';" />
@@ -224,17 +240,18 @@
     </div>
     <!-- /topbar -->
 </div>
-<div id="container" style="overflow: hidden">
+<div id="container" style="overflow: hidden; left: 50px; top: 150px; position: absolute;">
     <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
-         style="left: 50px; top: 150px; position: absolute;" >
+         style="left: 0px; top: 0px; position: absolute;" >
         <g id="xlt" transform="translate(0,0)scale(0.20)">
             <!--<image id="xltImage" x="0" y="0" width="4000" height="3000" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>-->
             <!--<image id="xltImage" x="0" y="0" width="0" height="0" preserveAspectRatio="none"></image>-->
             <circle id='cursor' cx='250' cy='180' r='20' fill='#ff0000' fill-opacity='0.5'/>
         </g>
     </svg>
-    <canvas id="sketch" width="800" height="600" style="left: 50px; top: 150px; position: absolute; opacity: 0.8">
+    <canvas id="sketch" width="800" height="600" style="left: 0px; top: 0px; position: absolute; opacity: 0.8">
     </canvas>
+
 </div>
 </body>
 </html>
