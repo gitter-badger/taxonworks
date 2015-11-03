@@ -29,11 +29,12 @@ function Sketcher(canvasID, brushImage) {
       }   // adjust for FireFox
       var delta = parseInt(e.originalEvent.wheelDelta || -e.originalEvent.detail);
       zoom += delta / deltaDiv;
+      if (zoom <= 0) {zoom = 0.01}
       var zoomX = e.originalEvent.clientX - this.offsetLeft;
       var zoomY = e.originalEvent.clientY - this.offsetTop;
-      //zoom_trans(zoomX, zoomY, zoom);
-      zoom_trans(null, null, zoom);
-      setMove();
+      zoom_trans(zoomX, zoomY, zoom);
+      //zoom_trans(null, null, zoom);
+      //setMove();
       return e.preventDefault() && false;
     });
   }

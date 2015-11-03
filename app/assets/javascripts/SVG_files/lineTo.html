@@ -119,6 +119,8 @@
             if (y == null) {y = 0}
 //            xC = 0.5 * (xC - x);
 //            yC = 0.5 * (yC - y);
+            x = x - 50;
+            y -=175;
             var xlt = document.getElementById('xlt');         // DOM svg element g xlt
             var transform = xlt.attributes['transform'].value;          // string of transform="translate( x, y )scale(n.m)"
 //            var trans_scale = transform.split('scale');
@@ -141,7 +143,7 @@
             }
             thisSvgText.innerHTML = text4svg.value;
             var nextX = thisSvgText.attributes['x'].value;
-            var nextY = parseInt(thisSvgText.attributes['y'].value) + textHeight;
+            var nextY = parseInt(thisSvgText.attributes['y'].value) + parseInt(textHeight);
             var nextLine = thisSvgText.cloneNode();
             if (event.keyCode == 13) {      // line feed on ENTER/CR
 //                var nextLine = thisSvgText.parentElement.children[thisSvgText.parentElement.childElementCount - 1];
@@ -164,7 +166,16 @@
 
         function setCursorColor(color) {
             cursorColor = color;
-            document.getElementById('cursorColor').attributes['style']['background-color'] = cursorColor;
+            document.getElementById('cursorColor').attributes['style'].value = 'background-color: ' + cursorColor;
+        }
+
+        function setUserColor(color) {          // only sets up the color for later selection
+            document.getElementById('setUserColor').attributes['style'].value = 'background-color: ' + color;
+        }
+
+        function getUserColor() {
+            return document.getElementById('userColor').value;
+
         }
 
         function renderImage() {
@@ -237,11 +248,12 @@
                     <input type="text" id="text4svg" onblur="closeSvgText();" />
                     <br>
                         <input type="button" id="setRed" style="background-color: #FF0000" onclick="setCursorColor('#FF0000');" />
-                        <input type="button" id="setBlue" style="background-color: #0000FF" onclick="setCursorColor{'#0000FF'};" />
+                        <input type="button" id="setBlue" style="background-color: #0000FF" onclick="setCursorColor('#0000FF');" />
                         <input type="button" id="setGreen" style="background-color: #00FF00" onclick="setCursorColor('#00FF00');" />
                         <input type="button" id="setBlack" style="background-color: #000000" onclick="setCursorColor('#000000');" />
-                    <input id="userColor" type="text" value="#88888" style="width: 6em"onchange="setCursorColor(this.value);" />
-                    <input type="button" id="cursorColor" style="background-color: #FFFFFF" />
+                    <input id="userColor" type="text" value="#888888" style="width: 6em" onchange="/*setCursorColor(this.value);*/ setUserColor(this.value);" />
+                    <input type="button" id="setUserColor" style="background-color: #888888" onclick="setCursorColor(getUserColor());" /> Selected Color:
+                    <input type="button" id="cursorColor" style="background-color: #FF0000" />
                     </li>
                 </ul>
             </div>
@@ -250,7 +262,7 @@
     </div>
     <!-- /topbar -->
 </div>
-<div id="container" style="overflow: hidden; left: 50px; top: 150px; position: absolute;">
+<div id="container" style="overflow: hidden; left: 50px; top: 175px; position: absolute;">
     <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
          style="left: 0px; top: 0px; position: absolute;" >
         <g id="xlt" transform="translate(0,0)scale(0.20)">
