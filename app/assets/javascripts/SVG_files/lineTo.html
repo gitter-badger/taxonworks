@@ -29,14 +29,15 @@
         var context;
         var svgImage = new Image();
         var instanceImage;
-//        var svg = [];           // collect the collections here
+        //        var svg = [];           // collect the collections here
         var thisSvg = [];            // collect points as [x,y]
         var thisSvgText;            // pointer to svg control currently being populated
         var textHeight = 75;
+        var textFont = 'Verdana';
         var lastMouseX;
         var lastMouseY;
         //canvas_image.src = undefined;
-//        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
+        //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';
         $(document).ready(function (e) {
             sketcher = new Sketcher("sketch");
@@ -55,7 +56,7 @@
             zoom = baseZoom;
             lastMouseX = baseZoom * svgImage.width / 2;
             lastMouseY = baseZoom * svgImage.height / 2;
-     // insert the svg base image into the transformable group <g id='xlt'>
+            // insert the svg base image into the transformable group <g id='xlt'>
             var xlt = document.getElementById('xlt');
             var xltImage = document.createElementNS('http://www.w3.org/2000/svg', 'image');
             xltImage.setAttributeNS(null, 'id', "xltImage");
@@ -64,7 +65,7 @@
             xltImage.setAttributeNS(null, 'width', svgImage.width.toString());
             xltImage.setAttributeNS(null, 'height', svgImage.height.toString());
             xltImage.setAttributeNS(null, 'preserveAspectRatio', "none");
-            xltImage.setAttributeNS('http://www.w3.org/1999/xlink','href', svgImage.src);
+            xltImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', svgImage.src);
             xlt.appendChild(xltImage);
 
             canvas = document.getElementById("sketch");     // set up the dynamic draw layer
@@ -94,7 +95,7 @@
         }
 
         function clearGroup() {
-            var xlt=document.getElementById("xlt");
+            var xlt = document.getElementById("xlt");
             xlt.lastChild.remove();
         }
 
@@ -103,15 +104,22 @@
             indicateMode();
         }
 
+        function setTextMode() {
+            setCursorMode('TEXT');
+            document.getElementById("text4svg").removeAttribute('disabled');
+        }
+
         function zoomIn() {
             var zoomDelta = 0.05;
-            var newZoom = zoom * ( 1.0 + zoomDelta);
-            xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom ;
-            yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom ;
+            if (zoom < 1.1 / baseZoom) {
+                var newZoom = zoom * ( 1.0 + zoomDelta);
+                xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom;
+                yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom;
 //            zoom_trans(null, null, zoom);
-            zoom_trans(0, 0, newZoom);
-            zoom = newZoom;
-            $("#zoom").html("Zoom:" + zoom.toFixed(3));
+                zoom_trans(0, 0, newZoom);
+                zoom = newZoom;
+                $("#zoom").html("Zoom:" + zoom.toFixed(3));
+            }
 //            setMove();
 //            renderImage();
         }
@@ -119,8 +127,8 @@
             var zoomDelta = 0.05;
             if (zoom > baseZoom / 3) {
                 var newZoom = zoom / (1.0 + zoomDelta);
-                xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom ;
-                yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom ;
+                xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom;
+                yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom;
 //                zoom_trans(null, null, zoom);
                 zoom_trans(0, 0, newZoom);
                 zoom = newZoom;
@@ -135,13 +143,15 @@
             var transform = 'translate(' + ((xC)).toString() + ', ' + ((yC)).toString() + ')scale(' + factor.toString() + ')';
             xlt.attributes['transform'].value = transform;
             $("#zoom").html("Zoom:" + zoom.toFixed(3));
-            $("#coords").html('xC: ' + xC.toFixed(1) + ' xM: '  + x + ' lastX: '  + lastMouseX.toFixed(3)
+            $("#coords").html('xC: ' + xC.toFixed(1) + ' xM: ' + x + ' lastX: ' + lastMouseX.toFixed(3)
                     + ' yC: ' + yC.toFixed(1) + ' y: ' + y + ' lastY: ' + lastMouseY.toFixed(3));
         }
 
         function updateSvgText(event) {
             var text4svg = document.getElementById("text4svg");
-            if( thisSvgText == null) {return false}
+            if (thisSvgText == null) {
+                return false
+            }
             if (event.keyCode == 27) {      // terminate this text block on ESC
                 if (thisSvgText.parentElement.lastChild.innerHTML.length == 0) {
                     thisSvgText.parentElement.lastChild.remove();
@@ -150,6 +160,9 @@
                 return false;
             }
             thisSvgText.innerHTML = text4svg.value;
+            thisSvgText.attributes['stroke'].value = cursorColor;       // allow in-line whole line color/font/size over-ride
+            thisSvgText.attributes['style'].value = 'font-family: ' + textFont + '; fill: ' + cursorColor + ';';    //  including fill
+            thisSvgText.attributes['font-size'].value = textHeight;
             var nextX = thisSvgText.attributes['x'].value;
             var nextY = parseInt(thisSvgText.attributes['y'].value) + parseInt(textHeight);
             var nextLine = thisSvgText.cloneNode();
@@ -236,8 +249,9 @@
                 <h3><a href="#">Image annotation using HTML5 drag and draw on canvas overlaying svg</a></h3>
 
                 <ul class="nav">
-                    <li class="active">Annotate image using sketcher app using "lineTo(x,y)" drawing and moveTo(x,y), dragging<br>
-                        and scroll zoom implemented.  Text, Circle, Polygon, Line to follow.
+                    <li class="active">Annotate image using sketcher app using "lineTo(x,y)" drawing and moveTo(x,y),
+                        dragging<br>
+                        and scroll zoom implemented. Text, Circle, Polygon, Line to follow.
                     </li>
                 </ul>
 
@@ -249,21 +263,28 @@
                     <input type="button" class="btn error" value="Path" onclick="setCursorMode('PATH');"/>
                     <span id="mode"></span>
                     <input type="button" value="Move" onclick="setMove();"/>
-                    <input type="button" value="Text" onclick="setCursorMode('TEXT');"/>
+                    <input type="button" value="Text" onclick="setTextMode();"/>
                     <input type="button" value="Zoom IN" onclick="zoomIn();"/>
                     <span id="zoom">Zoom: ---</span>
                     <input type="button" value="Zoom OUT" onclick="zoomOut();"/>
                     Text size:
-                    <input id=textSize type="number" min="5" max="300" step="5" value ="75" style="width: 4em" onchange="textHeight=this.value;"/>
-                    <input type="text" id="text4svg" onblur="closeSvgText();" />
+                    <input id=textSize type="number" min="5" max="300" step="5" value="75" style="width: 4em"
+                           onchange="textHeight=this.value;"/>
+                    <input type="text" id="text4svg" disabled/>
                     <br>
-                        <input type="button" id="setRed" style="background-color: #FF0000" onclick="setCursorColor('#FF0000');" />
-                        <input type="button" id="setBlue" style="background-color: #0000FF" onclick="setCursorColor('#0000FF');" />
-                        <input type="button" id="setGreen" style="background-color: #00FF00" onclick="setCursorColor('#00FF00');" />
-                        <input type="button" id="setBlack" style="background-color: #000000" onclick="setCursorColor('#000000');" />
-                    <input id="userColor" type="text" value="#888888" style="width: 6em" onchange="/*setCursorColor(this.value);*/ setUserColor(this.value);" />
-                    <input type="button" id="setUserColor" style="background-color: #888888" onclick="setCursorColor(getUserColor());" /> Selected Color:
-                    <input type="button" id="cursorColor" style="background-color: #FF0000" />
+                    <input type="button" id="setRed" style="background-color: #FF0000"
+                           onclick="setCursorColor('#FF0000');"/>
+                    <input type="button" id="setBlue" style="background-color: #0000FF"
+                           onclick="setCursorColor('#0000FF');"/>
+                    <input type="button" id="setGreen" style="background-color: #00FF00"
+                           onclick="setCursorColor('#00FF00');"/>
+                    <input type="button" id="setBlack" style="background-color: #000000"
+                           onclick="setCursorColor('#000000');"/>
+                    <input id="userColor" type="text" value="#888888" style="width: 6em"
+                           onchange="/*setCursorColor(this.value);*/ setUserColor(this.value);"/>
+                    <input type="button" id="setUserColor" style="background-color: #888888"
+                           onclick="setCursorColor(getUserColor());"/> Selected Color:
+                    <input type="button" id="cursorColor" style="background-color: #FF0000"/>
                     <span id="coords"></span>
                     </li>
                 </ul>
@@ -275,7 +296,7 @@
 </div>
 <div id="container" style="overflow: hidden; left: 50px; top: 175px; position: absolute;">
     <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
-         style="left: 0px; top: 0px; position: absolute;" >
+         style="left: 0px; top: 0px; position: absolute;">
         <g id="xlt" transform="translate(0,0)scale(0.20)">
             <!--<image id="xltImage" x="0" y="0" width="4000" height="3000" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>-->
             <!--<image id="xltImage" x="0" y="0" width="0" height="0" preserveAspectRatio="none"></image>-->
@@ -284,7 +305,7 @@
     </svg>
     <canvas id="sketch" width="800" height="600" style="opacity: 0.8">
         <!--<canvas id="sketch" width="800" height="600" style="left: 0px; top: 0px; position: absolute; opacity: 0.8">-->
-        </canvas>
+    </canvas>
 
 </div>
 </body>

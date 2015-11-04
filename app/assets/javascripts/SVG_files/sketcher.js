@@ -29,7 +29,7 @@ function Sketcher(canvasID, brushImage) {
       }   // adjust for FireFox
       var delta = parseInt(e.originalEvent.wheelDelta || -e.originalEvent.detail);
       lastMouseX = (e.originalEvent.clientX - 50);
-      lastMouseY= (e.originalEvent.clientY - 175);
+      lastMouseY = (e.originalEvent.clientY - 175);
       var zoomDelta = delta / deltaDiv;
       if (zoomDelta > 0) {
         zoomIn();
