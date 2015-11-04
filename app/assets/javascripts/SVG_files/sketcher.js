@@ -145,7 +145,52 @@ Sketcher.prototype.onCanvasMouseDown = function () {
         //document.getElementById('text4svg').focus();
       }
     }
-
+    if (cursorMode == 'CIRCLE') {
+      thisSvg.push([(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom]);
+      var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      var nextGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
+      group.setAttributeNS(null, 'id', nextGroupID);
+      //svg.push(group);    // insert container group
+      document.getElementById("xlt").appendChild(group);
+      for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
+        var element;
+        element = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        //document.getElementById(group.id).appendChild(element);
+        group.appendChild(element);
+        thisCirc = group.children[0];
+        element.setAttributeNS(null, 'stroke', cursorColor);
+        element.setAttributeNS(null, 'stroke-width', '3');
+        element.setAttributeNS(null, 'stroke-opacity', '0.6');
+        element.setAttributeNS(null, 'fill', '');
+        element.setAttributeNS(null, 'fill-opacity', '0.0');
+        element.setAttributeNS(null, 'cx', thisSvg[j][0]);      // start x
+        element.setAttributeNS(null, 'cy', thisSvg[j][1]);      // start y
+        element.setAttributeNS(null, 'r', 1);      // width x
+      }
+    }
+    if (cursorMode == 'LINE') {
+      thisSvg.push([(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom]);
+      var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      var nextGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
+      group.setAttributeNS(null, 'id', nextGroupID);
+      //svg.push(group);    // insert container group
+      document.getElementById("xlt").appendChild(group);
+      for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
+        var element;
+        element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        //document.getElementById(group.id).appendChild(element);
+        group.appendChild(element);
+        thisLine = group.children[0];
+        element.setAttributeNS(null, 'stroke', cursorColor);
+        element.setAttributeNS(null, 'stroke-width', '3');
+        element.setAttributeNS(null, 'stroke-opacity', '0.6');
+        element.setAttributeNS(null, 'stroke-linecap', 'round');
+        element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
+        element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
+        element.setAttributeNS(null, 'x2', thisSvg[j][0]);      // end x
+        element.setAttributeNS(null, 'y2', thisSvg[j][1]);      // end y
+      }
+    }
   }
 };
 
@@ -258,15 +303,43 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       thisSvg.push([(lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom]);
       this.context.strokeStyle = "#0066FF";
       this.context.stroke();
-    } else if (cursorMode == "POLYGON") {
+    }
+    else if (cursorMode == "POLYGON") {
       //need aditional articulation of mouseDown/Up/Click to begin/end each segment of polygon
-    } else if (cursorMode == "CIRCLE") {
+    }
+    else if (cursorMode == "CIRCLE") {
+      lastMouseX = this.lastMousePoint.x;
+      lastMouseY = this.lastMousePoint.y;
+      if (event.type == 'mousedown') {return;}
+      //var thisRectX = thisRect.attributes['x'].value;
+      //var thisRectY = thisRect.attributes['y'].value;
+      //var thisRectW = thisRect.attributes['width'].value;
+      var thisCircR = thisCirc.attributes['r'].value;
 
-    } else if (cursorMode == "LINE") {
+      this.context.moveTo(lastMouseX + thisCircR * zoom, lastMouseY + thisCircR * zoom);
+      this.updateMousePosition(event);
+      lastMouseX = this.lastMousePoint.x;
+      lastMouseY = this.lastMousePoint.y;
+      thisCirc.attributes['r'].value = (lastMouseX - xC) / zoom - thisCircR;
+     }
+    else if (cursorMode == "LINE") {
+      lastMouseX = this.lastMousePoint.x;
+      lastMouseY = this.lastMousePoint.y;
+      if (event.type == 'mousedown') {return;}
+      var thisLineX2 = thisLine.attributes['x2'].value;
+      var thisLineY2 = thisLine.attributes['y2'].value;
 
-    } else if (cursorMode == "TEXT") {
+      this.context.moveTo(lastMouseX + thisLineX2 * zoom, lastMouseY + thisLineY2 * zoom);
+      this.updateMousePosition(event);
+      lastMouseX = this.lastMousePoint.x;
+      lastMouseY = this.lastMousePoint.y;
+      thisLine.attributes['x2'].value = (lastMouseX - xC) / zoom ;  //- thisLineX2;
+      thisLine.attributes['y2'].value = (lastMouseY - yC) / zoom ;  //- thisLineY2;
+    }
+    else if (cursorMode == "TEXT") {
 
-    } else if (cursorMode == "RECT") {
+    }
+    else if (cursorMode == "RECT") {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
       if (event.type == 'mousedown') {return;}
@@ -279,8 +352,8 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      thisRect.attributes['width'].value = (lastMouseX) / zoom - thisRectX;
-      thisRect.attributes['height'].value = (lastMouseY) / zoom - thisRectY;
+      thisRect.attributes['width'].value = (lastMouseX - xC) / zoom - thisRectX;
+      thisRect.attributes['height'].value = (lastMouseY - yC) / zoom - thisRectY;
     }
   }
   else {    // Revert to MOVE: this version assumes manipulating the left and top attributes of the canvas (?)
