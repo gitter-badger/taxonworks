@@ -132,14 +132,14 @@ Sketcher.prototype.onCanvasMouseDown = function () {
         group.appendChild(element);
         thisRect = group.children[0];
         element.setAttributeNS(null, 'stroke', cursorColor);
-        element.setAttributeNS(null, 'stroke-width', '1');
+        element.setAttributeNS(null, 'stroke-width', '3');
         element.setAttributeNS(null, 'stroke-opacity', '0.6');
         element.setAttributeNS(null, 'fill', '');
         element.setAttributeNS(null, 'fill-opacity', '0.0');
         element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
         element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
-        element.setAttributeNS(null, 'width', 100);      // width x
-        element.setAttributeNS(null, 'height', 100);      // height y
+        element.setAttributeNS(null, 'width', 1);      // width x
+        element.setAttributeNS(null, 'height', 1);      // height y
         //element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
         //element.setAttributeNS(null, 'font-size', textHeight);
         //document.getElementById('text4svg').focus();
@@ -270,18 +270,20 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
       if (event.type == 'mousedown') {return;}
+      var thisRectX = thisRect.attributes['x'].value;
+      var thisRectY = thisRect.attributes['y'].value;
       var thisRectW = thisRect.attributes['width'].value;
       var thisRectH = thisRect.attributes['height'].value;
 
-      this.context.moveTo(lastMouseX + thisRectH, lastMouseY + thisRectH);
+      this.context.moveTo(lastMouseX + thisRectH * zoom, lastMouseY + thisRectW * zoom);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      thisRectW = thisRect.attributes['width'].value = lastMouseX;
-      thisRect.attributes['height'].value = lastMouseY;
+      thisRect.attributes['width'].value = (lastMouseX) / zoom - thisRectX;
+      thisRect.attributes['height'].value = (lastMouseY) / zoom - thisRectY;
     }
   }
-  else {    // this version assumes manipulating the left and top attributes of the canvas (?)
+  else {    // Revert to MOVE: this version assumes manipulating the left and top attributes of the canvas (?)
     var oldX = this.lastMousePoint.x;
     var oldY = this.lastMousePoint.y;
     this.updateMousePosition(event);
