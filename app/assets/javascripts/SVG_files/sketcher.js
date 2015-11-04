@@ -118,6 +118,34 @@ Sketcher.prototype.onCanvasMouseDown = function () {
         //document.getElementById('text4svg').focus();
       }
     }
+    if (cursorMode == 'RECT') {
+      thisSvg.push([(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom]);
+      var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      var nextGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
+      group.setAttributeNS(null, 'id', nextGroupID);
+      //svg.push(group);    // insert container group
+      document.getElementById("xlt").appendChild(group);
+      for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
+        var element;
+        element = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        //document.getElementById(group.id).appendChild(element);
+        group.appendChild(element);
+        thisRect = group.children[0];
+        element.setAttributeNS(null, 'stroke', cursorColor);
+        element.setAttributeNS(null, 'stroke-width', '1');
+        element.setAttributeNS(null, 'stroke-opacity', '0.6');
+        element.setAttributeNS(null, 'fill', '');
+        element.setAttributeNS(null, 'fill-opacity', '0.0');
+        element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
+        element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
+        element.setAttributeNS(null, 'width', 100);      // width x
+        element.setAttributeNS(null, 'height', 100);      // height y
+        //element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
+        //element.setAttributeNS(null, 'font-size', textHeight);
+        //document.getElementById('text4svg').focus();
+      }
+    }
+
   }
 };
 
@@ -238,6 +266,19 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
 
     } else if (cursorMode == "TEXT") {
 
+    } else if (cursorMode == "RECT") {
+      lastMouseX = this.lastMousePoint.x;
+      lastMouseY = this.lastMousePoint.y;
+      if (event.type == 'mousedown') {return;}
+      var thisRectW = thisRect.attributes['width'].value;
+      var thisRectH = thisRect.attributes['height'].value;
+
+      this.context.moveTo(lastMouseX + thisRectH, lastMouseY + thisRectH);
+      this.updateMousePosition(event);
+      lastMouseX = this.lastMousePoint.x;
+      lastMouseY = this.lastMousePoint.y;
+      thisRectW = thisRect.attributes['width'].value = lastMouseX;
+      thisRect.attributes['height'].value = lastMouseY;
     }
   }
   else {    // this version assumes manipulating the left and top attributes of the canvas (?)

@@ -31,9 +31,13 @@
         var instanceImage;
         //        var svg = [];           // collect the collections here
         var thisSvg = [];            // collect points as [x,y]
+
         var thisSvgText;            // pointer to svg control currently being populated
         var textHeight = 75;
         var textFont = 'Verdana';
+
+        var thisRect;
+
         var lastMouseX;
         var lastMouseY;
         //canvas_image.src = undefined;
@@ -111,30 +115,26 @@
 
         function zoomIn() {
             var zoomDelta = 0.05;
-            if (zoom < 1.1 / baseZoom) {
+            if (zoom < 2.0) {           // zoom of 1 iz pixel-per-pixel on canvas/svg
                 var newZoom = zoom * ( 1.0 + zoomDelta);
+                if (newZoom > 2.0) {newZoom = 2.0;}
                 xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom;
                 yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom;
-//            zoom_trans(null, null, zoom);
                 zoom_trans(0, 0, newZoom);
                 zoom = newZoom;
                 $("#zoom").html("Zoom:" + zoom.toFixed(3));
             }
-//            setMove();
-//            renderImage();
         }
+
         function zoomOut() {
             var zoomDelta = 0.05;
             if (zoom > baseZoom / 3) {
                 var newZoom = zoom / (1.0 + zoomDelta);
                 xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom;
                 yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom;
-//                zoom_trans(null, null, zoom);
                 zoom_trans(0, 0, newZoom);
                 zoom = newZoom;
                 $("#zoom").html("Zoom:" + zoom.toFixed(3));
-//                setMove();
-//                renderImage();
             }
         }
 
@@ -167,14 +167,12 @@
             var nextY = parseInt(thisSvgText.attributes['y'].value) + parseInt(textHeight);
             var nextLine = thisSvgText.cloneNode();
             if (event.keyCode == 13) {      // line feed on ENTER/CR
-//                var nextLine = thisSvgText.parentElement.children[thisSvgText.parentElement.childElementCount - 1];
                 nextLine.attributes['x'].value = nextX;
                 nextLine.attributes['y'].value = nextY;
                 thisSvgText.parentElement.appendChild(nextLine);
                 thisSvgText = nextLine;
                 text4svg.value = '';
             }
-
         }
 
         function closeSvgText() {
@@ -258,6 +256,7 @@
                 <ul class="nav secondary-nav">
                     <input type="button" class="btn error" value="clear" onclick="clearGroup();"/>
                     <input type="button" class="btn error" value="Polygon" onclick="setCursorMode('POLY');"/>
+                    <input type="button" class="btn error" value="Rect" onclick="setCursorMode('RECT');"/>
                     <input type="button" class="btn error" value="Line" onclick="setCursorMode('LINE');"/>
                     <input type="button" class="btn error" value="Circle" onclick="setCursorMode('CIRCLE');"/>
                     <input type="button" class="btn error" value="Path" onclick="setCursorMode('PATH');"/>
