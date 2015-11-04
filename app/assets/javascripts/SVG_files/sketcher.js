@@ -28,13 +28,29 @@ function Sketcher(canvasID, brushImage) {
         deltaDiv = 100
       }   // adjust for FireFox
       var delta = parseInt(e.originalEvent.wheelDelta || -e.originalEvent.detail);
-      zoom += delta / deltaDiv;
-      if (zoom <= 0) {zoom = 0.01}
-      var zoomX = e.originalEvent.clientX - this.offsetLeft;
-      var zoomY = e.originalEvent.clientY - this.offsetTop;
-      zoom_trans(zoomX, zoomY, zoom);
-      //zoom_trans(null, null, zoom);
-      //setMove();
+      lastMouseX = (e.originalEvent.clientX - 50);
+      lastMouseY= (e.originalEvent.clientY - 175);
+      var zoomDelta = delta / deltaDiv;
+      if (zoomDelta > 0) {
+        zoomIn();
+      } else {
+        zoomOut();
+      }
+      //zoom_trans(lastMouseX, lastMouseY, zoom);
+      //var zoomDelta = delta / deltaDiv;
+      //var newZoom = zoom + zoomDelta;
+      //xC = (xC -  lastMouseX) * zoom / (zoom + zoomDelta);
+      //yC = (yC -  lastMouseY) * zoom / (zoom + zoomDelta);
+      //xC = (xC - (lastMouseX - xC) * baseZoom / (baseZoom + zoomDelta)) * baseZoom / (newZoom);
+      //yC = (yC - (lastMouseY - yC) * baseZoom / (baseZoom + zoomDelta)) * baseZoom / (newZoom);
+      ////zoom += zoomDelta;
+      // if (zoom <= 0) {zoom = 0.01}
+      ////var zoomX = e.originalEvent.clientX - this.offsetLeft;
+      ////var zoomY = e.originalEvent.clientY - this.offsetTop;
+      ////zoom_trans(zoomX, zoomY, zoom);
+      //zoom_trans(lastMouseX, lastMouseY, zoom + zoomDelta);
+      //zoom += zoomDelta;
+      ////setMove();
       return e.preventDefault() && false;
     });
   }
@@ -189,7 +205,8 @@ Sketcher.prototype.updateMousePosition = function (event) {
   var offset = this.canvas.offset();
   this.lastMousePoint.x = target.pageX - offset.left;
   this.lastMousePoint.y = target.pageY - offset.top;
-
+  lastMouseX = this.lastMousePoint.x;
+  lastMouseY = this.lastMousePoint.y;
 };
 
 Sketcher.prototype.updateCanvasByLine = function (event) {
@@ -202,15 +219,15 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     ////////////////////
     if (cursorMode == "PATH") {
       this.context.beginPath();        // interdigitate canvas draw and record svg
-      var thisX = this.lastMousePoint.x;
-      var thisY = this.lastMousePoint.y;
-      this.context.moveTo(thisX, thisY);
-      thisSvg.push([(thisX - xC) / zoom, (thisY - yC) / zoom]);
+      lastMouseX = this.lastMousePoint.x;
+      lastMouseY = this.lastMousePoint.y;
+      this.context.moveTo(lastMouseX, lastMouseY);
+      thisSvg.push([(lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom]);
       this.updateMousePosition(event);
-      thisX = this.lastMousePoint.x;
-      thisY = this.lastMousePoint.y;
-      this.context.lineTo(thisX, thisY);
-      thisSvg.push([(thisX - xC) / zoom, (thisY - yC) / zoom]);
+      lastMouseX = this.lastMousePoint.x;
+      lastMouseY = this.lastMousePoint.y;
+      this.context.lineTo(lastMouseX, lastMouseY);
+      thisSvg.push([(lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom]);
       this.context.strokeStyle = "#0066FF";
       this.context.stroke();
     } else if (cursorMode == "POLYGON") {
@@ -227,12 +244,14 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     var oldX = this.lastMousePoint.x;
     var oldY = this.lastMousePoint.y;
     this.updateMousePosition(event);
-    xC = xC - (oldX - this.lastMousePoint.x);
-    yC = yC - (oldY - this.lastMousePoint.y);
-    var newX = this.lastMousePoint.x;
-    var newY = this.lastMousePoint.y;
-    if (oldX == newX && oldY == newY) return false;
-    zoom_trans(null, null, zoom);
+    lastMouseX = this.lastMousePoint.x;
+    lastMouseY = this.lastMousePoint.y;
+    xC = xC - (oldX - lastMouseX);
+    yC = yC - (oldY - lastMouseY);
+    if (oldX == lastMouseX && oldY == lastMouseY) {
+      return false;    // if no mvement, don't change (?)
+    }
+    zoom_trans(lastMouseX, lastMouseY, zoom);                   // effects the translation to xC, yC
   }
 };
 
