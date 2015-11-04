@@ -205,6 +205,10 @@ Sketcher.prototype.onCanvasMouseMove = function () {
   }
 };
 
+function length2points(x1, y1, x2, y2) {
+  return Math.sqrt(Math.pow((x1 - x2), 2) + (Math.pow((y1 - y2), 2)));
+}
+
 var Trig = {
   distanceBetween2Points: function (point1, point2) {
 
@@ -314,26 +318,28 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       //var thisRectX = thisRect.attributes['x'].value;
       //var thisRectY = thisRect.attributes['y'].value;
       //var thisRectW = thisRect.attributes['width'].value;
-      var thisCircR = thisCirc.attributes['r'].value;
+      var thisCircX = thisCirc.attributes['cx'].value;
+      var thisCircY = thisCirc.attributes['cy'].value;
 
-      this.context.moveTo(lastMouseX + thisCircR * zoom, lastMouseY + thisCircR * zoom);
+      this.context.moveTo(lastMouseX + thisCircX * zoom, lastMouseY + thisCircY * zoom);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      thisCirc.attributes['r'].value = (lastMouseX - xC) / zoom - thisCircR;
+      var radius = length2points(thisCircX, thisCircY, (lastMouseX - -xC) / zoom, (lastMouseY - yC) / zoom);
+      thisCirc.attributes['r'].value = radius;
      }
     else if (cursorMode == "LINE") {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
       if (event.type == 'mousedown') {return;}
-      var thisLineX2 = thisLine.attributes['x2'].value;
-      var thisLineY2 = thisLine.attributes['y2'].value;
+      var thisLineX1 = thisLine.attributes['x1'].value;
+      var thisLineY1 = thisLine.attributes['y1'].value;
 
       this.context.moveTo(lastMouseX + thisLineX2 * zoom, lastMouseY + thisLineY2 * zoom);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      thisLine.attributes['x2'].value = (lastMouseX - xC) / zoom ;  //- thisLineX2;
+      thisLine.attributes['x2'].value =  (lastMouseX - xC) / zoom;  //;
       thisLine.attributes['y2'].value = (lastMouseY - yC) / zoom ;  //- thisLineY2;
     }
     else if (cursorMode == "TEXT") {
