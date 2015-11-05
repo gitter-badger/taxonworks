@@ -321,11 +321,12 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       var thisCircX = thisCirc.attributes['cx'].value;
       var thisCircY = thisCirc.attributes['cy'].value;
 
-      this.context.moveTo(lastMouseX + thisCircX * zoom, lastMouseY + thisCircY * zoom);
+      //this.context.moveTo(lastMouseX + thisCircX * zoom, lastMouseY + thisCircY * zoom);
+      this.context.moveTo(lastMouseX , lastMouseY);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      var radius = length2points(thisCircX, thisCircY, (lastMouseX - -xC) / zoom, (lastMouseY - yC) / zoom);
+      var radius = length2points(thisCircX, thisCircY, (lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom);
       thisCirc.attributes['r'].value = radius;
      }
     else if (cursorMode == "LINE") {
