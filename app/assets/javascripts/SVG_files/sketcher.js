@@ -28,7 +28,7 @@ function Sketcher(canvasID, brushImage) {
         deltaDiv = 100
       }   // adjust for FireFox
       var delta = parseInt(e.originalEvent.wheelDelta || -e.originalEvent.detail);
-      lastMouseX = (e.originalEvent.clientX - 50);
+      lastMouseX = (e.originalEvent.clientX - 50);      /////////////// TODO: fix reference for mouse offset
       lastMouseY = (e.originalEvent.clientY - 175);
       var zoomDelta = delta / deltaDiv;
       if (zoomDelta > 0) {
@@ -311,13 +311,13 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     else if (cursorMode == "POLYGON") {
       //need aditional articulation of mouseDown/Up/Click to begin/end each segment of polygon
     }
+    else if (cursorMode == "POLYLINE") {
+      //need aditional articulation of mouseDown/Up/Click to begin/end each segment of polygon
+    }
     else if (cursorMode == "CIRCLE") {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
       if (event.type == 'mousedown') {return;}
-      //var thisRectX = thisRect.attributes['x'].value;
-      //var thisRectY = thisRect.attributes['y'].value;
-      //var thisRectW = thisRect.attributes['width'].value;
       var thisCircX = thisCirc.attributes['cx'].value;
       var thisCircY = thisCirc.attributes['cy'].value;
 
@@ -335,7 +335,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       var thisLineX1 = thisLine.attributes['x1'].value;
       var thisLineY1 = thisLine.attributes['y1'].value;
 
-      this.context.moveTo(lastMouseX + thisLineX2 * zoom, lastMouseY + thisLineY2 * zoom);
+      this.context.moveTo(lastMouseX /*+ thisLineX2 * zoom*/, lastMouseY/* + thisLineY2 * zoom*/);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
