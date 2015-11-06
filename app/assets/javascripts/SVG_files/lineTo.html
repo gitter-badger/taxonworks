@@ -38,6 +38,8 @@
 
         var thisPath;
 
+        var thisDraw;
+
         var thisRect;
 
         var thisLine;
@@ -48,13 +50,15 @@
 
         var thisCirc;
 
+        var thisEllipse;
+
         var svgInProgress = false;
 
         var lastMouseX;
         var lastMouseY;
         //canvas_image.src = undefined;
         //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
-        svgImage.src = 'frost_stage.jpg';
+        svgImage.src = 'frost_stage.jpg';     // 'stitch-3.tif';
         $(document).ready(function (e) {
             sketcher = new Sketcher("sketch");
             indicateMode();
@@ -272,7 +276,9 @@
                     <input type="button" class="btn error" value="Rectangle" onclick="setCursorMode('RECT');"/>
                     <input type="button" class="btn error" value="Line" onclick="setCursorMode('LINE');"/>
                     <input type="button" class="btn error" value="Circle" onclick="setCursorMode('CIRCLE');"/>
-                    <input type="button" class="btn error" value="Path" onclick="setCursorMode('PATH');"/>
+                    <input type="button" class="btn error" value="Ellipse" onclick="setCursorMode('ELLIPSE');"/>
+                    <!--<input type="button" class="btn error" value="Path" onclick="setCursorMode('PATH');"/>-->
+                    <input type="button" class="btn error" value="Draw" onclick="setCursorMode('DRAW');"/>
                     <span id="mode"></span>
                     <input type="button" value="Move" onclick="setMove();"/>
                     <input type="button" value="Text" onclick="setTextMode();"/>
