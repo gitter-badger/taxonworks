@@ -192,6 +192,33 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         unbindMouseHandlers(self);
       }
     }
+    if (cursorMode == 'HTAP') {     // probably BOGUS scaffold
+      if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
+        thisSvg.push([(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom]);
+        var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        var nextGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
+        group.setAttributeNS(null, 'id', nextGroupID);
+        document.getElementById("xlt").appendChild(group);
+        for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
+          var element;
+          element = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+          //document.getElementById(group.id).appendChild(element);
+          group.appendChild(element);
+          thisPath = group.children[0];
+          element.setAttributeNS(null, 'stroke', cursorColor);
+          element.setAttributeNS(null, 'stroke-width', '3');
+          element.setAttributeNS(null, 'stroke-opacity', '0.6');
+          element.setAttributeNS(null, 'stroke-linecap', 'round');
+          element.setAttributeNS(null, 'points', thisSvg[j][0].toFixed(2).toString()
+            + ',' + thisSvg[j][1].toFixed(2).toString() + ' ');      // start x,y
+        }
+        svgInProgress = cursorMode;     // mark in progress
+      }
+      else {      // this is the terminus of this instance, so dissociate mouse move handler
+        svgInProgress = false;
+        unbindMouseHandlers(self);
+      }
+    }
   }
 };
 
