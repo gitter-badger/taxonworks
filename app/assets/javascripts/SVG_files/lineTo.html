@@ -58,7 +58,7 @@
         var lastMouseY;
         //canvas_image.src = undefined;
         //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
-        svgImage.src = 'frost_stage.jpg';     // 'stitch-3.tif';
+        svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
         $(document).ready(function (e) {
             sketcher = new Sketcher("sketch");
             indicateMode();
@@ -87,6 +87,7 @@
             xltImage.setAttributeNS(null, 'preserveAspectRatio', "none");
             xltImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', svgImage.src);
             xlt.appendChild(xltImage);
+            zoom_trans(0, 0, zoom);             //////////// IMPORTANT !!!!!!!!!!!
 
             canvas = document.getElementById("sketch");     // set up the dynamic draw layer
             context = canvas.getContext("2d");
