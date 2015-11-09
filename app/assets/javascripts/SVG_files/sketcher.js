@@ -106,7 +106,7 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         element.setAttributeNS(null, 'font-size', textHeight);
       }
     }
-    if (cursorMode == 'RECT') {
+    if (cursorMode == 'RECTANGLE') {
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg.push([(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom]);
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -118,7 +118,7 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
           element = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
           //document.getElementById(group.id).appendChild(element);
           group.appendChild(element);
-          thisRect = group.children[0];
+          thisRectangle = group.children[0];
           element.setAttributeNS(null, 'stroke', cursorColor);
           element.setAttributeNS(null, 'stroke-width', '10');
           element.setAttributeNS(null, 'stroke-opacity', '0.9');
@@ -148,7 +148,7 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
           element = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
           //document.getElementById(group.id).appendChild(element);
           group.appendChild(element);
-          thisCirc = group.children[0];
+          thisCircle = group.children[0];
           element.setAttributeNS(null, 'stroke', cursorColor);
           element.setAttributeNS(null, 'stroke-width', '10');
           element.setAttributeNS(null, 'stroke-opacity', '0.9');
@@ -390,21 +390,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     //  mouseDown/Up will need to articulate for above shapes also
     //
     ////////////////////
-    if (cursorMode == "PATH") {
-      this.context.beginPath();        // interdigitate canvas draw and record svg
-      lastMouseX = this.lastMousePoint.x;
-      lastMouseY = this.lastMousePoint.y;
-      this.context.moveTo(lastMouseX, lastMouseY);
-      thisSvg.push([(lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom]);
-      this.updateMousePosition(event);
-      lastMouseX = this.lastMousePoint.x;
-      lastMouseY = this.lastMousePoint.y;
-      this.context.lineTo(lastMouseX, lastMouseY);
-      thisSvg.push([(lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom]);
-      this.context.strokeStyle = "#0066FF";
-      this.context.stroke();
-    }
-    else if (cursorMode == "DRAW") {
+   if (cursorMode == "DRAW") {
       this.context.moveTo(lastMouseX, lastMouseY);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
@@ -447,25 +433,24 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     else if (cursorMode == "CIRCLE") {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      if (event.type == 'mousedown') {
+      if ((event.type == 'mousedown') || (svgInProgress == false)) {
         return;
       }
-      var thisCircX = thisCirc.attributes['cx'].value;
-      var thisCircY = thisCirc.attributes['cy'].value;
+      var thisCircX = thisCircle.attributes['cx'].value;
+      var thisCircY = thisCircle.attributes['cy'].value;
 
-      //this.context.moveTo(lastMouseX + thisCircX * zoom, lastMouseY + thisCircY * zoom);
       this.context.moveTo(lastMouseX, lastMouseY);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
       var radius = length2points(thisCircX, thisCircY, (lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom);
-      thisCirc.attributes['r'].value = radius;
-      thisCirc.attributes['stroke'].value = cursorColor;
+      thisCircle.attributes['r'].value = radius;
+      thisCircle.attributes['stroke'].value = cursorColor;
     }
     else if (cursorMode == "ELLIPSE") {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      if (event.type == 'mousedown') {
+      if ((event.type == 'mousedown') || (svgInProgress == false)) {
         return;
       }
       var thisEllipseX = thisEllipse.attributes['cx'].value;
@@ -484,7 +469,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     else if (cursorMode == "LINE") {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      if (event.type == 'mousedown') {
+      if ((event.type == 'mousedown') || (svgInProgress == false)) {    // extra condition for LINE
         return;
       }
       var thisLineX1 = thisLine.attributes['x1'].value;
@@ -496,27 +481,29 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       lastMouseY = this.lastMousePoint.y;
       thisLine.attributes['x2'].value = (lastMouseX - xC) / zoom;  //;
       thisLine.attributes['y2'].value = (lastMouseY - yC) / zoom;  //- thisLineY2;
+     thisLine.attributes['stroke'] = cursorColor;
     }
     else if (cursorMode == "TEXT") {
 
     }
-    else if (cursorMode == "RECT") {
+    else if (cursorMode == "RECTANGLE") {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      if (event.type == 'mousedown') {
+      if ((event.type == 'mousedown') || (svgInProgress == false)) {
         return;
       }
-      var thisRectX = thisRect.attributes['x'].value;
-      var thisRectY = thisRect.attributes['y'].value;
-      var thisRectW = thisRect.attributes['width'].value;
-      var thisRectH = thisRect.attributes['height'].value;
+      var thisRectX = thisRectangle.attributes['x'].value;
+      var thisRectY = thisRectangle.attributes['y'].value;
+      var thisRectW = thisRectangle.attributes['width'].value;
+      var thisRectH = thisRectangle.attributes['height'].value;
 
       this.context.moveTo(lastMouseX + thisRectH * zoom, lastMouseY + thisRectW * zoom);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      thisRect.attributes['width'].value = (lastMouseX - xC) / zoom - thisRectX;
-      thisRect.attributes['height'].value = (lastMouseY - yC) / zoom - thisRectY;
+      thisRectangle.attributes['width'].value = (lastMouseX - xC) / zoom - thisRectX;
+      thisRectangle.attributes['height'].value = (lastMouseY - yC) / zoom - thisRectY;
+      thisRectangle.attributes['stroke'] = cursorColor;
     }
   }
   else {    // Revert to MOVE: this version assumes manipulating the left and top attributes of the canvas (?)

@@ -40,7 +40,7 @@
 
         var thisDraw;
 
-        var thisRect;
+        var thisRectangle;
 
         var thisLine;
 
@@ -48,7 +48,7 @@
 
         var thisPolygon;
 
-        var thisCirc;
+        var thisCircle;
 
         var thisEllipse;
 
@@ -119,7 +119,11 @@
             xlt.lastChild.remove();
         }
 
-        function setCursorMode(mode) {
+        function setCursorMode(mode) {      // detect current mode not completed prior to mode switch
+            if ((cursorMode != mode) && (svgInProgress == cursorMode)) {
+            svgInProgress = false;
+            checkLeftoverElement();     // look for dangling element, most likely off of svg image element ( - Y coord)
+        }
             cursorMode = mode;
             indicateMode();
         }
@@ -127,6 +131,44 @@
         function setTextMode() {
             setCursorMode('TEXT');
             document.getElementById("text4svg").removeAttribute('disabled');
+        }
+
+        function checkLeftoverElement() {       // this function is only called when svgInProgress is false
+            switch (cursorMode) {
+                case 'POLYLINE':
+                    var thesePoints = thisPolyline.attributes['points'].value;
+                    var splitPoints = thesePoints.split(' ');
+                    thesePoints = '';
+                    for (k=0; k<splitPoints.length - 2; k++) {thesePoints += splitPoints[k] + ' ';}
+                    thisPolyline.attributes['points'].value = thesePoints;
+                    break;
+                case 'POLYGON':
+                    var thesePoints = thisPolygon.attributes['points'].value;
+                    var splitPoints = thesePoints.split(' ');
+                    thesePoints = '';
+                    for (k=0; k<splitPoints.length - 2; k++) {thesePoints += splitPoints[k] + ' ';}
+                    thisPolyline.attributes['points'].value = thesePoints;
+                    break;
+                case 'CIRCLE':
+                    if (thisCircle == null) return;
+                    if ((thisCircle.attributes['cy'].value - thisCircle.attributes['r'].value) < 0) {
+                        clearGroup();       // this was a leftover
+                    }
+                case 'ELLIPSE':
+                    if (thisEllipse == null) return;
+                    if ((thisEllipse.attributes['cy'].value - thisEllipse.attributes['ry'].value) < 0) {
+                        clearGroup();       // this was a leftover
+                    }
+                case 'RECTANGLE':
+                    if (thisRectangle == null) return;
+                    if ((thisRectangle.attributes['height'].value) < 0) {
+                        clearGroup();       // this was a leftover
+                    }
+                case 'LINE':
+                    if ((thisLine.attributes['y2'].value) < 0) {
+                        clearGroup();       // this was a leftover
+                    }
+            }
         }
 
         function zoomIn() {
@@ -273,7 +315,7 @@
                     <input type="button" class="btn error" value="clear" onclick="clearGroup();"/>
                     <input type="button" class="btn error" value="Polygon" onclick="setCursorMode('POLYGON');"/>
                     <input type="button" class="btn error" value="Polyline" onclick="setCursorMode('POLYLINE');"/>
-                    <input type="button" class="btn error" value="Rectangle" onclick="setCursorMode('RECT');"/>
+                    <input type="button" class="btn error" value="Rectangle" onclick="setCursorMode('RECTANGLE');"/>
                     <input type="button" class="btn error" value="Line" onclick="setCursorMode('LINE');"/>
                     <input type="button" class="btn error" value="Circle" onclick="setCursorMode('CIRCLE');"/>
                     <input type="button" class="btn error" value="Ellipse" onclick="setCursorMode('ELLIPSE');"/>
