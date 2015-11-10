@@ -3,10 +3,11 @@ function Sketcher(canvasID, brushImage) {
   this.brush = brushImage;
   this.touchSupported = Modernizr.touch;
   this.canvasID = canvasID;
-  this.canvas = $("#" + canvasID);
-  this.context = this.canvas.get(0).getContext("2d");
-  this.context.strokeStyle = "#000000";
-  this.context.lineWidth = 3;
+  //this.canvas = $("#" + canvasID);
+
+  //this.context = this.canvas.get(0).getContext("2d");
+  //this.context.strokeStyle = "#000000";
+  //this.context.lineWidth = 3;
   this.lastMousePoint = {x: 0, y: 0};
 
   if (this.touchSupported) {
@@ -19,9 +20,11 @@ function Sketcher(canvasID, brushImage) {
     this.mouseMoveEvent = "mousemove";
     this.mouseUpEvent = "mouseup";
 
-    this.canvas.bind('dblclick', this.doubleClickHandler());
+    //this.canvas.bind('dblclick', this.doubleClickHandler());
+    $("#" + canvasID).bind('dblclick', this.doubleClickHandler());
 
-    this.canvas.bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
+    //this.canvas.bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
+    $("#" + canvasID).bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
     {
       e.stopImmediatePropagation();
       e.stopPropagation();
@@ -41,32 +44,8 @@ function Sketcher(canvasID, brushImage) {
       return e.preventDefault() && false;
     });
   }
-  //this.canvas.bind(this.click, function () {
-  //  if (cursorMode == "TEXT") {
-  //    thisSvg.push([(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom]);
-  //    var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  //    group.setAttributeNS(null, 'id', 'g' + svg.length.toString());
-  //    svg.push(group);    // insert container group
-  //    document.getElementById("xlt").appendChild(group);
-  //    var element;
-  //    for (j = 0; j < thisSvg.length; j++) {
-  //      element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  //      //document.getElementById(group.id).appendChild(element);
-  //      group.appendChild(element);
-  //      thisSvgText = group.children[0];
-  //      element.setAttributeNS(null, 'stroke', cursorColor);
-  //      element.setAttributeNS(null, 'stroke-width', '1');
-  //      element.setAttributeNS(null, 'stroke-opacity', '1.0');
-  //      element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
-  //      element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
-  //      element.setAttributeNS(null, 'style', 'font-family: Verdana; fill: ' + cursorColor.toString() + ';');
-  //      element.setAttributeNS(null, 'font-size', 100);
-  //      document.getElementById('text4svg').focus();
-  //    }
-  //  }
-  //});
-
-  this.canvas.bind(this.mouseDownEvent, this.onCanvasMouseDown());
+  //this.canvas.bind(this.mouseDownEvent, this.onCanvasMouseDown());
+  $("#" + canvasID).bind(this.mouseDownEvent, this.onCanvasMouseDown());
 }
 
 Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or stop element generation on mouseDOWN
@@ -149,6 +128,8 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
           //document.getElementById(group.id).appendChild(element);
           group.appendChild(element);
           thisCircle = group.children[0];
+          var inverseCursor = '#00' + (parseInt(('0x' + cursorColor.split('#')[1])) ^ 0xFFFFFF).toString(16);
+          element.setAttributeNS(null, 'onmouseover', "this.attributes['stroke'].value = '" + inverseCursor + "'; this.attributes['stroke-width'].value = '5';");
           element.setAttributeNS(null, 'stroke', cursorColor);
           element.setAttributeNS(null, 'stroke-width', '10');
           element.setAttributeNS(null, 'stroke-opacity', '0.9');
@@ -278,7 +259,7 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         svgInProgress = cursorMode;     // mark in progress
       }
       else {      // this is the fixation of this last point, so DON'T dissociate mouse move handler
-        self.context.moveTo(lastMouseX, lastMouseY);
+        //self.context.moveTo(lastMouseX, lastMouseY);
         self.updateMousePosition(event);
         //lastMouseX = this.lastMousePoint.x;
         //lastMouseY = this.lastMousePoint.y;
@@ -314,7 +295,7 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         svgInProgress = cursorMode;     // mark in progress
       }
       else {      // this is the fixation of this last point, so DON'T dissociate mouse move handler
-        self.context.moveTo(lastMouseX, lastMouseY);
+        //self.context.moveTo(lastMouseX, lastMouseY);
         self.updateMousePosition(event);
         //lastMouseX = this.lastMousePoint.x;
         //lastMouseY = this.lastMousePoint.y;
@@ -375,7 +356,10 @@ Sketcher.prototype.updateMousePosition = function (event) {
     target = event;
   }
 
-  var offset = this.canvas.offset();
+  var setoff = {};
+  setoff['top'] = 175;
+  setoff['left'] = 50;
+  var offset = setoff;    //  was this.canvas.offset();
   this.lastMousePoint.x = target.pageX - offset.left;
   this.lastMousePoint.y = target.pageY - offset.top;
   lastMouseX = this.lastMousePoint.x;
@@ -391,7 +375,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     //
     ////////////////////
    if (cursorMode == "DRAW") {
-      this.context.moveTo(lastMouseX, lastMouseY);
+      //this.context.moveTo(lastMouseX, lastMouseY);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
@@ -402,7 +386,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     }
     else if (cursorMode == "POLYLINE") {
       if (svgInProgress == false) {return;}
-      this.context.moveTo(lastMouseX, lastMouseY);
+      //this.context.moveTo(lastMouseX, lastMouseY);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
@@ -417,7 +401,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     }
     else if (cursorMode == "POLYGON") {
       if (svgInProgress == false) {return;}
-      this.context.moveTo(lastMouseX, lastMouseY);
+      //this.context.moveTo(lastMouseX, lastMouseY);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
@@ -439,7 +423,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       var thisCircX = thisCircle.attributes['cx'].value;
       var thisCircY = thisCircle.attributes['cy'].value;
 
-      this.context.moveTo(lastMouseX, lastMouseY);
+      //this.context.moveTo(lastMouseX, lastMouseY);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
@@ -457,7 +441,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       var thisEllipseY = thisEllipse.attributes['cy'].value;
 
       //this.context.moveTo(lastMouseX + thisCircX * zoom, lastMouseY + thisCircY * zoom);
-      this.context.moveTo(lastMouseX, lastMouseY);
+      //this.context.moveTo(lastMouseX, lastMouseY);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
@@ -475,7 +459,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       var thisLineX1 = thisLine.attributes['x1'].value;
       var thisLineY1 = thisLine.attributes['y1'].value;
 
-      this.context.moveTo(lastMouseX /*+ thisLineX2 * zoom*/, lastMouseY/* + thisLineY2 * zoom*/);
+      //this.context.moveTo(lastMouseX /*+ thisLineX2 * zoom*/, lastMouseY/* + thisLineY2 * zoom*/);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
@@ -497,7 +481,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       var thisRectW = thisRectangle.attributes['width'].value;
       var thisRectH = thisRectangle.attributes['height'].value;
 
-      this.context.moveTo(lastMouseX + thisRectH * zoom, lastMouseY + thisRectW * zoom);
+      //this.context.moveTo(lastMouseX + thisRectH * zoom, lastMouseY + thisRectW * zoom);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
@@ -538,7 +522,7 @@ Sketcher.prototype.updateCanvasByBrush = function (event) {
     x = start.x + (Math.sin(angle) * z) - halfBrushW;
     y = start.y + (Math.cos(angle) * z) - halfBrushH;
     //console.log( x, y, angle, z );
-    this.context.drawImage(this.brush, x, y);
+    //this.context.drawImage(this.brush, x, y);
   }
 };
 
@@ -614,5 +598,5 @@ Sketcher.prototype.doubleClickHandler = function () {
 Sketcher.prototype.clear = function () {
 
   var c = this.canvas[0];
-  this.context.clearRect(0, 0, c.width, c.height);
+  //this.context.clearRect(0, 0, c.width, c.height);
 };

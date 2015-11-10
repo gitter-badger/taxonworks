@@ -60,7 +60,8 @@
         //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
         $(document).ready(function (e) {
-            sketcher = new Sketcher("sketch");
+            sketcher = new Sketcher("svgLayer");
+//            sketcher = new Sketcher("sketch");
             indicateMode();
             document.getElementById("text4svg").onkeyup = updateSvgText;
 //    canvas = document.getElementById("sketch");
@@ -89,8 +90,8 @@
             xlt.appendChild(xltImage);
             zoom_trans(0, 0, zoom);             //////////// IMPORTANT !!!!!!!!!!!
 
-            canvas = document.getElementById("sketch");     // set up the dynamic draw layer
-            context = canvas.getContext("2d");
+//            canvas = document.getElementById("sketch");     // set up the dynamic draw layer
+//            context = canvas.getContext("2d");
             setMove();
         });
 
@@ -298,7 +299,6 @@
 
 </head>
 
-<body>
 <div class="topbar-wrapper" style="z-index: 5;">
     <div class="topbar" data-dropdown="dropdown">
         <div class="topbar-inner">
@@ -364,10 +364,9 @@
             <circle id='cursor' cx='250' cy='180' r='20' fill='#ff0000' fill-opacity='0.5'/>
         </g>
     </svg>
-    <canvas id="sketch" width="800" height="600" style="opacity: 0.8">
-        <!--<canvas id="sketch" width="800" height="600" style="left: 0px; top: 0px; position: absolute; opacity: 0.8">-->
-    </canvas>
-
+    <!--<canvas id="sketch" width="800" height="600" style="opacity: 0.8">-->
+        <!--&lt;!&ndash;<canvas id="sketch" width="800" height="600" style="left: 0px; top: 0px; position: absolute; opacity: 0.8">&ndash;&gt;-->
+    <!--</canvas>-->
 </div>
 </body>
 </html>
