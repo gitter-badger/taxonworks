@@ -23,6 +23,7 @@
         var yC = 0;
         var cursorMode = "MOVE";
         var cursorColor = '#ff0000'
+        var strokeWidth = '10';
         var zoom = 0.2;         /////////////////////////////
         var baseZoom = 0.2;         /////////////////////////////
         var canvas;
@@ -171,6 +172,19 @@
                         clearGroup();       // this was a leftover
                     }
             }
+        }
+
+        function inverseColor(color) {          // color is required to be string as #RRGGBB hexadecimal
+            var red = makeHex8(color.slice(1, 3));
+            var grn = makeHex8(color.slice(3, 5));
+            var blu = makeHex8(color.slice(5,7));
+            return '#' + red + grn + blu;
+        }
+
+        function makeHex8(colorSegment) {       // colorSegment is 8 bit hex encoded string
+            var izit = ((parseInt('0X' + colorSegment)) ^ 0xFF).toString(16)
+            if (izit.length == 2) { return izit;}
+            return '0' + izit;
         }
 
         function zoomIn() {
