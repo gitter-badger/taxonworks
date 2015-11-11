@@ -1,5 +1,5 @@
 function Sketcher(canvasID, brushImage) {
-  this.renderFunction = (brushImage == null || brushImage == undefined) ? this.updateCanvasByLine : this.updateCanvasByBrush;
+  this.renderFunction = this.updateCanvasByLine;
   this.brush = brushImage;
   this.touchSupported = Modernizr.touch;
   this.canvasID = canvasID;
@@ -134,10 +134,6 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
           element.setAttributeNS(null, 'cx', thisSvg[j][0]);      // start x
           element.setAttributeNS(null, 'cy', thisSvg[j][1]);      // start y
           element.setAttributeNS(null, 'r', 1);      // width x
-          //element.setAttributeNS(null, 'onmouseover', "this.attributes['stroke'].value = '" + inverseColor(cursorColor)
-          //  + "'; this.attributes['stroke-width'].value = '15';");
-          //element.setAttributeNS(null, 'onmouseout', "this.attributes['stroke'].value = '" + cursorColor
-          //  + "'; this.attributes['stroke-width'].value = " + strokeWidth + ";");
         }
         svgInProgress = cursorMode;     // mark in progress
       }
@@ -158,11 +154,6 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
 
           group.appendChild(element);
           thisEllipse = group.children[0];
-          //element.setAttributeNS(null, 'stroke', cursorColor);
-          //element.setAttributeNS(null, 'stroke-width', strokeWidth);
-          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
-          //element.setAttributeNS(null, 'fill', '');
-          //element.setAttributeNS(null, 'fill-opacity', '0.0');
           element.setAttributeNS(null, 'cx', thisSvg[j][0]);      // start x
           element.setAttributeNS(null, 'cy', thisSvg[j][1]);      // start y
           element.setAttributeNS(null, 'rx', 1);      // radius x
@@ -187,10 +178,6 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
 
           group.appendChild(element);
           thisLine = group.children[0];
-          //element.setAttributeNS(null, 'stroke', cursorColor);
-          //element.setAttributeNS(null, 'stroke-width', strokeWidth);
-          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
-          //element.setAttributeNS(null, 'stroke-linecap', 'round');
           element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
           element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
           element.setAttributeNS(null, 'x2', thisSvg[j][0]);      // end x
@@ -215,11 +202,6 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
 
           group.appendChild(element);
           thisDraw = group.children[0];
-          //element.setAttributeNS(null, 'stroke', cursorColor);
-          //element.setAttributeNS(null, 'stroke-width', strokeWidth);
-          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
-          //element.setAttributeNS(null, 'stroke-linecap', 'round');
-          //element.setAttributeNS(null, 'fill-opacity', '0.0');
           element.setAttributeNS(null, 'points', thisSvg[j][0].toFixed(2).toString()
             + ',' + thisSvg[j][1].toFixed(2).toString() + ' ');      // start x,y
         }
@@ -242,11 +224,7 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
 
           group.appendChild(element);
           thisPolyline = group.children[0];
-          //element.setAttributeNS(null, 'stroke', cursorColor);
-          //element.setAttributeNS(null, 'stroke-width', strokeWidth);
-          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
           element.setAttributeNS(null, 'stroke-linecap', 'round');
-          //element.setAttributeNS(null, 'fill-opacity', '0.0');
           element.setAttributeNS(null, 'points', thisSvg[j][0].toFixed(2).toString()
             + ',' + thisSvg[j][1].toFixed(2).toString() + ' '
             + thisSvg[j][0].toFixed(2).toString()
@@ -261,7 +239,7 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         //lastMouseY = this.lastMousePoint.y;
         var thesePoints = thisPolyline.attributes['points'].value;
         var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
-          + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' '
+          + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
         thisPolyline.attributes['points'].value = thesePoints.concat(thisPoint);
       }
     }
@@ -277,11 +255,6 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
 
           group.appendChild(element);
           thisPolygon = group.children[0];
-          //element.setAttributeNS(null, 'stroke', cursorColor);
-          //element.setAttributeNS(null, 'stroke-width', strokeWidth);
-          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
-          //element.setAttributeNS(null, 'stroke-linecap', 'round');
-          //element.setAttributeNS(null, 'fill-opacity', '0.0');
           element.setAttributeNS(null, 'points', thisSvg[j][0].toFixed(2).toString()
             + ',' + thisSvg[j][1].toFixed(2).toString() + ' '
             + thisSvg[j][0].toFixed(2).toString()
@@ -296,7 +269,7 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         //lastMouseY = this.lastMousePoint.y;
         var thesePoints = thisPolygon.attributes['points'].value;
         var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
-          + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' '
+          + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
         thisPolygon.attributes['points'].value = thesePoints.concat(thisPoint);
       }
     }
@@ -311,19 +284,13 @@ function createElement(type) {
   element.setAttributeNS(null, 'fill', '');
   element.setAttributeNS(null, 'fill-opacity', '0.0');
   element.setAttributeNS(null, 'stroke-linecap', 'round');
-  //element.setAttributeNS(null, 'onmouseover', "this.attributes['stroke'].value = '" + inverseColor(cursorColor)
-  //  + "'; this.attributes['stroke-width'].value = '15';");
-  //element.setAttributeNS(null, 'onmouseout', "this.attributes['stroke'].value = '" + cursorColor
-  //  + "'; this.attributes['stroke-width'].value = " + strokeWidth + ";");
   element = setMouseoverOut(element);
   return element;
 }
 
 function setMouseoverOut(element) {
-  element.setAttributeNS(null, 'onmouseover', "this.attributes['stroke'].value = '" + inverseColor(cursorColor)
-    + "'; this.attributes['stroke-width'].value = '15';");
-  element.setAttributeNS(null, 'onmouseout', "this.attributes['stroke'].value = '" + cursorColor
-    + "'; this.attributes['stroke-width'].value = " + strokeWidth + ";");
+  element.setAttributeNS(null, 'onmouseover', "this.attributes['stroke-width'].value = '" + 1.5 * strokeWidth + "';");
+  element.setAttributeNS(null, 'onmouseout', "tthis.attributes['stroke-width'].value = " + strokeWidth + ";");
   return element;
 
 }
@@ -393,14 +360,14 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
     //  mouseDown/Up will need to articulate for above shapes also
     //
     ////////////////////
-   if (cursorMode == "DRAW") {
+    if (cursorMode == "DRAW") {
       //this.context.moveTo(lastMouseX, lastMouseY);
       this.updateMousePosition(event);
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
       var thesePoints = thisDraw.attributes['points'].value;
       var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
-        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' '
+        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
       thisDraw.attributes['points'].value = thesePoints.concat(thisPoint);
     }
     else if (cursorMode == "POLYLINE") {
@@ -414,7 +381,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       thesePoints = '';
       for (k=0; k<splitPoints.length - 2; k++) {thesePoints += splitPoints[k] + ' ';}
       var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
-        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' '
+        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
       thisPolyline.attributes['points'].value = thesePoints.concat(thisPoint);
       thisPolyline.attributes['stroke'].value = cursorColor;
     }
@@ -429,7 +396,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       thesePoints = '';
       for (k=0; k<splitPoints.length - 2; k++) {thesePoints += splitPoints[k] + ' ';}
       var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
-        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' '
+        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
       thisPolygon.attributes['points'].value = thesePoints.concat(thisPoint);
       thisPolygon.attributes['stroke'].value = cursorColor;
     }
@@ -449,7 +416,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       var radius = length2points(thisCircX, thisCircY, (lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom);
       thisCircle.attributes['r'].value = radius;
       thisCircle.attributes['stroke'].value = cursorColor;
-   }
+    }
     else if (cursorMode == "ELLIPSE") {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
@@ -484,7 +451,7 @@ Sketcher.prototype.updateCanvasByLine = function (event) {
       lastMouseY = this.lastMousePoint.y;
       thisLine.attributes['x2'].value = (lastMouseX - xC) / zoom;  //;
       thisLine.attributes['y2'].value = (lastMouseY - yC) / zoom;  //- thisLineY2;
-     thisLine.attributes['stroke'] = cursorColor;
+      thisLine.attributes['stroke'] = cursorColor;
     }
     else if (cursorMode == "TEXT") {
 
@@ -548,45 +515,7 @@ Sketcher.prototype.updateCanvasByBrush = function (event) {
 Sketcher.prototype.onCanvasMouseUp = function (event) {
   var self = this;
   return function (event) {
-////// unbind mouse handlers for move and up
-//    if ( svgInProgress == false || cursorMode == 'MOVE') {
-//      $(document).unbind(self.mouseMoveEvent, self.mouseMoveHandler);   // unbinding on mouse UP
-//      $(document).unbind(self.mouseUpEvent, self.mouseUpHandler);
-////// kill the linkage to the handler
-//      self.mouseMoveHandler = null;
-//      self.mouseUpHandler = null;
-//    }
-    //self.context.restore();
     if ((cursorMode == "MOVE") || (svgInProgress == false)) {unbindMouseHandlers(self);}
-    if (cursorMode == "PATH") {
-      if (thisSvg != undefined) {
-        unbindMouseHandlers(self);
-        if (thisSvg.length > 0) {   // thisSvg was collected through updateCanvasByLine
-          var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-          var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
-          group.setAttributeNS(null, 'id', newGroupID);
-          //svg.push(group);    // insert container group
-          document.getElementById("xlt").appendChild(group);
-          var element;                              //
-          for (j = 0; j < thisSvg.length; j++) {    // make "orthodox" line entroes for this group
-
-            element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            document.getElementById(group.id).appendChild(element);
-            element.setAttributeNS(null, 'stroke', cursorColor);
-            element.setAttributeNS(null, 'stroke-width', strokeWidth);
-            element.setAttributeNS(null, 'stroke-opacity', '1.0');
-            element.setAttributeNS(null, 'stroke-linecap', 'round');
-            element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
-            element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
-            j += 1;
-            element.setAttributeNS(null, 'x2', thisSvg[j][0]);      // end x
-            element.setAttributeNS(null, 'y2', thisSvg[j][1]);      // end y
-          }
-          sketcher.clear();       // do not change any cursor-related values
-        }
-        ;
-      }
-    }
     else if (cursorMode == 'DRAW') {
       svgInProgress = false;
       unbindMouseHandlers(self);
