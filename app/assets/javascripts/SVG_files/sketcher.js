@@ -93,16 +93,15 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
         for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
-          var element;
-          element = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          var element = createElement('rect');
 
           group.appendChild(element);
           thisRectangle = group.children[0];
-          element.setAttributeNS(null, 'stroke', cursorColor);
-          element.setAttributeNS(null, 'stroke-width', '10');
-          element.setAttributeNS(null, 'stroke-opacity', '0.9');
-          element.setAttributeNS(null, 'fill', '');
-          element.setAttributeNS(null, 'fill-opacity', '0.0');
+          //element.setAttributeNS(null, 'stroke', cursorColor);
+          //element.setAttributeNS(null, 'stroke-width', '10');
+          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
+          //element.setAttributeNS(null, 'fill', '');
+          //element.setAttributeNS(null, 'fill-opacity', '0.0');
           element.setAttributeNS(null, 'x', thisSvg[j][0]);      // start x
           element.setAttributeNS(null, 'y', thisSvg[j][1]);      // start y
           element.setAttributeNS(null, 'width', 1);      // width x
@@ -123,8 +122,7 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
         for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
-          var element;
-          element = createElement('circle');
+          var element = createElement('circle');
 
           group.appendChild(element);
           thisCircle = group.children[0];     // this var is used to dynamically create the element
@@ -156,16 +154,15 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
         for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
-          var element;
-          element = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+          var element = createElement('ellipse');
 
           group.appendChild(element);
           thisEllipse = group.children[0];
-          element.setAttributeNS(null, 'stroke', cursorColor);
-          element.setAttributeNS(null, 'stroke-width', strokeWidth);
-          element.setAttributeNS(null, 'stroke-opacity', '0.9');
-          element.setAttributeNS(null, 'fill', '');
-          element.setAttributeNS(null, 'fill-opacity', '0.0');
+          //element.setAttributeNS(null, 'stroke', cursorColor);
+          //element.setAttributeNS(null, 'stroke-width', strokeWidth);
+          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
+          //element.setAttributeNS(null, 'fill', '');
+          //element.setAttributeNS(null, 'fill-opacity', '0.0');
           element.setAttributeNS(null, 'cx', thisSvg[j][0]);      // start x
           element.setAttributeNS(null, 'cy', thisSvg[j][1]);      // start y
           element.setAttributeNS(null, 'rx', 1);      // radius x
@@ -186,15 +183,14 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
         for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
-          var element;
-          element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          var element = createElement('line');
 
           group.appendChild(element);
           thisLine = group.children[0];
-          element.setAttributeNS(null, 'stroke', cursorColor);
-          element.setAttributeNS(null, 'stroke-width', strokeWidth);
-          element.setAttributeNS(null, 'stroke-opacity', '0.9');
-          element.setAttributeNS(null, 'stroke-linecap', 'round');
+          //element.setAttributeNS(null, 'stroke', cursorColor);
+          //element.setAttributeNS(null, 'stroke-width', strokeWidth);
+          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
+          //element.setAttributeNS(null, 'stroke-linecap', 'round');
           element.setAttributeNS(null, 'x1', thisSvg[j][0]);      // start x
           element.setAttributeNS(null, 'y1', thisSvg[j][1]);      // start y
           element.setAttributeNS(null, 'x2', thisSvg[j][0]);      // end x
@@ -215,16 +211,15 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
         for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
-          var element;
-          element = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+          var element = createElement('polyline');
 
           group.appendChild(element);
           thisDraw = group.children[0];
-          element.setAttributeNS(null, 'stroke', cursorColor);
-          element.setAttributeNS(null, 'stroke-width', strokeWidth);
-          element.setAttributeNS(null, 'stroke-opacity', '0.9');
-          element.setAttributeNS(null, 'stroke-linecap', 'round');
-          element.setAttributeNS(null, 'fill-opacity', '0.0');
+          //element.setAttributeNS(null, 'stroke', cursorColor);
+          //element.setAttributeNS(null, 'stroke-width', strokeWidth);
+          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
+          //element.setAttributeNS(null, 'stroke-linecap', 'round');
+          //element.setAttributeNS(null, 'fill-opacity', '0.0');
           element.setAttributeNS(null, 'points', thisSvg[j][0].toFixed(2).toString()
             + ',' + thisSvg[j][1].toFixed(2).toString() + ' ');      // start x,y
         }
@@ -243,16 +238,15 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
         for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
-          var element;
-          element = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+          var element = createElement('polyline');
 
           group.appendChild(element);
           thisPolyline = group.children[0];
-          element.setAttributeNS(null, 'stroke', cursorColor);
-          element.setAttributeNS(null, 'stroke-width', strokeWidth);
-          element.setAttributeNS(null, 'stroke-opacity', '0.9');
+          //element.setAttributeNS(null, 'stroke', cursorColor);
+          //element.setAttributeNS(null, 'stroke-width', strokeWidth);
+          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
           element.setAttributeNS(null, 'stroke-linecap', 'round');
-          element.setAttributeNS(null, 'fill-opacity', '0.0');
+          //element.setAttributeNS(null, 'fill-opacity', '0.0');
           element.setAttributeNS(null, 'points', thisSvg[j][0].toFixed(2).toString()
             + ',' + thisSvg[j][1].toFixed(2).toString() + ' '
             + thisSvg[j][0].toFixed(2).toString()
@@ -279,16 +273,15 @@ Sketcher.prototype.onCanvasMouseDown = function () {    // in general, start or 
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
         for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
-          var element;
-          element = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+          var element = createElement('polygon');
 
           group.appendChild(element);
           thisPolygon = group.children[0];
-          element.setAttributeNS(null, 'stroke', cursorColor);
-          element.setAttributeNS(null, 'stroke-width', strokeWidth);
-          element.setAttributeNS(null, 'stroke-opacity', '0.9');
-          element.setAttributeNS(null, 'stroke-linecap', 'round');
-          element.setAttributeNS(null, 'fill-opacity', '0.0');
+          //element.setAttributeNS(null, 'stroke', cursorColor);
+          //element.setAttributeNS(null, 'stroke-width', strokeWidth);
+          //element.setAttributeNS(null, 'stroke-opacity', '0.9');
+          //element.setAttributeNS(null, 'stroke-linecap', 'round');
+          //element.setAttributeNS(null, 'fill-opacity', '0.0');
           element.setAttributeNS(null, 'points', thisSvg[j][0].toFixed(2).toString()
             + ',' + thisSvg[j][1].toFixed(2).toString() + ' '
             + thisSvg[j][0].toFixed(2).toString()
@@ -317,14 +310,23 @@ function createElement(type) {
   element.setAttributeNS(null, 'stroke-opacity', '0.9');
   element.setAttributeNS(null, 'fill', '');
   element.setAttributeNS(null, 'fill-opacity', '0.0');
+  element.setAttributeNS(null, 'stroke-linecap', 'round');
+  //element.setAttributeNS(null, 'onmouseover', "this.attributes['stroke'].value = '" + inverseColor(cursorColor)
+  //  + "'; this.attributes['stroke-width'].value = '15';");
+  //element.setAttributeNS(null, 'onmouseout', "this.attributes['stroke'].value = '" + cursorColor
+  //  + "'; this.attributes['stroke-width'].value = " + strokeWidth + ";");
+  element = setMouseoverOut(element);
+  return element;
+}
 
+function setMouseoverOut(element) {
   element.setAttributeNS(null, 'onmouseover', "this.attributes['stroke'].value = '" + inverseColor(cursorColor)
     + "'; this.attributes['stroke-width'].value = '15';");
   element.setAttributeNS(null, 'onmouseout', "this.attributes['stroke'].value = '" + cursorColor
     + "'; this.attributes['stroke-width'].value = " + strokeWidth + ";");
-  return element
-}
+  return element;
 
+}
 function unbindMouseHandlers(self) {
   $(document).unbind(self.mouseMoveEvent, self.mouseMoveHandler);   // unbinding on mouse UP
   $(document).unbind(self.mouseUpEvent, self.mouseUpHandler);

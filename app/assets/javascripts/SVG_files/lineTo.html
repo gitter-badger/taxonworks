@@ -241,6 +241,8 @@
             var nextY = parseInt(thisSvgText.attributes['y'].value) + parseInt(textHeight);
             var nextLine = thisSvgText.cloneNode();
             if (event.keyCode == 13) {      // line feed on ENTER/CR
+                var thisInverse = inverseColor(cursorColor);
+//                thisSvgText.attributes['onmouseover'] = 'this.attributes["stroke"].value = ' + thisInverse + ';';
                 nextLine.attributes['x'].value = nextX;
                 nextLine.attributes['y'].value = nextY;
                 thisSvgText.parentElement.appendChild(nextLine);
@@ -254,6 +256,12 @@
             text4svg.value = '';
             text4svg.setAttribute('disabled', 'true');
             text4svg.blur();
+//            thisSvgText.attributes['onmouseover'].value = "this.attributes['stroke'].value = '" + inverseColor(cursorColor)
+//                    + "'; this.attributes['fill'].value = '" + inverseColor(cursorColor) + "';";
+//            thisSvgText.attributes['onmouseover'].value = "this.attributes['stroke'].value = " + inverseColor(cursorColor) + ";";
+//            thisSvgText.attributes['onmouseout'].value = "this.attributes['stroke'].value = " + cursorColor
+//                    + "; this.attributes['stroke-width'].value = " + strokeWidth + ";";
+
             thisSvgText = null;         // remove the target
             thisSvg = [];               // clear the container
             setCursorMode('MOVE');
@@ -317,17 +325,16 @@
     <div class="topbar" data-dropdown="dropdown">
         <div class="topbar-inner">
             <div class="container">
-                <h3><a href="#">Image annotation using HTML5 drag and draw on canvas overlaying svg</a></h3>
+                <h3><a href="#">Image annotation using direct overlay on svg root element</a></h3>
 
                 <ul class="nav">
-                    <li class="active">Annotate image using sketcher app using "lineTo(x,y)" drawing and moveTo(x,y),
-                        dragging<br>
-                        and scroll zoom implemented. Text, Circle, Polygon, Line to follow.
+                    <li class="active">Annotate image using heavily modified sketcher app using its mouse events structure<br>
+                        with scroll zoom. Implemented: Text, Circle, Ellipse, Polygon, Polyline, Rectangle, Line and Draw.
                     </li>
                 </ul>
 
                 <ul class="nav secondary-nav">
-                    <input type="button" class="btn error" value="clear" onclick="clearGroup();"/>
+                    <input type="button" class="btn error" value="Clear Last Element" onclick="clearGroup();"/>
                     <input type="button" class="btn error" value="Polygon" onclick="setCursorMode('POLYGON');"/>
                     <input type="button" class="btn error" value="Polyline" onclick="setCursorMode('POLYLINE');"/>
                     <input type="button" class="btn error" value="Rectangle" onclick="setCursorMode('RECTANGLE');"/>
