@@ -26,12 +26,9 @@
         var strokeWidth = '10';
         var zoom = 0.2;         /////////////////////////////
         var baseZoom = 0.2;         /////////////////////////////
-        var canvas;
-        var context;
         var svgImage = new Image();
-        var instanceImage;
-        //        var svg = [];           // collect the collections here
         var thisSvg = [];            // collect points as [x,y]
+        var svgOffset;              // set on document ready
 
         var thisSvgText;            // pointer to svg control currently being populated
         var textHeight = 75;
@@ -62,7 +59,8 @@
         svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
         $(document).ready(function (e) {
             sketcher = new Sketcher("svgLayer");
-//            sketcher = new Sketcher("sketch");
+            svgOffset = {top:  document.getElementById(sketcher.canvasID).parentNode.style.top.split('px')[0],
+                         left: document.getElementById(sketcher.canvasID).parentNode.style.left.split('px')[0]};
             indicateMode();
             document.getElementById("text4svg").onkeyup = updateSvgText;
 //    canvas = document.getElementById("sketch");
@@ -156,20 +154,24 @@
                     if (thisCircle == null) return;
                     if ((thisCircle.attributes['cy'].value - thisCircle.attributes['r'].value) < 0) {
                         clearGroup();       // this was a leftover
+                        break;
                     }
                 case 'ELLIPSE':
                     if (thisEllipse == null) return;
                     if ((thisEllipse.attributes['cy'].value - thisEllipse.attributes['ry'].value) < 0) {
                         clearGroup();       // this was a leftover
+                        break;
                     }
                 case 'RECTANGLE':
                     if (thisRectangle == null) return;
                     if ((thisRectangle.attributes['height'].value) < 0) {
                         clearGroup();       // this was a leftover
+                        break;
                     }
                 case 'LINE':
                     if ((thisLine.attributes['y2'].value) < 0) {
                         clearGroup();       // this was a leftover
+                        break;
                     }
             }
         }
