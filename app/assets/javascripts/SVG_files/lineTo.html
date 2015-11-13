@@ -297,28 +297,28 @@
 
         }
 
-        function renderImage() {
-            if (xC >= canvas_image.width - canvas.width) {
-                xC = canvas_image.width - canvas.width;
-            }
-//    xC, yC is -left, -top boundary of canvas, [also source point of canvas_image - no longer used]
-//    want to window the canvas_image into the canvas isometrically
-//    and proportional to zoom level
-
-//            if ((xC - canvas_image.width) * zoom >= canvas.width) {   // clip on xC
-//                xC = (canvas_image.width - canvas.width) * zoom;
-//            }
-            if (yC >= canvas_image.height - canvas.height) {
-                yC = canvas_image.height - canvas.height;
-            }
-            if (xC < 0) {
-                xC = 0;
-            }
-            if (yC < 0) {
-                yC = 0;
-            }
-//            context.fillOpacity = "0.0";
-            context.clearRect(0, 0, canvas.width, canvas.height);
+        //        function renderImage() {
+        //            if (xC >= canvas_image.width - canvas.width) {
+        //                xC = canvas_image.width - canvas.width;
+        //            }
+        //    xC, yC is -left, -top boundary of canvas, [also source point of canvas_image - no longer used]
+        //    want to window the canvas_image into the canvas isometrically
+        //    and proportional to zoom level
+        //
+        ////            if ((xC - canvas_image.width) * zoom >= canvas.width) {   // clip on xC
+        ////                xC = (canvas_image.width - canvas.width) * zoom;
+        ////            }
+        //            if (yC >= canvas_image.height - canvas.height) {
+        //                yC = canvas_image.height - canvas.height;
+        //            }
+        //            if (xC < 0) {
+        //                xC = 0;
+        //            }
+        //            if (yC < 0) {
+        //                yC = 0;
+        //            }
+        ////            context.fillOpacity = "0.0";
+        //            context.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         // TODO:
