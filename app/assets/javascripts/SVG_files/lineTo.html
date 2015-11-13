@@ -54,6 +54,8 @@
 
         var lastMouseX;
         var lastMouseY;
+
+        var logMouse = false;
         //canvas_image.src = undefined;
         //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
@@ -346,7 +348,7 @@
                     <!--<input type="button" class="btn error" value="Path" onclick="setCursorMode('PATH');"/>-->
                     <input type="button" class="btn error" value="Draw" onclick="setCursorMode('DRAW');"/>
                     <span id="mode"></span>
-                    <input type="button" value="Move" onclick="setMove();"/>
+                    <input type="button" value="Move" onclick="setCursorMode('MOVE');"/>
                     <input type="button" value="Text" onclick="setTextMode();"/>
                     <input type="button" value="Zoom IN" onclick="zoomIn();"/>
                     <span id="zoom">Zoom: ---</span>
@@ -369,7 +371,7 @@
                     <input type="button" id="setUserColor" style="background-color: #888888"
                            onclick="setCursorColor(getUserColor());"/> Selected Color:
                     <input type="button" id="cursorColor" style="background-color: #FF0000"/>
-                    <span id="coords"></span>
+
                     </li>
                 </ul>
             </div>
@@ -390,6 +392,9 @@
     <!--<canvas id="sketch" width="800" height="600" style="opacity: 0.8">-->
         <!--&lt;!&ndash;<canvas id="sketch" width="800" height="600" style="left: 0px; top: 0px; position: absolute; opacity: 0.8">&ndash;&gt;-->
     <!--</canvas>-->
+</div>
+<div style="top: 775px; position: absolute;" >
+    <span id="coords"></span><br /><span id="mouseStatus"></span>
 </div>
 </body>
 </html>
