@@ -50,6 +50,8 @@
 
         var thisEllipse;
 
+        var thisParent;
+
         var svgInProgress = false;
 
         var lastMouseX;
@@ -61,8 +63,10 @@
         svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
         $(document).ready(function (e) {
             sketcher = new Sketcher("svgLayer");
-            svgOffset = {top:  document.getElementById(sketcher.canvasID).parentNode.style.top.split('px')[0],
-                         left: document.getElementById(sketcher.canvasID).parentNode.style.left.split('px')[0]};
+            svgOffset = {
+                top: document.getElementById(sketcher.canvasID).parentNode.style.top.split('px')[0],
+                left: document.getElementById(sketcher.canvasID).parentNode.style.left.split('px')[0]
+            };
             indicateMode();
             document.getElementById("text4svg").onkeyup = updateSvgText;
 //    canvas = document.getElementById("sketch");
@@ -124,9 +128,9 @@
 
         function setCursorMode(mode) {      // detect current mode not completed prior to mode switch
             if ((cursorMode != mode) && (svgInProgress == cursorMode)) {
-            svgInProgress = false;
-            checkLeftoverElement();     // look for dangling element, most likely off of svg image element ( - Y coord)
-        }
+                svgInProgress = false;
+                checkLeftoverElement();     // look for dangling element, most likely off of svg image element ( - Y coord)
+            }
             cursorMode = mode;
             indicateMode();
         }
@@ -142,14 +146,18 @@
                     var thesePoints = thisPolyline.attributes['points'].value;
                     var splitPoints = thesePoints.split(' ');
                     thesePoints = '';
-                    for (k=0; k<splitPoints.length - 2; k++) {thesePoints += splitPoints[k] + ' ';}
+                    for (k = 0; k < splitPoints.length - 2; k++) {
+                        thesePoints += splitPoints[k] + ' ';
+                    }
                     thisPolyline.attributes['points'].value = thesePoints;
                     break;
                 case 'POLYGON':
                     var thesePoints = thisPolygon.attributes['points'].value;
                     var splitPoints = thesePoints.split(' ');
                     thesePoints = '';
-                    for (k=0; k<splitPoints.length - 2; k++) {thesePoints += splitPoints[k] + ' ';}
+                    for (k = 0; k < splitPoints.length - 2; k++) {
+                        thesePoints += splitPoints[k] + ' ';
+                    }
                     thisPolyline.attributes['points'].value = thesePoints;
                     break;
                 case 'CIRCLE':
@@ -181,13 +189,15 @@
         function inverseColor(color) {          // color is required to be string as #RRGGBB hexadecimal
             var red = makeHex8(color.slice(1, 3));
             var grn = makeHex8(color.slice(3, 5));
-            var blu = makeHex8(color.slice(5,7));
+            var blu = makeHex8(color.slice(5, 7));
             return '#' + red + grn + blu;
         }
 
         function makeHex8(colorSegment) {       // colorSegment is 8 bit hex encoded string
             var izit = ((parseInt('0X' + colorSegment)) ^ 0xFF).toString(16)
-            if (izit.length == 2) { return izit;}
+            if (izit.length == 2) {
+                return izit;
+            }
             return '0' + izit;
         }
 
@@ -195,7 +205,9 @@
             var zoomDelta = 0.05;
             if (zoom < 2.0) {           // zoom of 1 iz pixel-per-pixel on canvas/svg
                 var newZoom = zoom * ( 1.0 + zoomDelta);
-                if (newZoom > 2.0) {newZoom = 2.0;}
+                if (newZoom > 2.0) {
+                    newZoom = 2.0;
+                }
                 xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom;
                 yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom;
                 zoom_trans(0, 0, newZoom);
@@ -332,8 +344,10 @@
                 <h3><a href="#">Image annotation using direct overlay on svg root element</a></h3>
 
                 <ul class="nav">
-                    <li class="active">Annotate image using heavily modified sketcher app using its mouse events structure<br>
-                        with scroll zoom. Implemented: Text, Circle, Ellipse, Polygon, Polyline, Rectangle, Line and Draw.
+                    <li class="active">Annotate image using heavily modified sketcher app using its mouse events
+                        structure<br>
+                        with scroll zoom. Implemented: Text, Circle, Ellipse, Polygon, Polyline, Rectangle, Line and
+                        Draw.
                     </li>
                 </ul>
 
@@ -390,11 +404,11 @@
         </g>
     </svg>
     <!--<canvas id="sketch" width="800" height="600" style="opacity: 0.8">-->
-        <!--&lt;!&ndash;<canvas id="sketch" width="800" height="600" style="left: 0px; top: 0px; position: absolute; opacity: 0.8">&ndash;&gt;-->
+    <!--&lt;!&ndash;<canvas id="sketch" width="800" height="600" style="left: 0px; top: 0px; position: absolute; opacity: 0.8">&ndash;&gt;-->
     <!--</canvas>-->
 </div>
-<div style="top: 775px; position: absolute;" >
-    <span id="coords"></span><br /><span id="mouseStatus"></span>
+<div style="top: 775px; position: absolute;">
+    <span id="coords"></span><br/><span id="mouseStatus"></span>
 </div>
 </body>
 </html>

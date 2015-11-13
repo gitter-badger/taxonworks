@@ -67,8 +67,13 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
     //self.renderFunction(event);            // ??
     showMouseStatus('onSvgMouseDown0', event);
     if (svgInProgress != false && svgInProgress != cursorMode) {    // terminate in progress svg before continuing
-      svgInProgress = cursorMode;       //  ??
-      return;                                                       // TODO: fix this to actualy do something
+      if (svgInProgress == 'SHIFT') {
+        return;
+      }
+      else {
+        svgInProgress = cursorMode;       //  ??
+        return;                                                       // TODO: fix this to actualy do something
+      }
     }
     if (cursorMode == 'POLYGON') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
@@ -132,7 +137,7 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
       }
     }
     if (cursorMode == 'RECTANGLE') {     // mouseDown
-      // assuming first mouseDown starts creation, second mouseDown ends
+                                         // assuming first mouseDown starts creation, second mouseDown ends
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -314,7 +319,9 @@ function setCircleMouseoverOut(element) {
 
 function setEditElement(element) {    // add bubble elements to the group containing this element
   var group = element.parentNode;
-  if (group.childNodes.length > 1) {group.lastChild.remove();}
+  if (group.childNodes.length > 1) {
+    group.lastChild.remove();
+  }
   var editGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   group.appendChild(editGroup);
   if (element.tagName == 'circle') {
@@ -323,14 +330,22 @@ function setEditElement(element) {    // add bubble elements to the group contai
   }
   //element.parentNode
 }
+function setMoveElement(element) {
+  thisParent = element;
+  thisCircle = element.lastChild.firstChild;
+  cursorMode = thisCircle.tagName.toUpperCase();
+  svgInProgress = 'SHIFT';
+}
 
 function createBubble(element, group, type) {    // element is the co-habitant of the group; type is block or point drag
   var cX = parseFloat(parseFloat(element.attributes['cx'].value).toFixed(1));
   var cY = parseFloat(parseFloat(element.attributes['cy'].value).toFixed(1));
   var cR = parseFloat(parseFloat(element.attributes['r'].value).toFixed(1));
-  var bubble = createBubbleStub(cX, cY, element, group);
+  var bubble;
   if (type == 'BLOCK') {    // get appropriate point to translate entire element
+    bubble = createBubbleStub(cX, cY, element, group);
     bubble.setAttributeNS(null, 'fill-opacity', '0.8');
+    bubble.setAttributeNS(null, 'onmousedown', "setMoveElement(this.parentElement.parentElement);");
   }
   if (type == 'POINT') {    // generate indexed points for this element
     bubble = createBubbleStub(cR + cX, cY, element, group);
@@ -367,7 +382,7 @@ function unbindMouseHandlers(self) {
   self.mouseUpHandler = null;
 }
 
-function showMouseStatus(where, event){
+function showMouseStatus(where, event) {
   if (logMouse) {
     if ($('#mouseStatus').html().length > 8192) {
       var span = document.getElementById('mouseStatus');
@@ -383,7 +398,7 @@ function showMouseStatus(where, event){
 Sketcher.prototype.onSvgMouseMove = function () {
   var self = this;
   return function (event) {
-  showMouseStatus('onSvgMouseMove', event);
+    showMouseStatus('onSvgMouseMove', event);
     //self.mouseUpHandler = self.onSvgMouseUp();
     //$(document).bind(self.mouseUpEvent, self.mouseUpHandler);   // binding on mouse MOVE
 
@@ -513,15 +528,24 @@ Sketcher.prototype.updateSvgByElement = function (event) {
       if ((event.type == 'mousedown') || (svgInProgress == false)) {
         return;
       }
+
       var thisCircX = thisCircle.attributes['cx'].value;
       var thisCircY = thisCircle.attributes['cy'].value;
-
-      //this.context.moveTo(lastMouseX, lastMouseY);
-      this.updateMousePosition(event);
-      lastMouseX = this.lastMousePoint.x;
-      lastMouseY = this.lastMousePoint.y;
-      var radius = length2points(thisCircX, thisCircY, (lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom);
-      thisCircle.attributes['r'].value = radius;
+      if (svgInProgress == 'SHIFT') {
+        thisCircle.attributes['cx'].value = (lastMouseX - xC) / zoom;
+        thisCircle.attributes['cy'].value = (lastMouseY - yC) / zoom;
+        var parentCircle = thisParent.firstChild;
+        parentCircle.attributes['cx'].value = (lastMouseX - xC) / zoom;
+        parentCircle.attributes['cy'].value = (lastMouseY - yC) / zoom;
+      }
+      else {
+        //this.context.moveTo(lastMouseX, lastMouseY);
+        this.updateMousePosition(event);
+        lastMouseX = this.lastMousePoint.x;
+        lastMouseY = this.lastMousePoint.y;
+        var radius = length2points(thisCircX, thisCircY, (lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom);
+        thisCircle.attributes['r'].value = radius;
+      }
       thisCircle.attributes['stroke'].value = cursorColor;
     }
     else if (cursorMode == "ELLIPSE") {
@@ -560,12 +584,12 @@ Sketcher.prototype.updateSvgByElement = function (event) {
     }
   }
   else if (cursorMode == 'MOVE') {    // Revert to MOVE: this version assumes manipulating the transform <xlt> of the SVG via xC, yC
-  /*  if((event.buttons == 1) && (event.button == 0))*/
+    /*  if((event.buttons == 1) && (event.button == 0))*/
     showMouseStatus('updateSvgByElement2', event);
 
-      if (svgInProgress == 'MOVE') {
-        showMouseStatus('updateSvgByElement3', event);
-        //event.trigger('onSvgMousUp');
+    if (svgInProgress == 'MOVE') {
+      showMouseStatus('updateSvgByElement3', event);
+      //event.trigger('onSvgMousUp');
 
       var oldX = this.lastMousePoint.x;
       var oldY = this.lastMousePoint.y;
