@@ -208,7 +208,7 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
       else {      // this is the terminus of this instance, so dissociate mouse move handler
         svgInProgress = false;
         //setCircleMouseoverOut(thisCircle);
-        setElementMouseoverOut(thisElement);
+        setElementMouseOverOut(thisElement);
         unbindMouseHandlers(self);
       }
     }
@@ -312,7 +312,7 @@ function setMouseoverOut(element) {
   return element;
 }
 
-function setElementMouseoverOut(element) {     // this actually sets the parent group's listeners
+function setElementMouseOverOut(element) {     // this actually sets the parent group's listeners
   element.parentElement.setAttributeNS(null, 'onmouseenter', "this.firstChild.attributes['stroke-width'].value = '" + 1.5 * strokeWidth + "'; setEditElement(this.firstChild);");
   element.parentElement.setAttributeNS(null, 'onmouseleave', "this.firstChild.attributes['stroke-width'].value = " + strokeWidth + "; clearEditElement(this.firstChild);");
 
@@ -339,15 +339,15 @@ function clearEditElement(element) {
       group.lastChild.remove();         // this is the group of bubbles
     }
   }
-  group./*firstChild.*/attributes['onmouseenter'].value = "this.firstChild.attributes['stroke-width'].value = '" + 1.5 * strokeWidth + "'; setEditElement(this.firstChild);"    // replant the listener in the real element
-
+  //group./*firstChild.*/attributes['onmouseenter'].value = "this.firstChild.attributes['stroke-width'].value = '" + 1.5 * strokeWidth + "'; setEditElement(this.firstChild);"    // replant the listener in the real element
+setElementMouseOverOut(group.firstChild);
 }
 
-function setMoveElement(element) {
+function setMoveElement(element) {    // end of SHIFT leaves single bubble; should be removed on mouseleave of group
   thisParent = element;                           // group containing real circle and the bubbles group
   thisElement = element.lastChild.firstChild;      // this is the center bubble
   cursorMode = thisElement.tagName.toUpperCase();  // extract its tag
-  thisParent.attributes['onmouseenter'].value = ''; // disable mouseover on real circle's containing group
+  //thisParent.attributes['onmouseenter'].value = ''; // disable mouseover on real circle's containing group
   var endK = thisParent.lastChild.childElementCount;        // total bubbles, leave the first one
   for (var k = endK; k > 1; k--) {
     thisParent.lastChild.lastChild.remove();      // remove resize bubbles from the end
@@ -662,7 +662,7 @@ Sketcher.prototype.onSvgMouseUp = function (event) {
     else if (cursorMode == 'CIRCLE' && svgInProgress == 'SHIFT') {
 
       svgInProgress = false;
-      setElementMouseoverOut(thisElement.parentNode);   // this element is a SHIFT bubble
+      setElementMouseOverOut(thisElement.parentNode);   // this element is a SHIFT bubble
       //unbindMouseHandlers(self);
     }
     else if (cursorMode == "TEXT") {    // focus on the text entry input since this fails in mouseDown
