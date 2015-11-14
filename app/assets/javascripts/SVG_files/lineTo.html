@@ -52,12 +52,14 @@
 
         var thisParent;
 
+        var thisElement;
+
         var svgInProgress = false;
 
         var lastMouseX;
         var lastMouseY;
 
-        var logMouse = false;
+        var logMouse = true;
         //canvas_image.src = undefined;
         //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
@@ -247,6 +249,7 @@
                     thisSvgText.parentElement.lastChild.remove();
                 }
                 closeSvgText();
+                checkLeftoverElement();
                 return false;
             }
             thisSvgText.innerHTML = text4svg.value;
@@ -319,7 +322,7 @@
         //            }
         ////            context.fillOpacity = "0.0";
         //            context.clearRect(0, 0, canvas.width, canvas.height);
-        }
+//        }
 
         // TODO:
         // bounds check on move (in sketcher.js)
@@ -370,7 +373,7 @@
                     Text size:
                     <input id=textSize type="number" min="5" max="300" step="5" value="75" style="width: 4em"
                            onchange="textHeight=this.value;"/>
-                    <input type="text" id="text4svg" disabled/>
+                    <input type="text" id="text4svg" disabled />
                     <br>
                     <input type="button" id="setRed" style="background-color: #FF0000"
                            onclick="setCursorColor('#FF0000');"/>
