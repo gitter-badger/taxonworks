@@ -11,14 +11,14 @@
     <script src="http://code.jquery.com/jquery-1.11.3.min.js">// js/jquery-1.7.min.js"</script>
     <script src="modernizr.custom.34982.js"></script>
 
-    <script src="sketcher.js"></script>
+    <script src="SVGDraw.js"></script>
     <!--<script src="js/trigonometry.js"></script>-->
 
     <link rel="stylesheet" href="assets/bootstrap.css"/>
     <link rel="stylesheet" href="assets/styles.css"/>
 
     <script>
-        var sketcher = null;
+        var svgDraw = null;
         var xC = 0;
         var yC = 0;
         var cursorMode = "MOVE";
@@ -56,22 +56,24 @@
 
         var thisElement;
 
+        var thisBubble;
+
         var svgInProgress = false;
 
         var lastMouseX;
         var lastMouseY;
 
         var logMouse = false;
-        var logStatus = true;
+        var logStatus = false;
         //canvas_image.src = undefined;
         //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
 
         $(document).ready(function (e) {
-            sketcher = new Sketcher("svgLayer");
+            svgDraw = new SVGDraw("svgLayer");
             svgOffset = {
-                top: document.getElementById(sketcher.canvasID).parentNode.style.top.split('px')[0],
-                left: document.getElementById(sketcher.canvasID).parentNode.style.left.split('px')[0]
+                top: document.getElementById(svgDraw.canvasID).parentNode.style.top.split('px')[0],
+                left: document.getElementById(svgDraw.canvasID).parentNode.style.left.split('px')[0]
             };
             indicateMode();
             document.getElementById("text4svg").onkeyup = updateSvgText;
@@ -107,7 +109,7 @@
         });
 
         function clearCanvas() {
-            sketcher.clear();
+            svgDraw.clear();
             xC = 0;
             yC = 0;
             renderImage();
@@ -123,7 +125,11 @@
         }
 
         function indicateMode() {
-            document.getElementById("mode").textContent = cursorMode;
+            var coverRect = 'rectangel'
+            if (cursorMode != coverRect) {
+                coverRect = cursorMode;
+            }
+            document.getElementById("mode").textContent = coverRect.toUpperCase();
             $("#zoom").html("Zoom:" + zoom.toFixed(3));
         }
 
@@ -137,18 +143,18 @@
                 svgInProgress = false;
                 checkLeftoverElement();     // look for dangling element, most likely off of svg image element ( - Y coord)
             }
-            cursorMode = mode;
+            cursorMode = mode.toLowerCase();
             indicateMode();
         }
 
         function setTextMode() {
-            setCursorMode('TEXT');
+            setCursorMode('text');
             document.getElementById("text4svg").removeAttribute('disabled');
         }
 
         function checkLeftoverElement() {       // this function is only called when svgInProgress is false
             switch (cursorMode) {
-                case 'POLYLINE':
+                case 'polyline':
                     var thesePoints = thisPolyline.attributes['points'].value;
                     var splitPoints = thesePoints.split(' ');
                     thesePoints = '';
@@ -157,7 +163,7 @@
                     }
                     thisPolyline.attributes['points'].value = thesePoints;
                     break;
-                case 'POLYGON':
+                case 'polygon':
                     var thesePoints = thisPolygon.attributes['points'].value;
                     var splitPoints = thesePoints.split(' ');
                     thesePoints = '';
@@ -166,27 +172,27 @@
                     }
                     thisPolyline.attributes['points'].value = thesePoints;
                     break;
-                case 'CIRCLE':
+                case 'circle':
                     if (thisCircle == null) return;
-                    if ( ((thisCircle.attributes['cy'].value - thisCircle.attributes['r'].value) < 0)     // off canvas
-                    || (thisCircle.attributes['r'].value < 2) )                                          // single click
+                    if (((thisCircle.attributes['cy'].value - thisCircle.attributes['r'].value) < 0)     // off canvas
+                            || (thisCircle.attributes['r'].value < 2))                                          // single click
                     {
                         clearGroup();       // this was a leftover
                         break;
                     }
-                case 'ELLIPSE':
+                case 'ellipse':
                     if (thisEllipse == null) return;
                     if ((thisEllipse.attributes['cy'].value - thisEllipse.attributes['ry'].value) < 0) {
                         clearGroup();       // this was a leftover
                         break;
                     }
-                case 'RECTANGLE':
+                case 'rect':
                     if (thisRectangle == null) return;
                     if ((thisRectangle.attributes['height'].value) < 0) {
                         clearGroup();       // this was a leftover
                         break;
                     }
-                case 'LINE':
+                case 'line':
                     if ((thisLine.attributes['y2'].value) < 0) {
                         clearGroup();       // this was a leftover
                         break;
@@ -328,10 +334,10 @@
         //            }
         ////            context.fillOpacity = "0.0";
         //            context.clearRect(0, 0, canvas.width, canvas.height);
-//        }
+        //        }
 
         // TODO:
-        // bounds check on move (in sketcher.js)
+        // bounds check on move (in svgDraw.js)
         // aspect ratio compensation source to target canvas
         // capture svg data - DONE
         // source image from http://
@@ -362,14 +368,14 @@
 
                 <ul class="nav secondary-nav">
                     <input type="button" class="btn error" value="Clear Last Element" onclick="clearGroup();"/>
-                    <input type="button" class="btn error" value="Polygon" onclick="setCursorMode('POLYGON');"/>
-                    <input type="button" class="btn error" value="Polyline" onclick="setCursorMode('POLYLINE');"/>
-                    <input type="button" class="btn error" value="Rectangle" onclick="setCursorMode('RECTANGLE');"/>
-                    <input type="button" class="btn error" value="Line" onclick="setCursorMode('LINE');"/>
-                    <input type="button" class="btn error" value="Circle" onclick="setCursorMode('CIRCLE');"/>
-                    <input type="button" class="btn error" value="Ellipse" onclick="setCursorMode('ELLIPSE');"/>
+                    <input type="button" class="btn error" value="Polygon" onclick="setCursorMode('polygon');"/>
+                    <input type="button" class="btn error" value="Polyline" onclick="setCursorMode('polyline');"/>
+                    <input type="button" class="btn error" value="Rectangle" onclick="setCursorMode('rect');"/>
+                    <input type="button" class="btn error" value="Line" onclick="setCursorMode('line');"/>
+                    <input type="button" class="btn error" value="Circle" onclick="setCursorMode('circle');"/>
+                    <input type="button" class="btn error" value="Ellipse" onclick="setCursorMode('ellipse');"/>
                     <!--<input type="button" class="btn error" value="Path" onclick="setCursorMode('PATH');"/>-->
-                    <input type="button" class="btn error" value="Draw" onclick="setCursorMode('DRAW');"/>
+                    <input type="button" class="btn error" value="Draw" onclick="setCursorMode('draw');"/>
                     <span id="mode"></span>
                     <input type="button" value="Move" onclick="setCursorMode('MOVE');"/>
                     <input type="button" value="Text" onclick="setTextMode();"/>
@@ -379,7 +385,7 @@
                     Text size:
                     <input id=textSize type="number" min="5" max="300" step="5" value="75" style="width: 4em"
                            onchange="textHeight=this.value;"/>
-                    <input type="text" id="text4svg" disabled />
+                    <input type="text" id="text4svg" disabled/>
                     <br>
                     <input type="button" id="setRed" style="background-color: #FF0000"
                            onclick="setCursorColor('#FF0000');"/>

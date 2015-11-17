@@ -1,4 +1,4 @@
-function Sketcher(canvasID) {
+function SVGDraw(canvasID) {
   this.renderFunction = this.updateSvgByElement;
   this.touchSupported = Modernizr.touch;
   this.canvasID = canvasID;
@@ -53,8 +53,8 @@ function Sketcher(canvasID) {
 
 }
 
-Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or stop element generation on mouseDOWN
-  // BUT for PATH, LINE and MOVE, stop on mouseUP
+SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop element generation on mouseDOWN
+  // BUT for PATH, line and MOVE, stop on mouseUP
   var self = this;
   return function (event) {
     //self.context.save();
@@ -75,14 +75,14 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
         return;                                                       // TODO: fix this to actualy do something
       }
     }
-    if (cursorMode == 'POLYGON') {     // mouseDown
+    if (cursorMode == 'polygon') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
-        //for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
+        //for (j = 0; j < thisSvg.length; j++) {              // for text mode there is only one
         var element = createElement('polygon');
 
         group.appendChild(element);
@@ -105,14 +105,14 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
         thisPolygon.attributes['points'].value = thesePoints.concat(thisPoint);
       }
     }
-    if (cursorMode == 'POLYLINE') {     // mouseDown
+    if (cursorMode == 'polyline') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
-        //for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
+        //for (j = 0; j < thisSvg.length; j++) {              // for text mode there is only one
         var element = createElement('polyline');
 
         group.appendChild(element);
@@ -136,15 +136,15 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
         thisPolyline.attributes['points'].value = thesePoints.concat(thisPoint);
       }
     }
-    if (cursorMode == 'RECTANGLE') {     // mouseDown
-                                         // assuming first mouseDown starts creation, second mouseDown ends
+    if (cursorMode == 'rect') {     // mouseDown
+      // assuming first mouseDown starts creation, second mouseDown ends
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
-        //for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
+        //for (j = 0; j < thisSvg.length; j++) {              // for text mode there is only one
         var element = createElement('rect');
 
         group.appendChild(element);
@@ -163,7 +163,7 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
         unbindMouseHandlers(self);
       }
     }
-    if (cursorMode == 'LINE') {     // mouseDown
+    if (cursorMode == 'line') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -186,7 +186,7 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
         unbindMouseHandlers(self);
       }
     }
-    if (cursorMode == 'CIRCLE') {     // mouseDown    // modified to use common element for handlers
+    if (cursorMode == 'circle') {     // mouseDown    // modified to use common element for handlers
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         if (thisGroup != null) {
           clearEditElement(thisGroup);    // this group is the one with bubbles, to be obviated
@@ -208,13 +208,13 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
         svgInProgress = cursorMode;     // mark in progress
       }
       else {      // this is the terminus of this instance, so dissociate mouse move handler
-      //  svgInProgress = false;
-      //  //setCircleMouseoverOut(thisCircle);    // repaced below by newer paradigm
-      //  setElementMouseOverOut(thisGroup);    // new reference method 14NOV
-      //  unbindMouseHandlers(self);    //  this function has been deactivated
+        //  svgInProgress = false;
+        //  //setCircleMouseoverOut(thisCircle);    // repaced below by newer paradigm
+        //  setElementMouseOverOut(thisGroup);    // new reference method 14NOV
+        //  unbindMouseHandlers(self);    //  this function has been deactivated
       }
     }
-    if (cursorMode == 'ELLIPSE') {     // mouseDown
+    if (cursorMode == 'ellipse') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -237,14 +237,14 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
         unbindMouseHandlers(self);
       }
     }
-    if (cursorMode == 'DRAW') {     // mouseDown
+    if (cursorMode == 'draw') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
-        //for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
+        //for (j = 0; j < thisSvg.length; j++) {              // for text mode there is only one
         var element = createElement('polyline');
 
         group.appendChild(element);
@@ -260,13 +260,13 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
         unbindMouseHandlers(self);
       }
     }
-    if (cursorMode == "TEXT") {     // mouseDown
+    if (cursorMode == "text") {     // mouseDown
       thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
       var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
       group.setAttributeNS(null, 'id', newGroupID);
       document.getElementById("xlt").appendChild(group);
-      //for (j = 0; j < thisSvg.length; j++) {              // for TEXT mode there is only one
+      //for (j = 0; j < thisSvg.length; j++) {              // for text mode there is only one
       var element;
       element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       //document.getElementById(group.id).appendChild(element);
@@ -281,7 +281,7 @@ Sketcher.prototype.onSvgMouseDown = function () {    // in general, start or sto
       element.setAttributeNS(null, 'font-size', textHeight);
     }
     if (cursorMode == 'MOVE') {     // mouseDown
-      //showMouseStatus('onSvgMouseDown1', event);
+                                    //showMouseStatus('onSvgMouseDown1', event);
       if (svgInProgress == false) {
         svgInProgress = cursorMode;
         //showMouseStatus('onSvgMouseDown2', event);
@@ -324,7 +324,9 @@ function setEditElement(group) {    // add bubble elements to the group containi
   if (checkElementConflict(group)) {
     return;
   }
-  if (thisGroup == null) {thisGroup = group;}
+  if (thisGroup == null) {
+    thisGroup = group;
+  }
   showStatus('setEditElement0', group)
   if (group.childNodes.length > 1) {   // do I have bubbles?
     group.lastChild.remove();         // this is the group of bubbles
@@ -346,8 +348,8 @@ function clearEditElement(group) {     // given containing group
   }
   showStatus('clearEditElement0', group);
   if (group.childNodes.length > 1) {   // do I have bubbles? i.e., is there more than just the golden chile?
-    //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
-      group.lastChild.remove();         // this is the group of bubbles if not just the SHIFT bubble
+                                       //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
+    group.lastChild.remove();         // this is the group of bubbles if not just the SHIFT bubble
     //}
     //else {
     //  showStatus('clearEditElement0.5: SHIFT bubble not removed', group);
@@ -360,20 +362,20 @@ function clearEditElement(group) {     // given containing group
 }
 
 function checkElementConflict(group) {  // only invoked by mouseover listener - verify
-/* consider potential values of:
-  svgInProgress, one of the svg modes, plus move, shift, and size
-  cursorMode, the selected (if not always indicated) creation / editing mode
-  thisElement, nominally the active element - conflict with bubbles
-  thisGroup, nominally the group of the active element
+  /* consider potential values of:
+   svgInProgress, one of the svg modes, plus move, shift, and size
+   cursorMode, the selected (if not always indicated) creation / editing mode
+   thisElement, nominally the active element - conflict with bubbles
+   thisGroup, nominally the group of the active element
 
- */
+   */
   if (!svgInProgress) {
     return false;     // if no active element
   }
   if (svgInProgress != group.firstChild.tagName.toUpperCase()) {
-  return true;     //  if we crossed another element
-}
-  if(thisGroup != group) {
+    return true;     //  if we crossed another element
+  }
+  if (thisGroup != group) {
     return true;
   }
 
@@ -386,7 +388,7 @@ function setMoveElement(group) {    // end of SHIFT leaves single bubble; should
   group.attributes['onmouseleave'].value = '';
   showStatus('setMoveElement0', group)
   thisElement = group.lastChild.firstChild;      // this is the center bubble
-  cursorMode = 'CIRCLE';      // hard code this because it is a bubble // extract its tag
+  cursorMode = 'circle';      // hard code this because it is a bubble // extract its tag
   //thisParent.attributes['onmouseenter'].value = ''; // disable mouseover on real circle's containing group
   var endK = group.lastChild.childElementCount;        // total bubbles, leave the first one
   showStatus('setMoveElement1', group);
@@ -404,7 +406,7 @@ function setMoveElement(group) {    // end of SHIFT leaves single bubble; should
 function setSizeElement(group) {
   //thisParent = element;                           // group containing real element and the bubbles group
   thisElement = group.firstChild;    // this is the real element
-  cursorMode = group.firstChild.tagName.toUpperCase();  // extract its tag
+  cursorMode = group.firstChild.tagName;  // extract its tag
   //cursorMode = 'CIRCLE';      // hard code this because it is a bubble // extract its tag
   showStatus('setSizeElement0', group);
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real circle's containing group
@@ -414,7 +416,7 @@ function setSizeElement(group) {
     showStatus('setSizeElement1', group);
   }
   svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
-                                          // look for mousedown in handler for circle to transition to rubber band mode
+  // look for mousedown in handler for circle to transition to rubber band mode
 }                                       // use mouseup or mousedown to terminate radius drag
 
 function createBubble(element, bubbleGroup, type) {    // element is the co-habitant of the group; type is block or point drag
@@ -427,6 +429,7 @@ function createBubble(element, bubbleGroup, type) {    // element is the co-habi
     bubble.setAttributeNS(null, 'fill-opacity', '0.8');
     bubble.setAttributeNS(null, 'onmousedown', "setMoveElement(this.parentNode.parentNode);");
     bubble.setAttributeNS(null, 'onmouseup', "setElementMouseOverOut(this.parentNode.parentNode);");
+    bubble.setAttributeNS(null, 'style', 'cursor:move;');
   }
   if (type == 'POINT') {    // generate indexed points for this element
     bubble = createBubbleStub(cR + cX, cY, element, bubbleGroup);
@@ -497,7 +500,7 @@ function showStatus(where, element) {
     if (thisElement != null) {
       thisElementTagName = ' thisElement:' + thisElement.tagName;
     }
-    var nowStatus = "<br /><br />"+ where + "; " + element.outerHTML.replace(/[<]+/g, '&lt;').replace(/[>]+/g, '&gt;') + '<br>'
+    var nowStatus = "<br /><br />" + where + "; " + element.outerHTML.replace(/[<]+/g, '&lt;').replace(/[>]+/g, '&gt;') + '<br>'
       + 'thisElement: ' + thisElementTagName + thisGroupTagNameAndID + '<br>'
       + (element.innerHTML.replace(/[<]+/g, '&lt;').replace(/[>]+/g, '&gt;')).toString();
     nowStatus = nowStatus;
@@ -508,7 +511,7 @@ function showStatus(where, element) {
   }
 }
 
-Sketcher.prototype.onSvgMouseMove = function () {
+SVGDraw.prototype.onSvgMouseMove = function () {
   var self = this;
   return function (event) {
     //showMouseStatus('onSvgMouseMove', event);
@@ -541,7 +544,7 @@ var Trig = {
   }
 };
 
-Sketcher.prototype.updateMousePosition = function (event) {
+SVGDraw.prototype.updateMousePosition = function (event) {
   var target;
   if (this.touchSupported) {
     target = event.originalEvent.touches[0]
@@ -557,11 +560,11 @@ Sketcher.prototype.updateMousePosition = function (event) {
   lastMouseY = this.lastMousePoint.y;
 };
 
-Sketcher.prototype.updateSvgByElement = function (event) {
+SVGDraw.prototype.updateSvgByElement = function (event) {
   //showMouseStatus('updateSvgByElement1', event);
 //if (escKey)
   if (cursorMode != "MOVE") {          // if we are not moving(dragging) the SVG check the known tags
-    if (cursorMode == "POLYGON") {
+    if (cursorMode == "polygon") {
       if (svgInProgress == false) {
         return;
       }
@@ -580,7 +583,7 @@ Sketcher.prototype.updateSvgByElement = function (event) {
       thisPolygon.attributes['points'].value = thesePoints.concat(thisPoint);
       thisPolygon.attributes['stroke'].value = cursorColor;
     }
-    else if (cursorMode == "POLYLINE") {
+    else if (cursorMode == "polyline") {
       if (svgInProgress == false) {
         return;
       }
@@ -599,7 +602,7 @@ Sketcher.prototype.updateSvgByElement = function (event) {
       thisPolyline.attributes['points'].value = thesePoints.concat(thisPoint);
       thisPolyline.attributes['stroke'].value = cursorColor;
     }
-    else if (cursorMode == "RECTANGLE") {
+    else if (cursorMode == "rect") {
       //lastMouseX = this.lastMousePoint.x;
       //lastMouseY = this.lastMousePoint.y;
       if (/*(event.type == 'mousedown') || */(svgInProgress == false)) {
@@ -618,10 +621,10 @@ Sketcher.prototype.updateSvgByElement = function (event) {
       thisRectangle.attributes['height'].value = (lastMouseY - yC) / zoom - thisRectY;
       thisRectangle.attributes['stroke'] = cursorColor;
     }
-    else if (cursorMode == "LINE") {
+    else if (cursorMode == "line") {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
-      if ((event.type == 'mousedown') || (svgInProgress == false)) {    // extra condition for LINE
+      if ((event.type == 'mousedown') || (svgInProgress == false)) {    // extra condition for line
         return;
       }
       var thisLineX1 = thisLine.attributes['x1'].value;
@@ -635,8 +638,7 @@ Sketcher.prototype.updateSvgByElement = function (event) {
       thisLine.attributes['y2'].value = (lastMouseY - yC) / zoom;  //- thisLineY2;
       thisLine.attributes['stroke'] = cursorColor;
     }
-    else if (cursorMode == "CIRCLE") {
-      var saveLog = logMouse;
+    else if (cursorMode == "circle") {
       thisCircle = thisElement;             // first step toward generalizing SHIFT/SIZE handlers
       //lastMouseX = this.lastMousePoint.x;
       //lastMouseY = this.lastMousePoint.y;
@@ -645,7 +647,6 @@ Sketcher.prototype.updateSvgByElement = function (event) {
       }
       showMouseStatus('updateSvgByElementC0', event);
       showStatus('updateSvgByElementC0', thisElement.parentElement);
-      logMouse = true;
       if (svgInProgress == 'SHIFT') {             // changing position of this element
         showMouseStatus('updateSvgByElementC1', event);
         this.updateMousePosition(event);
@@ -670,7 +671,7 @@ Sketcher.prototype.updateSvgByElement = function (event) {
         thisCircle.attributes['stroke'].value = cursorColor;
       }
     }
-    else if (cursorMode == "ELLIPSE") {
+    else if (cursorMode == "ellipse") {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
       if ((event.type == 'mousedown') || (svgInProgress == false)) {
@@ -689,7 +690,7 @@ Sketcher.prototype.updateSvgByElement = function (event) {
       thisEllipse.attributes['ry'].value = Math.abs(thisEllipseY - (lastMouseY - yC) / zoom);
       thisEllipse.attributes['stroke'].value = cursorColor;
     }
-    else if (cursorMode == "DRAW") {
+    else if (cursorMode == "draw") {
       if (svgInProgress == false) {
         return;
       }
@@ -701,7 +702,7 @@ Sketcher.prototype.updateSvgByElement = function (event) {
         + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
       thisDraw.attributes['points'].value = thesePoints.concat(thisPoint);
     }
-    else if (cursorMode == "TEXT") {
+    else if (cursorMode == "text") {
 
     }
   }
@@ -729,7 +730,7 @@ Sketcher.prototype.updateSvgByElement = function (event) {
   return event.preventDefault() && false;
 };
 
-Sketcher.prototype.onSvgMouseUp = function (event) {
+SVGDraw.prototype.onSvgMouseUp = function (event) {
   var self = this;
   return function (event) {
     showMouseStatus('onSvgMouseUp0', event);
@@ -750,20 +751,21 @@ Sketcher.prototype.onSvgMouseUp = function (event) {
       //clearEditElement(thisElement.parentNode);   // ////////// patch since thisGroup is null
       //unbindMouseHandlers(self);
     }
-    else if (cursorMode == 'DRAW') {
+    else if (cursorMode == 'draw') {
       svgInProgress = false;
       unbindMouseHandlers(self);
     }
-    else if((cursorMode == "MOVE") /*&& (svgInProgress == cursorMode)*/) {
+    else if ((cursorMode == "MOVE") /*&& (svgInProgress == cursorMode)*/) {
       svgInProgress = false;
       unbindMouseHandlers(self);
     }
-    else if (cursorMode == 'CIRCLE') {
+    else if (cursorMode == 'circle') {
+      thisCircle = thisElement;   // patch/hack to have routine below happy
       checkLeftoverElement();
       svgInProgress = false;
       setElementMouseOverOut(thisGroup);
     }
-    else if (cursorMode == "TEXT") {    // focus on the text entry input since this fails in mouseDown
+    else if (cursorMode == "text") {    // focus on the text entry input since this fails in mouseDown
       document.getElementById('text4svg').focus();
     }
     thisSvg = [];      // and clear the collector
@@ -773,16 +775,16 @@ Sketcher.prototype.onSvgMouseUp = function (event) {
   //return event.preventDefault() && false;
 };
 
-Sketcher.prototype.doubleClickHandler = function () {
+SVGDraw.prototype.doubleClickHandler = function () {
   var self = this;
   return function (event) {
-    if ((cursorMode == 'POLYGON') || (cursorMode == 'POLYLINE')) {
+    if ((cursorMode == 'polygon') || (cursorMode == 'polyline')) {
       svgInProgress = false;
       switch (cursorMode) {
-        case 'POLYGON':
+        case 'polygon':
           setMouseoverOut(thisPolygon);
           break;
-        case 'POLYLINE':
+        case 'polyline':
           setMouseoverOut(thisPolyline);
           break;
       }
@@ -791,7 +793,7 @@ Sketcher.prototype.doubleClickHandler = function () {
   }
 }
 
-Sketcher.prototype.clear = function () {
+SVGDraw.prototype.clear = function () {
 
   var c = this.canvas[0];
   //this.context.clearRect(0, 0, c.width, c.height);
