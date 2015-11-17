@@ -46,7 +46,7 @@
 
         var thisPolygon;
 
-        var thisCircle;
+//        var thisCircle;
 
         var thisEllipse;
 
@@ -173,9 +173,9 @@
                     thisPolyline.attributes['points'].value = thesePoints;
                     break;
                 case 'circle':
-                    if (thisCircle == null) return;
-                    if (((thisCircle.attributes['cy'].value - thisCircle.attributes['r'].value) < 0)     // off canvas
-                            || (thisCircle.attributes['r'].value < 2))                                          // single click
+                    if (thisElement == null) return;
+                    if (((thisElement.attributes['cy'].value - thisElement.attributes['r'].value) < 0)     // off canvas
+                            || (thisElement.attributes['r'].value < 2))                                          // single click
                     {
                         clearGroup();       // this was a leftover
                         break;
