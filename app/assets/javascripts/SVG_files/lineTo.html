@@ -52,7 +52,7 @@
 
         var thisGroup;
 
-        var thisParent;
+        var thisEditGroup;
 
         var thisElement;
 
@@ -61,10 +61,12 @@
         var lastMouseX;
         var lastMouseY;
 
-        var logMouse = true;
+        var logMouse = false;
+        var logStatus = true;
         //canvas_image.src = undefined;
         //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
+
         $(document).ready(function (e) {
             sketcher = new Sketcher("svgLayer");
             svgOffset = {
@@ -166,7 +168,9 @@
                     break;
                 case 'CIRCLE':
                     if (thisCircle == null) return;
-                    if ((thisCircle.attributes['cy'].value - thisCircle.attributes['r'].value) < 0) {
+                    if ( ((thisCircle.attributes['cy'].value - thisCircle.attributes['r'].value) < 0)     // off canvas
+                    || (thisCircle.attributes['r'].value < 2) )                                          // single click
+                    {
                         clearGroup();       // this was a leftover
                         break;
                     }
