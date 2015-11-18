@@ -125,9 +125,9 @@
         }
 
         function indicateMode() {
-            var coverRect = 'rectangel'
-            if (cursorMode != coverRect) {
-                coverRect = cursorMode;
+            var coverRect = cursorMode;
+            if (cursorMode == 'rect') {
+                coverRect = 'rectangle';        // replace anomalous rect with rectangle
             }
             document.getElementById("mode").textContent = coverRect.toUpperCase();
             $("#zoom").html("Zoom:" + zoom.toFixed(3));

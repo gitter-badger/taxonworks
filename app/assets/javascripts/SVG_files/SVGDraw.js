@@ -137,7 +137,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
       }
     }
     if (cursorMode == 'rect') {     // mouseDown
-      // assuming first mouseDown starts creation, second mouseDown ends
+                                    // assuming first mouseDown starts creation, second mouseDown ends
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -148,20 +148,21 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         var element = createElement('rect');
 
         group.appendChild(element);
-        thisRectangle = group.children[0];
+        thisElement = group.children[0];
         element.setAttributeNS(null, 'x', thisSvg[0][0]);      // start x
         element.setAttributeNS(null, 'y', thisSvg[0][1]);      // start y
         element.setAttributeNS(null, 'width', 1);      // width x
         element.setAttributeNS(null, 'height', 1);      // height y
         svgInProgress = cursorMode;     // mark in progress
       }
-      else {      // this is the terminus of this instance, so dissociate mouse move handler
-        //if (event.type == 'mousemove') {
-        //  return;}
-        svgInProgress = false;
-        setMouseoverOut(thisRectangle);
-        unbindMouseHandlers(self);
-      }
+// now using mouseUp event to terminate rect
+      //else {      // this is the terminus of this instance, so dissociate mouse move handler
+      //if (event.type == 'mousemove') {
+      //  return;}
+      //svgInProgress = false;
+      //setMouseoverOut(thisRectangle);
+      //unbindMouseHandlers(self);
+      //}
     }
     if (cursorMode == 'line') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
@@ -208,10 +209,10 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
       }
       // now using mouseup event exclusively to terminate circle
       //else {      // this is the terminus of this instance, so dissociate mouse move handler
-        //  svgInProgress = false;
-        //  //setCircleMouseoverOut(thisCircle);    // replaced below by newer paradigm
-        //  setElementMouseOverOut(thisGroup);    // new reference method 14NOV
-        //  unbindMouseHandlers(self);    //  this function has been deactivated
+      //  svgInProgress = false;
+      //  //setCircleMouseoverOut(thisCircle);    // replaced below by newer paradigm
+      //  setElementMouseOverOut(thisGroup);    // new reference method 14NOV
+      //  unbindMouseHandlers(self);    //  this function has been deactivated
       //}
     }
     if (cursorMode == 'ellipse') {     // mouseDown
@@ -281,7 +282,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
       element.setAttributeNS(null, 'font-size', textHeight);
     }
     if (cursorMode == 'MOVE') {     // mouseDown
-                                    //showMouseStatus('onSvgMouseDown1', event);
+      //showMouseStatus('onSvgMouseDown1', event);
       if (svgInProgress == false) {
         svgInProgress = cursorMode;
         //showMouseStatus('onSvgMouseDown2', event);
@@ -324,8 +325,8 @@ function setEditElement(group) {    // add bubble elements to the group containi
   if (checkElementConflict(group)) {
     return;
   }
-  if (thisGroup == null) {
-    thisGroup = group;
+  if (thisGroup == null) {    // no conflicts detected, so if thisGroup is null,
+    thisGroup = group;        // there is probably no creation activity
   }
   showStatus('setEditElement0', group)
   if (group.childNodes.length > 1) {   // do I have bubbles?
@@ -335,10 +336,8 @@ function setEditElement(group) {    // add bubble elements to the group containi
   var bubbleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   group.appendChild(bubbleGroup);             // make the new bubble group in a no-id <g>
   var element = group.firstChild;
-  if (element.tagName == 'circle') {
-    createBubble(element, bubbleGroup, 'BLOCK');
-    createBubble(element, bubbleGroup, 'POINT');
-  }
+  createBubble(element, bubbleGroup, 'SHIFT');    // first point is shift point
+  createBubble(element, bubbleGroup, 'POINT');    // all subsequent bubbles are points
   showStatus('setEditElement2', group)
 }
 
@@ -348,7 +347,7 @@ function clearEditElement(group) {     // given containing group
   }
   showStatus('clearEditElement0', group);
   if (group.childNodes.length > 1) {   // do I have bubbles? i.e., is there more than just the golden chile?
-                                       //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
+    //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
     group.lastChild.remove();         // this is the group of bubbles if not just the SHIFT bubble
     //}
     //else {
@@ -420,16 +419,17 @@ function setSizeElement(bubble) {
     group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag radius
     showStatus('setSizeElement1', group);
   }
-    svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
+  svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
   // look for mousedown in handler for circle to transition to rubber band mode
 }                                       // use mouseup or mousedown to terminate radius drag
 
 function createBubble(element, bubbleGroup, type) {    // element is the co-habitant of the group; type is block or point drag
-  var cX = parseFloat(parseFloat(element.attributes['cx'].value).toFixed(1));   //
-  var cY = parseFloat(parseFloat(element.attributes['cy'].value).toFixed(1));   // for refactored/consolidated case,
-  var cR = parseFloat(parseFloat(element.attributes['r'].value).toFixed(1));    // set up a hash of attribuete to handle
+  var model = getModel(element.tagName);
+  var cX = getAttributeValue(element, 'cx');   //
+  var cY = getAttributeValue(element, 'cy');   // for refactored/consolidated case,
+  var cR = getAttributeValue(element, 'r');    // set up a hash of attribuete to handle
   var bubble;
-  if (type == 'BLOCK') {    // get appropriate point to translate entire element
+  if (type == 'SHIFT') {    // get appropriate point to translate entire element
     bubble = createBubbleStub(cX, cY, element, bubbleGroup);
     bubble.setAttributeNS(null, 'fill-opacity', '0.8');
     //bubble.setAttributeNS(null, 'onmousedown', "setMoveElement(this.parentNode.parentNode);");
@@ -458,6 +458,27 @@ function createBubble(element, bubbleGroup, type) {    // element is the co-habi
   }
 }
 
+function createBubbleGroup(element) {
+  var svgAttrs = {};
+  svgAttrs = getModel(element);
+  for (var key in svgAttrs) {
+    if (isNumeric(element[key])) {   // we only want keys with numeric decimal values
+      svgAttrs[key] = getAttributeValue(element[key]);       // collect this numeric attribute
+    }
+  };     // end of attributes collection
+  switch (element) {
+    case 'circle':
+      var cx = svgAttrs['cx'];
+      var cy = svgAttrs['cy'];
+      var cr = svgAttrs['r'];
+    case 'rect':
+      var x = svgAttrs['x'];
+      var y = svgAttrs['y'];
+      var w = svgAttrs['width'];
+      var h = svgAttrs['height']
+  }
+}
+
 function createBubbleStub(offsetX, offsetY, element, bubbleGroup) {   // create same-size bubble
   var bubble = createElement('circle')      // this is constant, since it is a bubble
   bubbleGroup.appendChild(bubble);
@@ -470,6 +491,58 @@ function createBubbleStub(offsetX, offsetY, element, bubbleGroup) {   // create 
   bubble.setAttributeNS(null, 'stroke-width', '3');
   return bubble;
 }
+function XcreateBubbleStub(offsetX, offsetY, element, attrs) {   // create same-size bubble
+  var bubble = createElement('circle')      // this is constant, since it is a bubble
+  //bubbleGroup.appendChild(bubble);    // delegate this to caller
+  //thisCircle = group.children[0];     // this var is used to dynamically create the element
+  //bubble.setAttributeNS(null, 'cx', offsetX);      // start x
+  //bubble.setAttributeNS(null, 'cy', offsetY);      // start y
+  //bubble.setAttributeNS(null, 'r', 20);      // width x
+  bubble.setAttributeNS(null, 'fill', '#FFFFFF');
+  bubble.setAttributeNS(null, 'stroke', '#444444');   // set scaffold attrs
+  bubble.setAttributeNS(null, 'stroke-width', '3');
+  //attrs.forEach
+  return bubble;
+}
+
+function getAttributeValue(element, attr) {     // convert string numeric and truncate to one place after decimal
+  return parseFloat(parseFloat(element.attributes[attr].value).toFixed(1));
+}
+
+function getAttributes(element) {
+  switch (element) {
+    case 'circle':
+      var cX = getAttributeValue(element, 'cx');
+      var cY = getAttributeValue(element, 'cy');
+      var cR = getAttributeValue(element, 'cr');
+  }
+}
+function getModel(element) {            // by svg element type, return its salient model attributes for bubbles
+  var ox = 0;
+  var oy = 0;
+  var p1 = 1;
+  var p2 = 1;
+  switch (element) {
+    case 'circle':
+      return {
+        'cx': ox, 'cy': oy, 'r': p1
+      };
+    case 'ellipse':
+      return {
+        'cx': ox, 'cy': oy, 'r1': p1, 'r2': p2
+      };
+    case 'rect':
+      return {
+        'x': ox, 'y': oy, 'width': p1, 'height': p2
+      };
+    }                   // end switch
+}
+
+function isNumeric(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+
 function unbindMouseHandlers(self) {
   if (self.event != 'mouseup') {
     return false;                 // ////// this is always happening
@@ -619,18 +692,24 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       if (/*(event.type == 'mousedown') || */(svgInProgress == false)) {
         return;
       }
-      var thisRectX = thisRectangle.attributes['x'].value;
-      var thisRectY = thisRectangle.attributes['y'].value;
-      var thisRectW = thisRectangle.attributes['width'].value;
-      var thisRectH = thisRectangle.attributes['height'].value;
+      if (svgInProgress == 'SHIFT') {
+        this.updateMousePosition(event);
+        thisBubble.attributes['x'].value = (lastMouseX - xC) / zoom;     // translate the bubble
+        thisBubble.attributes['y'].value = (lastMouseY - yC) / zoom;
+        thisElement.attributes['x'].value = (lastMouseX - xC) / zoom;    // correspondingly translate thisElement
+        thisElement.attributes['y'].value = (lastMouseY - yC) / zoom;
+      }
+      else {
+        var thisRectX = thisRectangle.attributes['x'].value;
+        var thisRectY = thisRectangle.attributes['y'].value;
+        var thisRectW = thisRectangle.attributes['width'].value;
+        var thisRectH = thisRectangle.attributes['height'].value;
 
-      //this.context.moveTo(lastMouseX + thisRectH * zoom, lastMouseY + thisRectW * zoom);
-      this.updateMousePosition(event);
-      //lastMouseX = this.lastMousePoint.x;
-      //lastMouseY = this.lastMousePoint.y;
-      thisRectangle.attributes['width'].value = (lastMouseX - xC) / zoom - thisRectX;
-      thisRectangle.attributes['height'].value = (lastMouseY - yC) / zoom - thisRectY;
-      thisRectangle.attributes['stroke'] = cursorColor;
+        this.updateMousePosition(event);
+        thisRectangle.attributes['width'].value = (lastMouseX - xC) / zoom - thisRectX;
+        thisRectangle.attributes['height'].value = (lastMouseY - yC) / zoom - thisRectY;
+        thisRectangle.attributes['stroke'] = cursorColor;
+      }
     }
     else if (cursorMode == "line") {
       lastMouseX = this.lastMousePoint.x;
@@ -651,7 +730,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
     }
     else if ((cursorMode == "circle") || (cursorMode == 'bubble')) {
       //thisCircle = thisElement;             // first step toward generalizing SHIFT/SIZE handlers
-     if ((event.type == 'mousedown') || (svgInProgress == false)) {
+      if ((event.type == 'mousedown') || (svgInProgress == false)) {
         return;         // //// this has been verified to actually occur
       }
       showMouseStatus('updateSvgByElementC0', event);
@@ -661,7 +740,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         this.updateMousePosition(event);
         thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
         thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
-        thisElement.attributes['cx'].value = (lastMouseX - xC) / zoom;    // correspondingly translate the thisElement
+        thisElement.attributes['cx'].value = (lastMouseX - xC) / zoom;    // correspondingly translate thisElement
         thisElement.attributes['cy'].value = (lastMouseY - yC) / zoom;
         //var realCircle = thisGroup.firstChild;              // new reference method 14NOV
         //realCircle.attributes['cx'].value = (lastMouseX - xC) / zoom;
@@ -772,6 +851,13 @@ SVGDraw.prototype.onSvgMouseUp = function (event) {
     else if ((cursorMode == "MOVE") /*&& (svgInProgress == cursorMode)*/) {
       svgInProgress = false;
       unbindMouseHandlers(self);
+    }
+    else if (cursorMode == 'rect') {
+      svgInProgress = false;
+      setElementMouseOverOut(thisGroup);
+      unbindMouseHandlers(self);
+      thisElement = null;
+      thisGroup = null;
     }
     else if (cursorMode == 'circle') {
       //thisCircle = thisElement;   // patch/hack to have routine below happy
