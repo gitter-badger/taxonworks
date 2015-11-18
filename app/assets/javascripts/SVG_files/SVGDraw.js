@@ -293,7 +293,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
   }
 };
 
-function createElementWithMO(type) {
+function createElementWithMO(type) {    // not used due to glitch conditions with listeners in dynamic point movements
   var element = createElement(type);
   element = setMouseoverOut(element);
   return element;
@@ -334,11 +334,16 @@ function setEditElement(group) {    // add bubble elements to the group containi
     group.lastChild.remove();         // this is the group of bubbles
   }
   showStatus('setEditElement1', group)
-  var bubbleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  group.appendChild(bubbleGroup);             // make the new bubble group in a no-id <g>
   var element = group.firstChild;
-  createBubble(element, bubbleGroup, 'SHIFT');    // first point is shift point
-  createBubble(element, bubbleGroup, 'POINT');    // all subsequent bubbles are points
+  //var bubbleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  //group.appendChild(bubbleGroup);             // make the new bubble group in a no-id <g>
+  //var element = group.firstChild;
+  //createBubble(element, bubbleGroup, 'SHIFT');    // first point is shift point
+  //createBubble(element, bubbleGroup, 'POINT');    // all subsequent bubbles are points
+  //var bubbleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+//    new method using createBubbleGroup
+  var bubbleGroup = createBubbleGroup(group);      // since bubble groups are heterogeneous in structure
+  group.appendChild(bubbleGroup);             // make the new bubble group in a no-id <g>
   showStatus('setEditElement2', group)
 }
 
@@ -491,8 +496,6 @@ function createBubble(element, bubbleGroup, type) {    // element is the co-habi
       var h = svgAttrs['height'];
       bubble = createBubbleStub(cX + w, cY + h, element, bubbleGroup);
       bubble.setAttributeNS(null, 'fill-opacity', '0.6');
-      //bubble.setAttributeNS(null, 'onmousedown', "setMoveElement(this.parentNode.parentNode);");
-      //bubble.setAttributeNS(null, 'onmouseup', "setElementMouseOverOut(this.parentNode.parentNode);");
       bubble.setAttributeNS(null, 'onmousedown', "setSizeElement(this);");
       bubble.setAttributeNS(null, 'onmouseup', "setElementMouseOverOut(this);");
       //bubble.setAttributeNS(null, 'style', 'cursor:move;');
@@ -500,24 +503,52 @@ function createBubble(element, bubbleGroup, type) {    // element is the co-habi
 }
 }
 
-function createBubbleGroup(element) {
+function createBubbleGroup(group) {
   var svgAttrs = {};
-  svgAttrs = getModel(element);
+  var element = group.firstChild;
+  svgAttrs = getModel(element.tagName);
   for (var key in svgAttrs) {     // collect basic (numeric) attributes for positioning and extent
     svgAttrs[key] = getAttributeValue(element, key);       // collect this numeric attribute
   }
-  switch (element) {
-    case 'circle':
+  var bubbleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  var bubble;
+
+  switch (element.tagName) {
+    case 'circle':    // 1 relocation bubble, 4 compass-point resize bubbles (flagged SIFT and SIZE respecively)
       var cx = svgAttrs['cx'];
       var cy = svgAttrs['cy'];
       var cr = svgAttrs['r'];
-      // create bubbles
+      bubbleGroup.appendChild(createShiftBubble(cx, cy));    // this is the center point of both bubble and circle
+      bubbleGroup.appendChild(createPointBubble(cr + cx, cy));    // this is the resize point
+      bubbleGroup.appendChild(createPointBubble(cx, cr + cy));    // this is the resize point
+      bubbleGroup.appendChild(createPointBubble(cx - cr, cy));    // this is the resize point
+      bubbleGroup.appendChild(createPointBubble(cx, cy - cr));    // this is the resize point
+      return bubbleGroup;
     case 'rect':
       var x = svgAttrs['x'];
       var y = svgAttrs['y'];
       var w = svgAttrs['width'];
       var h = svgAttrs['height']
+      bubbleGroup.appendChild(createShiftBubble(x, y));     // this is the rectangle origin, anomalous as it may be
+      bubbleGroup.appendChild(createPointBubble(x + w, y + h));    // this is the resize point
+      return bubbleGroup;
   }
+}
+
+function createShiftBubble(cx, cy) {
+  var bubble = XcreateBubbleStub(cx, cy);
+  bubble.setAttributeNS(null, 'fill-opacity', '0.8');         // SHIFT bubble is slightly more opaque
+  bubble.setAttributeNS(null, 'onmousedown', "setMoveElement(this);");
+  bubble.setAttributeNS(null, 'onmouseup', "setElementMouseOverOut(this);");
+  bubble.setAttributeNS(null, 'style', 'cursor:move;');
+  return bubble;
+}
+
+function createPointBubble(cx, cy) {
+  var bubble = XcreateBubbleStub(cx, cy);
+  bubble.setAttributeNS(null, 'fill-opacity', '0.6');         // SIZE/POINT bubble is slightly more opaque
+  bubble.setAttributeNS(null, 'onmousedown', "setSizeElement(this);");
+  return bubble;
 }
 
 function createBubbleStub(offsetX, offsetY, element, bubbleGroup) {   // create same-size bubble
@@ -536,9 +567,9 @@ function XcreateBubbleStub(offsetX, offsetY, element, attrs) {   // create same-
   var bubble = createElement('circle')      // this is constant, since it is a bubble
   //bubbleGroup.appendChild(bubble);    // delegate this to caller
   //thisCircle = group.children[0];     // this var is used to dynamically create the element
-  //bubble.setAttributeNS(null, 'cx', offsetX);      // start x
-  //bubble.setAttributeNS(null, 'cy', offsetY);      // start y
-  //bubble.setAttributeNS(null, 'r', 20);      // width x
+  bubble.setAttributeNS(null, 'cx', offsetX);      // start x
+  bubble.setAttributeNS(null, 'cy', offsetY);      // start y
+  bubble.setAttributeNS(null, 'r', 20);      // width x
   bubble.setAttributeNS(null, 'fill', '#FFFFFF');
   bubble.setAttributeNS(null, 'stroke', '#444444');   // set scaffold attrs
   bubble.setAttributeNS(null, 'stroke-width', '3');
