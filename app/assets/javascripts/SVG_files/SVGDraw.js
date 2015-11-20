@@ -747,7 +747,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       }
       this.updateMousePosition(event);
       var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
-        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
+        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString();
       var thesePoints = thisElement.attributes['points'].value;
       var splitPoints = thesePoints.split(' ');
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
@@ -767,6 +767,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         for (k = 0; k < splitPoints.length - 2; k++) {  // reconstruct except for the last point
           thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
         }
+        thisPoint += ' ';
       thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
       }
       thisElement.attributes['stroke'].value = cursorColor;
