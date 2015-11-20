@@ -44,7 +44,7 @@
 
 //        var thisPolyline;
 
-        var thisPolygon;
+//        var thisPolygon;
 
 //        var thisCircle;
 
@@ -143,7 +143,12 @@
                 svgInProgress = false;
                 checkLeftoverElement();     // look for dangling element, most likely off of svg image element ( - Y coord)
             }
-            cursorMode = mode.toLowerCase();
+            if (mode.toUpperCase() == 'MOVE') {
+                cursorMode = mode;
+            }
+            else {
+                cursorMode = mode.toLowerCase();
+            }
             indicateMode();
         }
 
@@ -164,13 +169,13 @@
                     thisElement.attributes['points'].value = thesePoints;
                     break;
                 case 'polygon':
-                    var thesePoints = thisPolygon.attributes['points'].value;
+                    var thesePoints = thisElement.attributes['points'].value;
                     var splitPoints = thesePoints.split(' ');
                     thesePoints = '';
                     for (k = 0; k < splitPoints.length - 2; k++) {
                         thesePoints += splitPoints[k] + ' ';
                     }
-                    thisPolygon.attributes['points'].value = thesePoints;
+                    thisElement.attributes['points'].value = thesePoints;
                     break;
                 case 'circle':
                     if (thisElement == null) return;

@@ -81,12 +81,13 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
         group.setAttributeNS(null, 'id', newGroupID);
+        thisGroup = group;
         document.getElementById("xlt").appendChild(group);
         //for (j = 0; j < thisSvg.length; j++) {              // for text mode there is only one
-        var element = createElement('polygon');
+        var element = createElement('polyline');        //YES, I KNOW
 
         group.appendChild(element);
-        thisPolygon = group.children[0];
+        thisElement = group.children[0];
         element.setAttributeNS(null, 'points', thisSvg[0][0].toFixed(2).toString()
           + ',' + thisSvg[0][1].toFixed(2).toString() + ' '
           + thisSvg[0][0].toFixed(2).toString()
@@ -99,10 +100,10 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         self.updateMousePosition(event);
         //lastMouseX = this.lastMousePoint.x;
         //lastMouseY = this.lastMousePoint.y;
-        var thesePoints = thisPolygon.attributes['points'].value;
+        var thesePoints = thisElement.attributes['points'].value;
         var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
           + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
-        thisPolygon.attributes['points'].value = thesePoints.concat(thisPoint);
+        thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
       }
     }
     if (cursorMode == 'polyline') {     // mouseDown
@@ -137,8 +138,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
       }
     }
-    if (cursorMode == 'rect') {     // mouseDown
-                                    // assuming first mouseDown starts creation, second mouseDown ends
+    if (cursorMode == 'rect') {     // mouseDown  // assuming first mouseDown starts creation, second mouseDown ends
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -501,6 +501,14 @@ function createBubbleGroup(group) {
       bubbleGroup.appendChild(createPointBubble(x1, y1, 'x1-y1'));     // this is the 1st line coordinate
       bubbleGroup.appendChild(createPointBubble(x2, y2, 'x2-y2'));    // this is the 2nd (terminal) line point
       return bubbleGroup;
+    case 'polygon':
+      var thesePoints = element.attributes['points'].value;
+      var splitPoints = thesePoints.split(' ');
+      for (var k = 0; k < splitPoints.length - 1; k++) {
+        var thisPoint = splitPoints[k].split(',');
+        bubbleGroup.appendChild(createPointBubble(parseFloat(thisPoint[0]), parseFloat(thisPoint[1]), k.toString()));
+      }
+      return bubbleGroup;
     case 'polyline':
       var thesePoints = element.attributes['points'].value;
       var splitPoints = thesePoints.split(' ');
@@ -537,7 +545,7 @@ function createPointBubble(cx, cy, id) {
   return bubble;
 }
 
-function createBubbleStub(offsetX, offsetY, element, attrs) {   // create same-size bubble
+function createBubbleStub(offsetX, offsetY) {   // create same-size bubble
   var bubble = createElement('circle');      // this is constant, since it is a bubble
   //bubbleGroup.appendChild(bubble);    // delegate this to caller
   if (isNaN(offsetX)) {
@@ -591,7 +599,7 @@ function getModel(element) {            // by svg element type, return its salie
       return {
         'cx': ox, 'cy': oy, 'rx': p1, 'ry': p2
       };
-    }                   // end switch
+  }                   // end switch
 }
 
 function isNumeric(n) {
@@ -701,47 +709,62 @@ SVGDraw.prototype.updateMousePosition = function (event) {
 };
 
 SVGDraw.prototype.updateSvgByElement = function (event) {
-/*
- This section services updating of svg element thisElement from onSvgMouseMove
+  /*
+   This section services updating of svg element thisElement from onSvgMouseMove
 
-  The initial scheme prior to editing of elements was to dynamically update the current point
-  of the currently being created thisElement. This point has been the latest or final point
-  in the element, where <circle>, <ellipse>, <rect>angle, and <line> have only the initial
-  point (set during onSvgMouseDown) and a final point/datum.
+   The initial scheme prior to editing of elements was to dynamically update the current point
+   of the currently being created thisElement. This point has been the latest or final point
+   in the element, where <circle>, <ellipse>, <rect>angle, and <line> have only the initial
+   point (set during onSvgMouseDown) and a final point/datum.
 
-  The general scheme up to implementation of editing <line>/<polyline>/<polygon> element types
-  has been to articulate thisElement through the svgInProgress state (SHIFT, SIZE, cursorMode)
-  where SHIFT moves the entire element, typically through the initial point set during
-  onSvgMouseDown.For what had been effectively a resizing operation, sleight of hand set up the
-  modes and states to resume processing of thisElement AS IF it had just been created and was
-  as usual dynamically defining the second point/datum.
+   The general scheme up to implementation of editing <line>/<polyline>/<polygon> element types
+   has been to articulate thisElement through the svgInProgress state (SHIFT, SIZE, cursorMode)
+   where SHIFT moves the entire element, typically through the initial point set during
+   onSvgMouseDown.For what had been effectively a resizing operation, sleight of hand set up the
+   modes and states to resume processing of thisElement AS IF it had just been created and was
+   as usual dynamically defining the second point/datum.
 
-  On implementation of <line> editing, the initial decision was to make both endpoints (x1, y1)
-  (x2, y2) repositionable rather than have the initial point move the line (which would entail
-  adjusting both points in concert - no big deal, but not clearly preferable to individually
-  moving each endpoint). This implementation surfaced the issue of point identification for the
-  onSvgMouseMove handler. Clearly implications are paramount for <polyline>/<polygon> editing,
-  and so a perversion of the SHIFT mode was temporarily used for <line> while development of a
-  proper technique for <poly-...> proceeds.
-*/
+   On implementation of <line> editing, the initial decision was to make both endpoints (x1, y1)
+   (x2, y2) repositionable rather than have the initial point move the line (which would entail
+   adjusting both points in concert - no big deal, but not clearly preferable to individually
+   moving each endpoint). This implementation surfaced the issue of point identification for the
+   onSvgMouseMove handler. Clearly implications are paramount for <polyline>/<polygon> editing,
+   and so a perversion of the SHIFT mode was temporarily used for <line> while development of a
+   proper technique for <poly-...> proceeds.
+   */
 //if (escKey) {}    //      ///////////   insert key over-ride functionality here
 
   if (cursorMode != "MOVE") {          // if we are not moving(dragging) the SVG check the known tags
-    if (cursorMode == "polygon") {
+    if ((cursorMode == "polygon") || ((cursorMode == 'polyline') && (svgInProgress == 'polygon'))) {
       if (svgInProgress == false) {
         return;
       }
       this.updateMousePosition(event);
       var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
-        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
-      var thesePoints = thisPolygon.attributes['points'].value;
+        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString();
+      var thesePoints = thisElement.attributes['points'].value;
       var splitPoints = thesePoints.split(' ');
-      thesePoints = '';                               // clear thecollector
-      for (k = 0; k < splitPoints.length - 2; k++) {  // reconstruct except for the last point
-        thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
+      if (thisBubble != null) {       // look for bubble to denote just move THIS point only
+        thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
+        thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
+        if (isNumeric(thisBubble.id)) {       // presume integer for now
+          splitPoints[parseInt(thisBubble.id)] = thisPoint;
+          thesePoints = '';
+          for (var k = 0; k < splitPoints.length - 1; k++) {
+            thesePoints += splitPoints[k] + ' ';
+          }
+          thisElement.attributes['points'].value = thesePoints
+        }
       }
-      thisPolygon.attributes['points'].value = thesePoints.concat(thisPoint);
-      thisPolygon.attributes['stroke'].value = cursorColor;
+      else {
+        thesePoints = '';                               // clear thecollector
+        for (k = 0; k < splitPoints.length - 2; k++) {  // reconstruct except for the last point
+          thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
+        }
+        thisPoint += ' ';
+        thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
+      }
+      thisElement.attributes['stroke'].value = cursorColor;
     }
     else if (cursorMode == "polyline") {
       if (svgInProgress == false) {
@@ -770,7 +793,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
           thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
         }
         thisPoint += ' ';
-      thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
+        thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
       }
       thisElement.attributes['stroke'].value = cursorColor;
     }
@@ -857,28 +880,28 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       if ((event.type == 'mousedown') || (svgInProgress == false)) {
         return;
       }
-        if (svgInProgress == 'SHIFT') {             // changing position of this element
-          showMouseStatus('updateSvgByElementC1', event);
-          this.updateMousePosition(event);
-          thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
-          thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
-          thisElement.attributes['cx'].value = (lastMouseX - xC) / zoom;    // correspondingly translate thisElement
-          thisElement.attributes['cy'].value = (lastMouseY - yC) / zoom;
-        }
-        else {
-          var thisEllipseX = thisElement.attributes['cx'].value;
-          var thisEllipseY = thisElement.attributes['cy'].value;
+      if (svgInProgress == 'SHIFT') {             // changing position of this element
+        showMouseStatus('updateSvgByElementC1', event);
+        this.updateMousePosition(event);
+        thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
+        thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
+        thisElement.attributes['cx'].value = (lastMouseX - xC) / zoom;    // correspondingly translate thisElement
+        thisElement.attributes['cy'].value = (lastMouseY - yC) / zoom;
+      }
+      else {
+        var thisEllipseX = thisElement.attributes['cx'].value;
+        var thisEllipseY = thisElement.attributes['cy'].value;
 
-          //this.context.moveTo(lastMouseX + thisCircX * zoom, lastMouseY + thisCircY * zoom);
-          //this.context.moveTo(lastMouseX, lastMouseY);
-          this.updateMousePosition(event);
-          lastMouseX = this.lastMousePoint.x;
-          lastMouseY = this.lastMousePoint.y;
-          //var radius = length2points(thisCircX, thisCircY, (lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom);
-          thisElement.attributes['rx'].value = Math.abs(thisEllipseX - (lastMouseX - xC) / zoom);
-          thisElement.attributes['ry'].value = Math.abs(thisEllipseY - (lastMouseY - yC) / zoom);
-        }
-        thisElement.attributes['stroke'].value = cursorColor;
+        //this.context.moveTo(lastMouseX + thisCircX * zoom, lastMouseY + thisCircY * zoom);
+        //this.context.moveTo(lastMouseX, lastMouseY);
+        this.updateMousePosition(event);
+        lastMouseX = this.lastMousePoint.x;
+        lastMouseY = this.lastMousePoint.y;
+        //var radius = length2points(thisCircX, thisCircY, (lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom);
+        thisElement.attributes['rx'].value = Math.abs(thisEllipseX - (lastMouseX - xC) / zoom);
+        thisElement.attributes['ry'].value = Math.abs(thisEllipseY - (lastMouseY - yC) / zoom);
+      }
+      thisElement.attributes['stroke'].value = cursorColor;
     }
     else if (cursorMode == "draw") {
       if (svgInProgress == false) {
@@ -967,16 +990,28 @@ SVGDraw.prototype.onSvgMouseUp = function (event) {
       thisElement = null;
       thisGroup = null;
     }
+    else if (cursorMode == 'polygon') {
+      if (thisBubble == null) {
+
+      }
+      else {
+        svgInProgress = false;
+        setElementMouseOverOut(thisGroup);
+        unbindMouseHandlers(self);
+        thisElement = null;
+        thisGroup = null;
+      }
+    }
     else if (cursorMode == 'polyline') {
       if (thisBubble == null) {
 
       }
       else {
-      svgInProgress = false;
-      setElementMouseOverOut(thisGroup);
-      unbindMouseHandlers(self);
-      thisElement = null;
-      thisGroup = null;
+        svgInProgress = false;
+        setElementMouseOverOut(thisGroup);
+        unbindMouseHandlers(self);
+        thisElement = null;
+        thisGroup = null;
       }
     }
     else if (cursorMode == 'circle') {
@@ -1012,10 +1047,13 @@ SVGDraw.prototype.doubleClickHandler = function () {
       svgInProgress = false;
       switch (cursorMode) {
         case 'polygon':
-          setMouseoverOut(thisPolygon);
+          checkLeftoverElement();     // ///////// temp patch
+          checkLeftoverElement();
+          thisGroup.innerHTML = thisGroup.innerHTML.replace('polyline', 'polygon').replace('polyline', 'polygon')
+          setElementMouseOverOut(thisGroup);
           break;
         case 'polyline':
-          checkLeftoverElement();
+          checkLeftoverElement();     // ///////// temp patch
           checkLeftoverElement();
           setElementMouseOverOut(thisGroup);
           break;
