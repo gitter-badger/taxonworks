@@ -38,21 +38,21 @@
 
         var thisDraw;
 
-        var thisRectangle;
+//        var thisRectangle;
 
-        var thisLine;
+//        var thisLine;
 
-        var thisPolyline;
+//        var thisPolyline;
 
         var thisPolygon;
 
 //        var thisCircle;
 
-        var thisEllipse;
+//        var thisEllipse;
 
         var thisGroup;
 
-        var thisEditGroup;
+//        var thisEditGroup;
 
         var thisElement;
 
@@ -155,13 +155,13 @@
         function checkLeftoverElement() {       // this function is only called when svgInProgress is false
             switch (cursorMode) {
                 case 'polyline':
-                    var thesePoints = thisPolyline.attributes['points'].value;
+                    var thesePoints = thisElement.attributes['points'].value;
                     var splitPoints = thesePoints.split(' ');
                     thesePoints = '';
                     for (k = 0; k < splitPoints.length - 2; k++) {
                         thesePoints += splitPoints[k] + ' ';
                     }
-                    thisPolyline.attributes['points'].value = thesePoints;
+                    thisElement.attributes['points'].value = thesePoints;
                     break;
                 case 'polygon':
                     var thesePoints = thisPolygon.attributes['points'].value;
@@ -170,7 +170,7 @@
                     for (k = 0; k < splitPoints.length - 2; k++) {
                         thesePoints += splitPoints[k] + ' ';
                     }
-                    thisPolyline.attributes['points'].value = thesePoints;
+                    thisPolygon.attributes['points'].value = thesePoints;
                     break;
                 case 'circle':
                     if (thisElement == null) return;
@@ -181,19 +181,19 @@
                         break;
                     }
                 case 'ellipse':
-                    if (thisEllipse == null) return;
-                    if ((thisEllipse.attributes['cy'].value - thisEllipse.attributes['ry'].value) < 0) {
+                    if (thisElement == null) return;
+                    if ((thisElement.attributes['cy'].value - thisElement.attributes['ry'].value) < 0) {
                         clearGroup();       // this was a leftover
                         break;
                     }
                 case 'rect':
-                    if (thisRectangle == null) return;
-                    if ((thisRectangle.attributes['height'].value) < 0) {
+                    if (thisElement == null) return;
+                    if ((thisElement.attributes['height'].value) < 0) {
                         clearGroup();       // this was a leftover
                         break;
                     }
                 case 'line':
-                    if ((thisLine.attributes['y2'].value) < 0) {
+                    if ((thisElement.attributes['y2'].value) < 0) {
                         clearGroup();       // this was a leftover
                         break;
                     }

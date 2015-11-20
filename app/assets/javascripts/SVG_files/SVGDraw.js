@@ -109,6 +109,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        thisGroup = group;
         var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
         group.setAttributeNS(null, 'id', newGroupID);
         document.getElementById("xlt").appendChild(group);
@@ -116,7 +117,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         var element = createElement('polyline');
 
         group.appendChild(element);
-        thisPolyline = group.children[0];
+        thisElement = group.children[0];
         element.setAttributeNS(null, 'stroke-linecap', 'round');
         element.setAttributeNS(null, 'points', thisSvg[0][0].toFixed(2).toString()
           + ',' + thisSvg[0][1].toFixed(2).toString() + ' '
@@ -130,10 +131,10 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         self.updateMousePosition(event);
         //lastMouseX = this.lastMousePoint.x;
         //lastMouseY = this.lastMousePoint.y;
-        var thesePoints = thisPolyline.attributes['points'].value;
+        var thesePoints = thisElement.attributes['points'].value;
         var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
           + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
-        thisPolyline.attributes['points'].value = thesePoints.concat(thisPoint);
+        thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
       }
     }
     if (cursorMode == 'rect') {     // mouseDown
@@ -428,12 +429,10 @@ function setSizeElement(bubble) {
 }                                       // use mouseup or mousedown to terminate radius drag
 
 function setPointElement(bubble) {
-  //if (bubble.id.length > 0) {       // use thisBubble to identify type/position
-  //  thisBubble = bubble.id;         // of selected bubble point
-  //}                                 // if id attribute is present
-  //else {
-  //  thisBubble = null;
-  //}
+  if (thisBubble == bubble) {   // this condition implies we mouseDowned on the point we are changing
+
+  }
+
   thisBubble = bubble;
   var group = bubble.parentNode.parentNode;          // set group for mousemove
   thisGroup = group;
@@ -441,6 +440,7 @@ function setPointElement(bubble) {
   cursorMode = thisElement.tagName;
   showStatus('setSizeElement0', group);
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
+  bubble.attributes['onmousedown'].value = '';  // cascade to onSvgMouseDown
   //if (group.childElementCount > 1) {         // if more than one child, we have bubbles
   //  group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag point
   //  showStatus('setSizeElement1', group);
@@ -499,6 +499,14 @@ function createBubbleGroup(group) {
       bubbleGroup.appendChild(createPointBubble(x1, y1, 'x1-y1'));     // this is the 1st line coordinate
       bubbleGroup.appendChild(createPointBubble(x2, y2, 'x2-y2'));    // this is the 2nd (terminal) line point
       return bubbleGroup;
+    case 'polyline':
+      var thesePoints = element.attributes['points'].value;
+      var splitPoints = thesePoints.split(' ');
+      for (var k = 0; k < splitPoints.length - 1; k++) {
+        var thisPoint = splitPoints[k].split(',');
+        bubbleGroup.appendChild(createPointBubble(parseFloat(thisPoint[0]), parseFloat(thisPoint[1]), k.toString()));
+      }
+      return bubbleGroup;
   }
 }
 
@@ -530,6 +538,12 @@ function createPointBubble(cx, cy, id) {
 function createBubbleStub(offsetX, offsetY, element, attrs) {   // create same-size bubble
   var bubble = createElement('circle');      // this is constant, since it is a bubble
   //bubbleGroup.appendChild(bubble);    // delegate this to caller
+  if (isNaN(offsetX)) {
+    alert(offsetX);
+  }
+  if (isNaN(offsetY)) {
+    alert(offsetY);
+  }
   //thisCircle = group.children[0];     // this var is used to dynamically create the element
   bubble.setAttributeNS(null, 'cx', offsetX);      // start x
   bubble.setAttributeNS(null, 'cy', offsetY);      // start y
@@ -715,18 +729,15 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       if (svgInProgress == false) {
         return;
       }
-      //this.context.moveTo(lastMouseX, lastMouseY);
       this.updateMousePosition(event);
-      //lastMouseX = this.lastMousePoint.x;
-      //lastMouseY = this.lastMousePoint.y;
-      var thesePoints = thisPolygon.attributes['points'].value;
-      var splitPoints = thesePoints.split(' ');
-      thesePoints = '';
-      for (k = 0; k < splitPoints.length - 2; k++) {
-        thesePoints += splitPoints[k] + ' ';
-      }
       var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
         + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
+      var thesePoints = thisPolygon.attributes['points'].value;
+      var splitPoints = thesePoints.split(' ');
+      thesePoints = '';                               // clear thecollector
+      for (k = 0; k < splitPoints.length - 2; k++) {  // reconstruct except for the last point
+        thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
+      }
       thisPolygon.attributes['points'].value = thesePoints.concat(thisPoint);
       thisPolygon.attributes['stroke'].value = cursorColor;
     }
@@ -734,20 +745,31 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       if (svgInProgress == false) {
         return;
       }
-      //this.context.moveTo(lastMouseX, lastMouseY);
       this.updateMousePosition(event);
-      //lastMouseX = this.lastMousePoint.x;
-      //lastMouseY = this.lastMousePoint.y;
-      var thesePoints = thisPolyline.attributes['points'].value;
-      var splitPoints = thesePoints.split(' ');
-      thesePoints = '';
-      for (k = 0; k < splitPoints.length - 2; k++) {
-        thesePoints += splitPoints[k] + ' ';
-      }
       var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
         + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
-      thisPolyline.attributes['points'].value = thesePoints.concat(thisPoint);
-      thisPolyline.attributes['stroke'].value = cursorColor;
+      var thesePoints = thisElement.attributes['points'].value;
+      var splitPoints = thesePoints.split(' ');
+      if (thisBubble != null) {       // look for bubble to denote just move THIS point only
+        thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
+        thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
+        if (isNumeric(thisBubble.id)) {       // presume integer for now
+          splitPoints[parseInt(thisBubble.id)] = thisPoint;
+          thesePoints = '';
+          for (var k = 0; k < splitPoints.length - 1; k++) {
+            thesePoints += splitPoints[k] + ' ';
+          }
+          thisElement.attributes['points'].value = thesePoints
+        }
+      }
+      else {
+        thesePoints = '';                               // clear thecollector
+        for (k = 0; k < splitPoints.length - 2; k++) {  // reconstruct except for the last point
+          thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
+        }
+      thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
+      }
+      thisElement.attributes['stroke'].value = cursorColor;
     }
     else if ((cursorMode == "rect") /*|| (cursorMode == 'bubble')*/) {
       //lastMouseX = this.lastMousePoint.x;
@@ -780,27 +802,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       if ((event.type == 'mousedown') || (svgInProgress == false)) {    // extra condition for line
         return;
       }
-      //var thisLineX1 = thisLine.attributes['x1'].value;
-      //var thisLineY1 = thisLine.attributes['y1'].value;
-
-      //this.context.moveTo(lastMouseX /*+ thisLineX2 * zoom*/, lastMouseY/* + thisLineY2 * zoom*/);
       this.updateMousePosition(event);
-      //if (svgInProgress == 'SHIFT') {       // perversion of  SHIFT intent;  just move THIS point only
-      //  thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
-      //  thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
-      //  thisElement.attributes['x1'].value = (lastMouseX - xC) / zoom;
-      //  thisElement.attributes['y1'].value = (lastMouseY - yC) / zoom;
-      //}
-      //else {
-      //  //lastMouseX = this.lastMousePoint.x;
-      //  //lastMouseY = this.lastMousePoint.y;
-      //  if (svgInProgress == 'SIZE') {
-      //    thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
-      //    thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
-      //  }
-      //  thisElement.attributes['x2'].value = (lastMouseX - xC) / zoom;
-      //  thisElement.attributes['y2'].value = (lastMouseY - yC) / zoom;
-      //}
       var linePoints = ['x2', 'y2'];          // preset for normal post-creation mode
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
         thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
@@ -998,7 +1000,7 @@ SVGDraw.prototype.doubleClickHandler = function () {
           setMouseoverOut(thisPolygon);
           break;
         case 'polyline':
-          setMouseoverOut(thisPolyline);
+          setElementMouseOverOut(thisGroup);
           break;
       }
       unbindMouseHandlers(self);
