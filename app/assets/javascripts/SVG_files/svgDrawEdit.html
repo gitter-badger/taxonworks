@@ -52,7 +52,7 @@
 
         var thisGroup;
 
-//        var thisEditGroup;
+        var savedCursorMode = cursorMode;
 
         var thisElement;
 
@@ -75,7 +75,7 @@
                 top: document.getElementById(svgDraw.canvasID).parentNode.style.top.split('px')[0],
                 left: document.getElementById(svgDraw.canvasID).parentNode.style.left.split('px')[0]
             };
-            indicateMode();
+            indicateMode(cursorMode);
             document.getElementById("text4svg").onkeyup = updateSvgText;
 //    canvas = document.getElementById("sketch");
 //    context = canvas.getContext("2d");
@@ -114,19 +114,19 @@
             yC = 0;
             renderImage();
         }
-        function setDraw() {
-            cursorMode = "PATH";
-            indicateMode();
-        }
+//        function setDraw() {
+//            cursorMode = "PATH";
+//            indicateMode();
+//        }
 
         function setMove() {
             cursorMode = "MOVE";
-            indicateMode();
+            indicateMode(cursorMode);
         }
 
-        function indicateMode() {
-            var coverRect = cursorMode;
-            if (cursorMode == 'rect') {
+        function indicateMode(mode) {
+            var coverRect = mode;
+            if (mode == 'rect') {
                 coverRect = 'rectangle';        // replace anomalous rect with rectangle
             }
             document.getElementById("mode").textContent = coverRect.toUpperCase();
@@ -149,7 +149,7 @@
             else {
                 cursorMode = mode.toLowerCase();
             }
-            indicateMode();
+            indicateMode(mode);
         }
 
         function setTextMode() {

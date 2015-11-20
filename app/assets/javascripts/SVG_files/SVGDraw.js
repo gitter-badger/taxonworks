@@ -286,21 +286,15 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
       element.setAttributeNS(null, 'font-size', textHeight);
     }
     if (cursorMode == 'MOVE') {     // mouseDown
-      //showMouseStatus('onSvgMouseDown1', event);
       if (svgInProgress == false) {
         svgInProgress = cursorMode;
         //showMouseStatus('onSvgMouseDown2', event);
       }
     }
+    savedCursorMode = cursorMode;   //    ///////////   make sure this is right
     return event.preventDefault() && false;
   }
 };
-
-function createElementWithMO(type) {    // not used due to glitch conditions with listeners in dynamic point movements
-  var element = createElement(type);
-  element = setMouseoverOut(element);
-  return element;
-}
 
 function createElement(type) {
   var element = document.createElementNS('http://www.w3.org/2000/svg', type);
@@ -329,28 +323,31 @@ function setEditElement(group) {    // add bubble elements to the group containi
   if (checkElementConflict(group)) {
     return;
   }
+  savedCursorMode = cursorMode;   // don't wait for actual action on bubble
   if (thisGroup == null) {    // no conflicts detected, so if thisGroup is null,
     thisGroup = group;        // there is probably no creation activity
   }
-  showStatus('setEditElement0', group)
+  indicateMode(group.firstChild.tagName);
+  showStatus('setEditElement0', group);
   if (group.childNodes.length > 1) {   // do I have bubbles?
     group.lastChild.remove();         // this is the group of bubbles
   }
-  showStatus('setEditElement1', group)
+  showStatus('setEditElement1', group);
   var element = group.firstChild;
 //    new method using createBubbleGroup
   var bubbleGroup = createBubbleGroup(group);      // since bubble groups are heterogeneous in structure
   group.appendChild(bubbleGroup);             // make the new bubble group in a no-id <g>
-  showStatus('setEditElement2', group)
+  showStatus('setEditElement2', group);
 }
 
 function clearEditElement(group) {     // given containing group
   if (checkElementConflict(group)) {
     return;
   }
+  cursorMode = savedCursorMode;   // on exit of edit mode, restore
   showStatus('clearEditElement0', group);
   if (group.childNodes.length > 1) {   // do I have bubbles? i.e., is there more than just the golden chile?
-    //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
+                                       //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
     group.lastChild.remove();         // this is the group of bubbles if not just the SHIFT bubble
     thisBubble = null;
     //}
@@ -358,6 +355,7 @@ function clearEditElement(group) {     // given containing group
     //  showStatus('clearEditElement0.5: SHIFT bubble not removed', group);
     //}
   }
+  indicateMode(cursorMode);
   showStatus('clearEditElement1', group);
   //group./*firstChild.*/attributes['onmouseenter'].value = "this.firstChild.attributes['stroke-width'].value = '" + 1.5 * strokeWidth + "'; setEditElement(this.firstChild);"    // replant the listener in the real element
   setElementMouseOverOut(group);
@@ -390,7 +388,7 @@ function setMoveElement(bubble) {    // end of SHIFT leaves single bubble; shoul
   var group = bubble.parentNode.parentNode;          // set group for mousemove
   thisGroup = group;          // set group for mousemove
   thisElement = group.firstChild;
-  showStatus('setMoveElement0', group)
+  showStatus('setMoveElement0', group);
   thisBubble = group.lastChild.firstChild;      // this is the center/first bubble
   //cursorMode = 'bubble';      // hard code this because it is a bubble
   cursorMode = thisElement.tagName;
@@ -404,7 +402,7 @@ function setMoveElement(bubble) {    // end of SHIFT leaves single bubble; shoul
   group.attributes['onmouseenter'].value = '';    // turn off enter!
   //group.attributes['onmouseleave'].value = '';    // turn off leave!
   //group.setAttribute('onmouseout', 'clearEditElement(this);');      // as of right NOW
-  showStatus('setMoveElement2', group)
+  showStatus('setMoveElement2', group);
   svgInProgress = 'SHIFT';
 }
 
