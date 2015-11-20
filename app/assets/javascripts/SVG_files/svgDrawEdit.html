@@ -154,7 +154,7 @@
 
         function checkLeftoverElement() {       // this function is only called when svgInProgress is false
             switch (cursorMode) {
-                case 'polyline':
+                case 'polyline':            // this seems to ONLY delete the last point
                     var thesePoints = thisElement.attributes['points'].value;
                     var splitPoints = thesePoints.split(' ');
                     thesePoints = '';
@@ -178,25 +178,25 @@
                             || (thisElement.attributes['r'].value < 2))                                          // single click
                     {
                         clearGroup();       // this was a leftover
-                        break;
                     }
+                    break;
                 case 'ellipse':
                     if (thisElement == null) return;
                     if ((thisElement.attributes['cy'].value - thisElement.attributes['ry'].value) < 0) {
                         clearGroup();       // this was a leftover
-                        break;
                     }
+                    break;
                 case 'rect':
                     if (thisElement == null) return;
                     if ((thisElement.attributes['height'].value) < 0) {
                         clearGroup();       // this was a leftover
-                        break;
                     }
+                    break;
                 case 'line':
                     if ((thisElement.attributes['y2'].value) < 0) {
                         clearGroup();       // this was a leftover
-                        break;
                     }
+                    break;
             }
         }
 

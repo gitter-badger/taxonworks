@@ -432,11 +432,13 @@ function setPointElement(bubble) {
   if (thisBubble == bubble) {   // this condition implies we mouseDowned on the point we are changing
 
   }
-
   thisBubble = bubble;
   var group = bubble.parentNode.parentNode;          // set group for mousemove
   thisGroup = group;
   thisElement = group.firstChild;    // this is the real element
+  if (parseInt(bubble.id) == bubble.parentNode.childElementCount - 1) {
+    thisBubble = bubble;
+  }
   cursorMode = thisElement.tagName;
   showStatus('setSizeElement0', group);
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
@@ -965,6 +967,18 @@ SVGDraw.prototype.onSvgMouseUp = function (event) {
       thisElement = null;
       thisGroup = null;
     }
+    else if (cursorMode == 'polyline') {
+      if (thisBubble == null) {
+
+      }
+      else {
+      svgInProgress = false;
+      setElementMouseOverOut(thisGroup);
+      unbindMouseHandlers(self);
+      thisElement = null;
+      thisGroup = null;
+      }
+    }
     else if (cursorMode == 'circle') {
       //thisCircle = thisElement;   // patch/hack to have routine below happy
       checkLeftoverElement();
@@ -1001,6 +1015,8 @@ SVGDraw.prototype.doubleClickHandler = function () {
           setMouseoverOut(thisPolygon);
           break;
         case 'polyline':
+          checkLeftoverElement();
+          checkLeftoverElement();
           setElementMouseOverOut(thisGroup);
           break;
       }
