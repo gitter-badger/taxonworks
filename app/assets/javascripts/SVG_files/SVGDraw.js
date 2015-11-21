@@ -510,9 +510,23 @@ function createBubbleGroup(group) {
     case 'polyline':
       var thesePoints = element.attributes['points'].value;
       var splitPoints = thesePoints.split(' ');
-      for (var k = 0; k < splitPoints.length - 1; k++) {
-        var thisPoint = splitPoints[k].split(',');
-        bubbleGroup.appendChild(createPointBubble(parseFloat(thisPoint[0]), parseFloat(thisPoint[1]), k.toString()));
+      var thisPoint  = splitPoints[0].split(',');
+      var thisX = parseFloat(thisPoint[0]);
+      var thisY = parseFloat(thisPoint[1]);
+      var nextPoint;
+      var nextX;
+      var nextY;
+      for (var k = 0; k < splitPoints.length - 1; k++) {    // append this point and an intermediary point
+        //thisPoint  = splitPoints[k].split(',');
+        bubbleGroup.appendChild(createPointBubble(thisX, thisY, k.toString()));
+        if (k < splitPoints.length - 2) {
+          nextPoint = splitPoints[k + 1].split(',');     // only add intermediate point if we are not at the last point
+          nextX = parseFloat(nextPoint[0]);
+          nextY = parseFloat(nextPoint[1]);
+          bubbleGroup.appendChild(createNewPointBubble(0.5 * (thisX + nextX), 0.5 * (thisY + nextY), k.toString() + '.5'));
+          thisX = nextX;
+          thisY = nextY;
+        }
       }
       return bubbleGroup;
   }
@@ -529,14 +543,23 @@ function createShiftBubble(cx, cy) {
 
 function createSizeBubble(cx, cy) {
   var bubble = createBubbleStub(cx, cy);
-  bubble.setAttributeNS(null, 'fill-opacity', '0.6');         // SIZE/POINT bubble is slightly more opaque
+  bubble.setAttributeNS(null, 'fill-opacity', '0.6');         // SIZE/POINT bubble is slightly less opaque
   bubble.setAttributeNS(null, 'onmousedown', "setSizeElement(this);");
   return bubble;
 }
 function createPointBubble(cx, cy, id) {
   var bubble = createBubbleStub(cx, cy);
-  bubble.setAttributeNS(null, 'fill-opacity', '0.6');         // SIZE/POINT bubble is slightly more opaque
+  bubble.setAttributeNS(null, 'fill-opacity', '0.6');         // SIZE/POINT bubble is slightly less opaque
   bubble.setAttributeNS(null, 'onmousedown', "setPointElement(this);");
+  bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
+                                            // will take the form: 'x1-y1', 'x2-y2' for <line>,
+                                            // will take the form: '36', '23.5' for <poly-...>
+  return bubble;
+}
+function createNewPointBubble(cx, cy, id) {
+  var bubble = createBubbleStub(cx, cy);
+  bubble.setAttributeNS(null, 'fill-opacity', '0.4');         // SIZE/POINT bubble is even less opaque
+  bubble.setAttributeNS(null, 'onmousedown', "setNewPointElement(this);");
   bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
                                             // will take the form: 'x1-y1', 'x2-y2' for <line>,
                                             // will take the form: '36', '23.5' for <poly-...>
