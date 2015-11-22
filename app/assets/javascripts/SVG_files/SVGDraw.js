@@ -406,13 +406,14 @@ function setMoveElement(bubble) {    // end of SHIFT leaves single bubble; shoul
   svgInProgress = 'SHIFT';
 }
 
-function setSizeElement(bubble) {
+function setSizeElement(bubble) {       // this sets up the single point functions
   //thisParent = element;                           // group containing real element and the bubbles group
   //thisElement = group.firstChild;    // this is the real element
   //cursorMode = group.firstChild.tagName;  // extract its tag
   var group = bubble.parentNode.parentNode;          // set group for mousemove
   thisGroup = group;
   thisElement = group.firstChild;    // this is the real element
+  //thisGroup.lastChild.lastChild.removeChild();    // ////////  get rid of the insert point bubbles's group
   //group.attributes['onmouseleave'].value = ''; // disable mouseover on real circle's containing group
   //cursorMode = 'circle';      // FALSE:hard code this because it is a bubble slight of handed into a circle
   cursorMode = thisElement.tagName;
@@ -426,9 +427,9 @@ function setSizeElement(bubble) {
   // look for mousedown in handler for circle to transition to rubber band mode
 }                                       // use mouseup or mousedown to terminate radius drag
 
-function setPointElement(bubble) {
+function setPointElement(bubble) {    // this performs the inline substitution of the selected bubbed
   if (thisBubble == bubble) {   // this condition implies we mouseDowned on the point we are changing
-
+// breakpoint convenience point
   }
   thisBubble = bubble;
   var group = bubble.parentNode.parentNode;          // set group for mousemove
@@ -437,10 +438,12 @@ function setPointElement(bubble) {
   if (parseInt(bubble.id) == bubble.parentNode.childElementCount - 1) {   // last point/bubble?
     thisBubble = bubble;
   }
+  bubble.parentNode.lastChild.remove(); // /////////// this is the real one
   cursorMode = thisElement.tagName;
   showStatus('setPointElement0', group);
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
   bubble.attributes['onmousedown'].value = '';  // cascade to onSvgMouseDown
+  //bubble.attributes['onmouseup'].value = '';  // calculate/populate insert point
   //if (group.childElementCount > 1) {         // if more than one child, we have bubbles
   //  group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag point
   //  showStatus('setSizeElement1', group);
@@ -448,12 +451,13 @@ function setPointElement(bubble) {
   svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
   // look for mousedown in handler for circle to transition to rubber band mode
 }                                       // use mouseup or mousedown to terminate radius drag
-function setNewPointElement(bubble) {
+
+function setNewPointElement(bubble) {     // this inserts the new point into the <poly.. element
   if (thisBubble == bubble) {   // this condition implies we mouseDowned on the point we are INSERTING
                       // /////////  VERY PRELIM
   }
   thisBubble = bubble;
-  var group = bubble.parentNode.parentNode;          // set group for mousemove
+  var group = bubble.parentNode.parentNode.parentNode;          // set group for mousemove handler
   thisGroup = group;
   thisElement = group.firstChild;    // this is the real element
   if (parseInt(bubble.id) == bubble.parentNode.childElementCount - 1) {
@@ -465,10 +469,9 @@ function setNewPointElement(bubble) {
   bubble.attributes['onmousedown'].value = '';  // cascade to onSvgMouseDown
   thisElement.attributes['points'].value = insertNewPoint(thisElement, thisBubble);
   thisBubble.id = (parseInt(thisBubble.id) + 1).toString();   // ///////// seems to work, but...
-  //if (group.childElementCount > 1) {         // if more than one child, we have bubbles
-  //  group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag point
-  //  showStatus('setSizeElement1', group);
-  //}
+  //group.lastChild.lastChild.removeChild();      // ///////// vaporize the intermediate newPointBubbles' group
+// need mouseup on this bubble to reshfuffle bubbles -- now being handled by removing x.5 bubbles
+//  bubble.attributes['onmouseup'].value = 'setEditElement(this.parentNode.parentNode);';
   svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
   // look for mousedown in handler for circle to transition to rubber band mode
 }                                       // use mouseup or mousedown to terminate radius drag
@@ -553,19 +556,22 @@ function createBubbleGroup(group) {
       var thisY = parseFloat(thisPoint[1]);
       var nextPoint;                          // these are used to bound
       var nextX;                             // and calculate the intermediate
-      var nextY;                            // insert new point bubbles
+      var nextY;                            // insert new point bubbles in separate parallel group
+      var newBubbleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       for (var k = 0; k < splitPoints.length - 1; k++) {    // append this point and an intermediary point
         //thisPoint  = splitPoints[k].split(',');
-        bubbleGroup.appendChild(createPointBubble(thisX, thisY, k.toString()));
+        bubbleGroup.appendChild(createPointBubble(thisX, thisY, k.toString()));   // add the vertex point
         if (k < splitPoints.length - 2) {
           nextPoint = splitPoints[k + 1].split(',');     // only add intermediate point if we are not at the last point
           nextX = parseFloat(nextPoint[0]);
           nextY = parseFloat(nextPoint[1]);
-          bubbleGroup.appendChild(createNewPointBubble(0.5 * (thisX + nextX), 0.5 * (thisY + nextY), k.toString() + '.5'));
+          newBubbleGroup.appendChild(createNewPointBubble(0.5 * (thisX + nextX), 0.5 * (thisY + nextY), k.toString() + '.5'));
+          // ///////// watch for hierarchiciacl misplacement
           thisX = nextX;
           thisY = nextY;
         }
       }
+      bubbleGroup.appendChild(newBubbleGroup);   // add the new point insertion bebbles
       return bubbleGroup;
   }
 }
@@ -589,6 +595,7 @@ function createPointBubble(cx, cy, id) {
   var bubble = createBubbleStub(cx, cy);
   bubble.setAttributeNS(null, 'fill-opacity', '0.6');         // SIZE/POINT bubble is slightly less opaque
   bubble.setAttributeNS(null, 'onmousedown', "setPointElement(this);");
+  bubble.setAttributeNS(null, 'onmouseup', "setEditElement(thisGroup);");   // questionable reference
   bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
                                             // will take the form: 'x1-y1', 'x2-y2' for <line>,
                                             // will take the form: '36', '23.5' for <poly-...>
@@ -596,8 +603,10 @@ function createPointBubble(cx, cy, id) {
 }
 function createNewPointBubble(cx, cy, id) {
   var bubble = createBubbleStub(cx, cy);
-  bubble.setAttributeNS(null, 'fill-opacity', '0.4');         // SIZE/POINT bubble is even less opaque
+  bubble.setAttributeNS(null, 'stroke', '#777777');
+  bubble.setAttributeNS(null, 'fill-opacity', '0.33');         // SIZE/POINT bubble is even less opaque
   bubble.setAttributeNS(null, 'onmousedown', "setNewPointElement(this);");
+  bubble.setAttributeNS(null, 'onmouseup', 'clearEditElement(thisGroup); setEditElement(thisGroup);');
   bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
                                             // will take the form: 'x1-y1', 'x2-y2' for <line>,
                                             // will take the form: '36', '23.5' for <poly-...>
@@ -618,7 +627,7 @@ function createBubbleStub(offsetX, offsetY) {   // create same-size bubble
   bubble.setAttributeNS(null, 'cy', offsetY);      // start y
   bubble.setAttributeNS(null, 'r', 20);      // width x
   bubble.setAttributeNS(null, 'fill', '#FFFFFF');
-  bubble.setAttributeNS(null, 'stroke', '#444444');   // set scaffold attrs
+  bubble.setAttributeNS(null, 'stroke', '#222222');   // set scaffold attrs
   bubble.setAttributeNS(null, 'stroke-width', '3');
   //attrs.forEach
   return bubble;
