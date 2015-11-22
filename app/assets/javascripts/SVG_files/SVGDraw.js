@@ -603,8 +603,9 @@ function createPointBubble(cx, cy, id) {
 }
 function createNewPointBubble(cx, cy, id) {
   var bubble = createBubbleStub(cx, cy);
-  bubble.setAttributeNS(null, 'stroke', '#777777');
-  bubble.setAttributeNS(null, 'fill-opacity', '0.33');         // SIZE/POINT bubble is even less opaque
+  bubble.setAttributeNS(null, 'stroke', '#666666');     // not that great, use below
+  bubble.setAttributeNS(null, 'stroke-opacity', '0.6');     // not that great, use below
+  bubble.setAttributeNS(null, 'fill-opacity', '0.4');         // SIZE/POINT bubble is even less opaque
   bubble.setAttributeNS(null, 'onmousedown', "setNewPointElement(this);");
   bubble.setAttributeNS(null, 'onmouseup', 'clearEditElement(thisGroup); setEditElement(thisGroup);');
   bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
