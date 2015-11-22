@@ -434,11 +434,11 @@ function setPointElement(bubble) {
   var group = bubble.parentNode.parentNode;          // set group for mousemove
   thisGroup = group;
   thisElement = group.firstChild;    // this is the real element
-  if (parseInt(bubble.id) == bubble.parentNode.childElementCount - 1) {
+  if (parseInt(bubble.id) == bubble.parentNode.childElementCount - 1) {   // last point/bubble?
     thisBubble = bubble;
   }
   cursorMode = thisElement.tagName;
-  showStatus('setSizeElement0', group);
+  showStatus('setPointElement0', group);
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
   bubble.attributes['onmousedown'].value = '';  // cascade to onSvgMouseDown
   //if (group.childElementCount > 1) {         // if more than one child, we have bubbles
@@ -448,6 +448,44 @@ function setPointElement(bubble) {
   svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
   // look for mousedown in handler for circle to transition to rubber band mode
 }                                       // use mouseup or mousedown to terminate radius drag
+function setNewPointElement(bubble) {
+  if (thisBubble == bubble) {   // this condition implies we mouseDowned on the point we are INSERTING
+                      // /////////  VERY PRELIM
+  }
+  thisBubble = bubble;
+  var group = bubble.parentNode.parentNode;          // set group for mousemove
+  thisGroup = group;
+  thisElement = group.firstChild;    // this is the real element
+  if (parseInt(bubble.id) == bubble.parentNode.childElementCount - 1) {
+    thisBubble = bubble;
+  }
+  cursorMode = thisElement.tagName;
+  showStatus('setNewPointElement0', group);
+  group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
+  bubble.attributes['onmousedown'].value = '';  // cascade to onSvgMouseDown
+  thisElement.attributes['points'].value = insertNewPoint(thisElement, thisBubble);
+  thisBubble.id = (parseInt(thisBubble.id) + 1).toString();   // ///////// seems to work, but...
+  //if (group.childElementCount > 1) {         // if more than one child, we have bubbles
+  //  group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag point
+  //  showStatus('setSizeElement1', group);
+  //}
+  svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
+  // look for mousedown in handler for circle to transition to rubber band mode
+}                                       // use mouseup or mousedown to terminate radius drag
+
+function insertNewPoint(element, bubble) {     //this bubble's ID truncated is the point to insert AFTER
+  var splitPoints = element.attributes['points'].value.split(' ');
+  var thesePoints = '';
+  var insertionPoint = parseInt(bubble.id);
+  var thisPoint = bubble.attributes['cx'].value + ',' + bubble.attributes['cy'].value;
+  for (var k = 0; k < splitPoints.length -1; k++)  {
+    thesePoints += splitPoints[k] + ' ';
+    if (k == insertionPoint) {
+      thesePoints += thisPoint + ' ';
+    }
+  }
+  return thesePoints;
+}
 
 function createBubbleGroup(group) {
   var svgAttrs = {};
@@ -507,15 +545,15 @@ function createBubbleGroup(group) {
         bubbleGroup.appendChild(createPointBubble(parseFloat(thisPoint[0]), parseFloat(thisPoint[1]), k.toString()));
       }
       return bubbleGroup;
-    case 'polyline':
+    case 'polyline':      // create a parallel structure to the point attr, using its coords
       var thesePoints = element.attributes['points'].value;
       var splitPoints = thesePoints.split(' ');
-      var thisPoint  = splitPoints[0].split(',');
+      var thisPoint  = splitPoints[0].split(',');   // prime the pump for iteration
       var thisX = parseFloat(thisPoint[0]);
       var thisY = parseFloat(thisPoint[1]);
-      var nextPoint;
-      var nextX;
-      var nextY;
+      var nextPoint;                          // these are used to bound
+      var nextX;                             // and calculate the intermediate
+      var nextY;                            // insert new point bubbles
       for (var k = 0; k < splitPoints.length - 1; k++) {    // append this point and an intermediary point
         //thisPoint  = splitPoints[k].split(',');
         bubbleGroup.appendChild(createPointBubble(thisX, thisY, k.toString()));
@@ -800,7 +838,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
         thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
         if (isNumeric(thisBubble.id)) {       // presume integer for now
-          splitPoints[parseInt(thisBubble.id)] = thisPoint;
+          splitPoints[parseInt(thisBubble.id)] = thisPoint;   // replace this point
           thesePoints = '';
           for (var k = 0; k < splitPoints.length - 1; k++) {
             thesePoints += splitPoints[k] + ' ';
