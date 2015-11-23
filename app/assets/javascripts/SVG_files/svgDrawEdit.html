@@ -26,6 +26,7 @@
         var strokeWidth = '10';
         var zoom = 0.2;         /////////////////////////////
         var baseZoom = 0.2;         /////////////////////////////
+        var maxZoom = 4;
         var svgImage = new Image();
         var thisSvg = [];            // collect points as [x,y]
         var svgOffset;              // set on document ready
@@ -222,10 +223,10 @@
 
         function zoomIn() {
             var zoomDelta = 0.05;
-            if (zoom < 2.0) {           // zoom of 1 iz pixel-per-pixel on canvas/svg
+            if (zoom < maxZoom) {           // zoom of 1 iz pixel-per-pixel on canvas/svg
                 var newZoom = zoom * ( 1.0 + zoomDelta);
-                if (newZoom > 2.0) {
-                    newZoom = 2.0;
+                if (newZoom > maxZoom) {
+                    newZoom = maxZoom;
                 }
                 xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom;
                 yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom;

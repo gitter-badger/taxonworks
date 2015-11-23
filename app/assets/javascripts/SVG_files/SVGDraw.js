@@ -373,14 +373,22 @@ function checkElementConflict(group) {  // only invoked by mouseover listener - 
   if (!svgInProgress) {
     return false;     // if no active element
   }
-  if (svgInProgress != group.firstChild.tagName.toUpperCase()) {
+  if (svgInProgress != group.firstChild.tagName) {
     return true;     //  if we crossed another element
   }
   if (thisGroup != group) {
     return true;
   }
+}
 
-
+function exitEditPoint(group) {    // services mouseUp from SIZE bubble
+  // reset all bubbles for this element
+  //clearEditElement(group);
+  //setEditElement(group);
+  // above introduce glitch where repositioned point is dissociated and ends up at last point
+  // so just recalculate the points instead
+  group.lastChild.remove();                        // eliminates all bubbles
+  group.appendChild(createBubbleGroup(group));    // reconstitutes new bubbles
 }
 
 function setMoveElement(bubble) {    // end of SHIFT leaves single bubble; should be removed on mouseleave of group
@@ -413,12 +421,9 @@ function setSizeElement(bubble) {       // this sets up the single point functio
   var group = bubble.parentNode.parentNode;          // set group for mousemove
   thisGroup = group;
   thisElement = group.firstChild;    // this is the real element
-  //thisGroup.lastChild.lastChild.removeChild();    // ////////  get rid of the insert point bubbles's group
-  //group.attributes['onmouseleave'].value = ''; // disable mouseover on real circle's containing group
-  //cursorMode = 'circle';      // FALSE:hard code this because it is a bubble slight of handed into a circle
   cursorMode = thisElement.tagName;
   showStatus('setSizeElement0', group);
-  group.attributes['onmouseenter'].value = ''; // disable mouseover on real circle's containing group
+  group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
   if (group.childElementCount > 1) {         // if more than one child, we have bubbles
     group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag radius
     showStatus('setSizeElement1', group);
@@ -438,10 +443,11 @@ function setPointElement(bubble) {    // this performs the inline substitution o
   if (parseInt(bubble.id) == bubble.parentNode.childElementCount - 1) {   // last point/bubble?
     thisBubble = bubble;
   }
-  bubble.parentNode.lastChild.remove(); // /////////// this is the real one
+  bubble.parentNode.lastChild.remove(); // /////////// this is the fight place: remove insert point bubbles
   cursorMode = thisElement.tagName;
   showStatus('setPointElement0', group);
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
+  group.attributes['onmouseleave'].value = ''; // disable mouseleave on real element's containing group
   bubble.attributes['onmousedown'].value = '';  // cascade to onSvgMouseDown
   //bubble.attributes['onmouseup'].value = '';  // calculate/populate insert point
   //if (group.childElementCount > 1) {         // if more than one child, we have bubbles
@@ -466,6 +472,7 @@ function setNewPointElement(bubble) {     // this inserts the new point into the
   cursorMode = thisElement.tagName;
   showStatus('setNewPointElement0', group);
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
+  group.attributes['onmouseleave'].value = ''; // disable mouseleaver on real element's containing group
   bubble.attributes['onmousedown'].value = '';  // cascade to onSvgMouseDown
   thisElement.attributes['points'].value = insertNewPoint(thisElement, thisBubble);
   thisBubble.id = (parseInt(thisBubble.id) + 1).toString();   // ///////// seems to work, but...
@@ -535,12 +542,10 @@ function createBubbleGroup(group) {
       var y1 = svgAttrs['y1'];
       var x2 = svgAttrs['x2'];
       var y2 = svgAttrs['y2'];
-      //bubbleGroup.appendChild(createShiftBubble(x1, y1));     // this is the line origin, perverted to SHIFT
-      //bubbleGroup.appendChild(createSizeBubble(x2, y2));    // this is the line terminal (as resize point)
       bubbleGroup.appendChild(createPointBubble(x1, y1, 'x1-y1'));     // this is the 1st line coordinate
       bubbleGroup.appendChild(createPointBubble(x2, y2, 'x2-y2'));    // this is the 2nd (terminal) line point
       return bubbleGroup;
-    case 'polygon':
+    case 'polygon':           // polygon needs additional point insertion bubble after last point pair
       var thesePoints = element.attributes['points'].value;
       var splitPoints = thesePoints.split(' ');
       for (var k = 0; k < splitPoints.length - 1; k++) {
@@ -566,7 +571,7 @@ function createBubbleGroup(group) {
           nextX = parseFloat(nextPoint[0]);
           nextY = parseFloat(nextPoint[1]);
           newBubbleGroup.appendChild(createNewPointBubble(0.5 * (thisX + nextX), 0.5 * (thisY + nextY), k.toString() + '.5'));
-          // ///////// watch for hierarchiciacl misplacement
+          // ///////// watch for hierarchicical misplacement
           thisX = nextX;
           thisY = nextY;
         }
@@ -595,7 +600,7 @@ function createPointBubble(cx, cy, id) {
   var bubble = createBubbleStub(cx, cy);
   bubble.setAttributeNS(null, 'fill-opacity', '0.6');         // SIZE/POINT bubble is slightly less opaque
   bubble.setAttributeNS(null, 'onmousedown', "setPointElement(this);");
-  bubble.setAttributeNS(null, 'onmouseup', "setEditElement(thisGroup);");   // questionable reference
+  bubble.setAttributeNS(null, 'onmouseup', "exitEditPoint(thisGroup);");   // questionable reference
   bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
                                             // will take the form: 'x1-y1', 'x2-y2' for <line>,
                                             // will take the form: '36', '23.5' for <poly-...>
@@ -603,11 +608,12 @@ function createPointBubble(cx, cy, id) {
 }
 function createNewPointBubble(cx, cy, id) {
   var bubble = createBubbleStub(cx, cy);
-  bubble.setAttributeNS(null, 'stroke', '#666666');     // not that great, use below
+  bubble.setAttributeNS(null, 'r', 12);      // radius override for insertion point
+  bubble.setAttributeNS(null, 'stroke', '#555555');     // not that great, use below
   bubble.setAttributeNS(null, 'stroke-opacity', '0.6');     // not that great, use below
   bubble.setAttributeNS(null, 'fill-opacity', '0.4');         // SIZE/POINT bubble is even less opaque
   bubble.setAttributeNS(null, 'onmousedown', "setNewPointElement(this);");
-  bubble.setAttributeNS(null, 'onmouseup', 'clearEditElement(thisGroup); setEditElement(thisGroup);');
+  bubble.setAttributeNS(null, 'onmouseup', 'setEditElement(thisGroup);');
   bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
                                             // will take the form: 'x1-y1', 'x2-y2' for <line>,
                                             // will take the form: '36', '23.5' for <poly-...>
@@ -626,7 +632,7 @@ function createBubbleStub(offsetX, offsetY) {   // create same-size bubble
   //thisCircle = group.children[0];     // this var is used to dynamically create the element
   bubble.setAttributeNS(null, 'cx', offsetX);      // start x
   bubble.setAttributeNS(null, 'cy', offsetY);      // start y
-  bubble.setAttributeNS(null, 'r', 20);      // width x
+  bubble.setAttributeNS(null, 'r', 15);      // radius
   bubble.setAttributeNS(null, 'fill', '#FFFFFF');
   bubble.setAttributeNS(null, 'stroke', '#222222');   // set scaffold attrs
   bubble.setAttributeNS(null, 'stroke-width', '3');
@@ -845,6 +851,8 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       var thesePoints = thisElement.attributes['points'].value;
       var splitPoints = thesePoints.split(' ');
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
+        // currently, no distinction is made between existing vertex and new point
+        // however, this may change in the future JRF 23NOV15
         thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
         thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
         if (isNumeric(thisBubble.id)) {       // presume integer for now
@@ -857,7 +865,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         }
       }
       else {
-        thesePoints = '';                               // clear thecollector
+        thesePoints = '';                               // clear the collector
         for (k = 0; k < splitPoints.length - 2; k++) {  // reconstruct except for the last point
           thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
         }
@@ -1104,7 +1112,8 @@ SVGDraw.prototype.onSvgMouseUp = function (event) {
     }
     thisSvg = [];      // and clear the collector
     showMouseStatus('onSvgMouseUp1', event);
-    return event.preventDefault() && false;
+    //return event.preventDefault() && false;
+    return false;
   };
   //return event.preventDefault() && false;
 };
@@ -1116,8 +1125,8 @@ SVGDraw.prototype.doubleClickHandler = function () {
       svgInProgress = false;
       switch (cursorMode) {
         case 'polygon':
-          checkLeftoverElement();     // ///////// temp patch
-          checkLeftoverElement();
+          checkLeftoverElement();     // ///////// temp patch, since double-click induces extra
+          checkLeftoverElement();     // ///////// identical points.  TODO: look for this condition and truncate points:
           thisGroup.innerHTML = thisGroup.innerHTML.replace('polyline', 'polygon').replace('polyline', 'polygon')
           setElementMouseOverOut(thisGroup);
           break;
