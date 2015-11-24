@@ -65,7 +65,8 @@
         var lastMouseY;
 
         var logMouse = false;
-        var logStatus = false;
+        var logStatus = true;
+        var logIndex = 0;
         //canvas_image.src = undefined;
         //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
@@ -140,9 +141,13 @@
         }
 
         function setCursorMode(mode) {      // detect current mode not completed prior to mode switch
-            if ((cursorMode != mode) && (svgInProgress == cursorMode)) {
-                svgInProgress = false;
-                checkLeftoverElement();     // look for dangling element, most likely off of svg image element ( - Y coord)
+            if (true/*(cursorMode != mode) && (svgInProgress == cursorMode)*/) {        // iff switched mode while in progress
+                svgInProgress = false;                                      // //////// does this ^ matter?
+                if (thisElement != null) {
+                    showStatus('setCursorMode0', thisGroup);
+                    checkLeftoverElement();     // look for dangling element, most likely off of svg image element ( - Y coord)
+                    clearEditElement(thisGroup);        //  TODO: make sure all cases complete
+                }
             }
             if (mode.toUpperCase() == 'MOVE') {
                 cursorMode = mode;
@@ -150,7 +155,9 @@
             else {
                 cursorMode = mode.toLowerCase();
             }
+            savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
             indicateMode(mode);
+            showStatus('setCursorMode1', thisGroup);
         }
 
         function setTextMode() {
@@ -158,26 +165,27 @@
             document.getElementById("text4svg").removeAttribute('disabled');
         }
 
-        function checkLeftoverElement() {       // this function is only called when svgInProgress is false
+        function checkLeftoverElement() {       // this function is only called when svgInProgress is false (?)
             switch (cursorMode) {
-                case 'polyline':            // this seems to ONLY delete the last point
-                    var thesePoints = thisElement.attributes['points'].value;
-                    var splitPoints = thesePoints.split(' ');
-                    thesePoints = '';
-                    for (k = 0; k < splitPoints.length - 2; k++) {
-                        thesePoints += splitPoints[k] + ' ';
-                    }
-                    thisElement.attributes['points'].value = thesePoints;
-                    break;
+                case 'polyline':
                 case 'polygon':
-                    var thesePoints = thisElement.attributes['points'].value;
-                    var splitPoints = thesePoints.split(' ');
-                    thesePoints = '';
-                    for (k = 0; k < splitPoints.length - 2; k++) {
-                        thesePoints += splitPoints[k] + ' ';
-                    }
-                    thisElement.attributes['points'].value = thesePoints;
+            // this seems to ONLY delete the last point, so disabled pending better treatment
+//                    var thesePoints = thisElement.attributes['points'].value.trim();
+//                    var splitPoints = thesePoints.split(' ');
+//                    thesePoints = '';
+//                    for (k = 0; k < splitPoints.length - 2; k++) {
+//                        thesePoints += splitPoints[k] + ' ';
+//                    }
+//                    thisElement.attributes['points'].value = thesePoints;
                     break;
+//                    var thesePoints = thisElement.attributes['points'].value;
+//                    var splitPoints = thesePoints.split(' ');
+//                    thesePoints = '';
+//                    for (k = 0; k < splitPoints.length - 2; k++) {
+//                        thesePoints += splitPoints[k] + ' ';
+//                    }
+//                    thisElement.attributes['points'].value = thesePoints;
+//                    break;
                 case 'circle':
                     if (thisElement == null) return;
                     if (((thisElement.attributes['cy'].value - thisElement.attributes['r'].value) < 0)     // off canvas

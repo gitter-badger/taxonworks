@@ -100,7 +100,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         self.updateMousePosition(event);
         //lastMouseX = this.lastMousePoint.x;
         //lastMouseY = this.lastMousePoint.y;
-        var thesePoints = thisElement.attributes['points'].value;
+        var thesePoints = thisElement.attributes['points'].value;   // to trim or not to trim?  if so, multiple implications here
         var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
           + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
         thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
@@ -291,7 +291,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         //showMouseStatus('onSvgMouseDown2', event);
       }
     }
-    savedCursorMode = cursorMode;   //    ///////////   make sure this is right
+    //savedCursorMode = cursorMode;   //    ///////////   make sure this is right
     return event.preventDefault() && false;
   }
 };
@@ -323,11 +323,13 @@ function setEditElement(group) {    // add bubble elements to the group containi
   if (checkElementConflict(group)) {
     return;
   }
-  savedCursorMode = cursorMode;   // don't wait for actual action on bubble
   if (thisGroup == null) {    // no conflicts detected, so if thisGroup is null,
     thisGroup = group;        // there is probably no creation activity
   }
-  indicateMode(group.firstChild.tagName);
+  //if (group.firstChild.tagName != cursorMode) {    // start editing an element not in the current mode
+    savedCursorMode = cursorMode;   // don't wait for actual action on bubble
+    indicateMode(group.firstChild.tagName);
+  //}
   showStatus('setEditElement0', group);
   if (group.childNodes.length > 1) {   // do I have bubbles?
     group.lastChild.remove();         // this is the group of bubbles
@@ -344,10 +346,13 @@ function clearEditElement(group) {     // given containing group
   if (checkElementConflict(group)) {
     return;
   }
+  //if (!svgInProgress) {
+  //  return;
+  //}
   cursorMode = savedCursorMode;   // on exit of edit mode, restore
   showStatus('clearEditElement0', group);
   if (group.childNodes.length > 1) {   // do I have bubbles? i.e., is there more than just the golden chile?
-                                       //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
+    //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
     group.lastChild.remove();         // this is the group of bubbles if not just the SHIFT bubble
     thisBubble = null;
     //}
@@ -359,7 +364,9 @@ function clearEditElement(group) {     // given containing group
   showStatus('clearEditElement1', group);
   //group./*firstChild.*/attributes['onmouseenter'].value = "this.firstChild.attributes['stroke-width'].value = '" + 1.5 * strokeWidth + "'; setEditElement(this.firstChild);"    // replant the listener in the real element
   setElementMouseOverOut(group);
+  thisElement = null;
   thisGroup = null;
+  savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
 }
 
 function checkElementConflict(group) {  // only invoked by mouseover listener - verify
@@ -381,14 +388,20 @@ function checkElementConflict(group) {  // only invoked by mouseover listener - 
   }
 }
 
-function exitEditPoint(group) {    // services mouseUp from SIZE bubble
+function exitEditPoint(group) {    // services mouseUp from SIZE/point bubble
   // reset all bubbles for this element
   //clearEditElement(group);
   //setEditElement(group);
   // above introduce glitch where repositioned point is dissociated and ends up at last point
   // so just recalculate the points instead
-  group.lastChild.remove();                        // eliminates all bubbles
-  group.appendChild(createBubbleGroup(group));    // reconstitutes new bubbles
+  showStatus('exitEditPoint0', group);
+  if (group.childElementCount > 1) {
+    group.lastChild.remove();                        // eliminates all bubbles
+    group.appendChild(createBubbleGroup(group));    // reconstitutes new bubbles
+  }
+  thisBubble = null;
+  showStatus('exitEditPoint1', group);
+  setElementMouseOverOut(group);
 }
 
 function setMoveElement(bubble) {    // end of SHIFT leaves single bubble; should be removed on mouseleave of group
@@ -398,7 +411,6 @@ function setMoveElement(bubble) {    // end of SHIFT leaves single bubble; shoul
   thisElement = group.firstChild;
   showStatus('setMoveElement0', group);
   thisBubble = group.lastChild.firstChild;      // this is the center/first bubble
-  //cursorMode = 'bubble';      // hard code this because it is a bubble
   cursorMode = thisElement.tagName;
   thisGroup.attributes['onmouseenter'].value = ''; // disable mouseover on real circle's containing group
   var endK = group.lastChild.childElementCount;        // total bubbles, leave the first one
@@ -410,14 +422,16 @@ function setMoveElement(bubble) {    // end of SHIFT leaves single bubble; shoul
   group.attributes['onmouseenter'].value = '';    // turn off enter!
   //group.attributes['onmouseleave'].value = '';    // turn off leave!
   //group.setAttribute('onmouseout', 'clearEditElement(this);');      // as of right NOW
-  showStatus('setMoveElement2', group);
+  savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
   svgInProgress = 'SHIFT';
+  showStatus('setMoveElement2', group);
 }
 
 function setSizeElement(bubble) {       // this sets up the single point functions
   //thisParent = element;                           // group containing real element and the bubbles group
   //thisElement = group.firstChild;    // this is the real element
   //cursorMode = group.firstChild.tagName;  // extract its tag
+  thisBubble = bubble;
   var group = bubble.parentNode.parentNode;          // set group for mousemove
   thisGroup = group;
   thisElement = group.firstChild;    // this is the real element
@@ -428,6 +442,7 @@ function setSizeElement(bubble) {       // this sets up the single point functio
     group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag radius
     showStatus('setSizeElement1', group);
   }
+  savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
   svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
   // look for mousedown in handler for circle to transition to rubber band mode
 }                                       // use mouseup or mousedown to terminate radius drag
@@ -443,9 +458,9 @@ function setPointElement(bubble) {    // this performs the inline substitution o
   if (parseInt(bubble.id) == bubble.parentNode.childElementCount - 1) {   // last point/bubble?
     thisBubble = bubble;
   }
+  showStatus('setPointElement0', group);
   bubble.parentNode.lastChild.remove(); // /////////// this is the fight place: remove insert point bubbles
   cursorMode = thisElement.tagName;
-  showStatus('setPointElement0', group);
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
   group.attributes['onmouseleave'].value = ''; // disable mouseleave on real element's containing group
   bubble.attributes['onmousedown'].value = '';  // cascade to onSvgMouseDown
@@ -454,13 +469,15 @@ function setPointElement(bubble) {    // this performs the inline substitution o
   //  group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag point
   //  showStatus('setSizeElement1', group);
   //}
-  svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
+  savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
+  svgInProgress = 'POINT';                     // so we have an active element, and it has been marked in progress
+  showStatus('setPointElement1', group);
   // look for mousedown in handler for circle to transition to rubber band mode
 }                                       // use mouseup or mousedown to terminate radius drag
 
 function setNewPointElement(bubble) {     // this inserts the new point into the <poly.. element
   if (thisBubble == bubble) {   // this condition implies we mouseDowned on the point we are INSERTING
-                      // /////////  VERY PRELIM
+    // /////////  VERY PRELIM
   }
   thisBubble = bubble;
   var group = bubble.parentNode.parentNode.parentNode;          // set group for mousemove handler
@@ -469,8 +486,8 @@ function setNewPointElement(bubble) {     // this inserts the new point into the
   if (parseInt(bubble.id) == bubble.parentNode.childElementCount - 1) {
     thisBubble = bubble;
   }
-  cursorMode = thisElement.tagName;
   showStatus('setNewPointElement0', group);
+  cursorMode = thisElement.tagName;
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
   group.attributes['onmouseleave'].value = ''; // disable mouseleaver on real element's containing group
   bubble.attributes['onmousedown'].value = '';  // cascade to onSvgMouseDown
@@ -479,16 +496,18 @@ function setNewPointElement(bubble) {     // this inserts the new point into the
   //group.lastChild.lastChild.removeChild();      // ///////// vaporize the intermediate newPointBubbles' group
 // need mouseup on this bubble to reshfuffle bubbles -- now being handled by removing x.5 bubbles
 //  bubble.attributes['onmouseup'].value = 'setEditElement(this.parentNode.parentNode);';
-  svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
+  savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
+  svgInProgress = 'NEW';                     // so we have an active element, and it has been marked in progress
   // look for mousedown in handler for circle to transition to rubber band mode
+  showStatus('setNewPointElement1', group);
 }                                       // use mouseup or mousedown to terminate radius drag
 
 function insertNewPoint(element, bubble) {     //this bubble's ID truncated is the point to insert AFTER
-  var splitPoints = element.attributes['points'].value.split(' ');
+  var splitPoints = element.attributes['points'].value.trim().split(' ');
   var thesePoints = '';
   var insertionPoint = parseInt(bubble.id);
   var thisPoint = bubble.attributes['cx'].value + ',' + bubble.attributes['cy'].value;
-  for (var k = 0; k < splitPoints.length -1; k++)  {
+  for (var k = 0; k < splitPoints.length; k++) {
     thesePoints += splitPoints[k] + ' ';
     if (k == insertionPoint) {
       thesePoints += thisPoint + ' ';
@@ -499,6 +518,11 @@ function insertNewPoint(element, bubble) {     //this bubble's ID truncated is t
 
 function createBubbleGroup(group) {
   var svgAttrs = {};
+  var thisX;
+  var thisY;
+  var splitPoints;
+  var nextX;
+  var nextY;
   var element = group.firstChild;
   svgAttrs = getModel(element.tagName);
   for (var key in svgAttrs) {     // collect basic (numeric) attributes for positioning and extent
@@ -545,28 +569,29 @@ function createBubbleGroup(group) {
       bubbleGroup.appendChild(createPointBubble(x1, y1, 'x1-y1'));     // this is the 1st line coordinate
       bubbleGroup.appendChild(createPointBubble(x2, y2, 'x2-y2'));    // this is the 2nd (terminal) line point
       return bubbleGroup;
-    case 'polygon':           // polygon needs additional point insertion bubble after last point pair
-      var thesePoints = element.attributes['points'].value;
-      var splitPoints = thesePoints.split(' ');
-      for (var k = 0; k < splitPoints.length - 1; k++) {
-        var thisPoint = splitPoints[k].split(',');
-        bubbleGroup.appendChild(createPointBubble(parseFloat(thisPoint[0]), parseFloat(thisPoint[1]), k.toString()));
-      }
-      return bubbleGroup;
+    //case 'polygon':           // polygon needs additional point insertion bubble after last point pair
+    //  var thesePoints = element.attributes['points'].value;
+    //  var splitPoints = thesePoints.split(' ');
+    //  for (var k = 0; k < splitPoints.length - 1; k++) {
+    //    var thisPoint = splitPoints[k].split(',');
+    //    bubbleGroup.appendChild(createPointBubble(parseFloat(thisPoint[0]), parseFloat(thisPoint[1]), k.toString()));
+    //  }
+    //  return bubbleGroup;
+    case 'polygon':
     case 'polyline':      // create a parallel structure to the point attr, using its coords
-      var thesePoints = element.attributes['points'].value;
-      var splitPoints = thesePoints.split(' ');
-      var thisPoint  = splitPoints[0].split(',');   // prime the pump for iteration
-      var thisX = parseFloat(thisPoint[0]);
-      var thisY = parseFloat(thisPoint[1]);
-      var nextPoint;                          // these are used to bound
-      var nextX;                             // and calculate the intermediate
-      var nextY;                            // insert new point bubbles in separate parallel group
+      var thesePoints = element.attributes['points'].value.trim();      // trim to eliminate extraneous empty string
+      splitPoints = thesePoints.split(' ');
+      var thisPoint = splitPoints[0].split(',');   // prime the pump for iteration
+      thisX = parseFloat(thisPoint[0]);
+      thisY = parseFloat(thisPoint[1]);
+      var nextPoint;                      // these are used to bound
+      nextX;                             // and calculate the intermediate
+      nextY;                            // insert new point bubbles in separate parallel group
       var newBubbleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      for (var k = 0; k < splitPoints.length - 1; k++) {    // append this point and an intermediary point
+      for (var k = 0; k < splitPoints.length; k++) {    // append this point and an intermediary point
         //thisPoint  = splitPoints[k].split(',');
         bubbleGroup.appendChild(createPointBubble(thisX, thisY, k.toString()));   // add the vertex point
-        if (k < splitPoints.length - 2) {
+        if (k < splitPoints.length - 1) {     // since we are looking ahead one point
           nextPoint = splitPoints[k + 1].split(',');     // only add intermediate point if we are not at the last point
           nextX = parseFloat(nextPoint[0]);
           nextY = parseFloat(nextPoint[1]);
@@ -576,7 +601,14 @@ function createBubbleGroup(group) {
           thisY = nextY;
         }
       }
-      bubbleGroup.appendChild(newBubbleGroup);   // add the new point insertion bebbles
+      if (element.tagName == 'polygon') {       // additional step for polygon, since there is an implicit closure
+        thisPoint = splitPoints[0].split(',');   // get the first point again
+        thisX = parseFloat(thisPoint[0]);
+        thisY = parseFloat(thisPoint[1]);
+        var thisID = (splitPoints.length - 1).toString() + '.5';
+        newBubbleGroup.appendChild(createNewPointBubble(0.5 * (thisX + nextX), 0.5 * (thisY + nextY), thisID));
+      }
+      bubbleGroup.appendChild(newBubbleGroup);   // add the new point insertion bubbles
       return bubbleGroup;
   }
 }
@@ -596,27 +628,27 @@ function createSizeBubble(cx, cy) {
   bubble.setAttributeNS(null, 'onmousedown', "setSizeElement(this);");
   return bubble;
 }
-function createPointBubble(cx, cy, id) {
+function createPointBubble(cx, cy, id) {    // used for <poly...> vertices
   var bubble = createBubbleStub(cx, cy);
   bubble.setAttributeNS(null, 'fill-opacity', '0.6');         // SIZE/POINT bubble is slightly less opaque
   bubble.setAttributeNS(null, 'onmousedown', "setPointElement(this);");
   bubble.setAttributeNS(null, 'onmouseup', "exitEditPoint(thisGroup);");   // questionable reference
   bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
                                             // will take the form: 'x1-y1', 'x2-y2' for <line>,
-                                            // will take the form: '36', '23.5' for <poly-...>
+                                            // will take the form: '0', '13' for <poly-...>
   return bubble;
 }
-function createNewPointBubble(cx, cy, id) {
+function createNewPointBubble(cx, cy, id) {    // used for <poly...> inter-vertex insert new point
   var bubble = createBubbleStub(cx, cy);
   bubble.setAttributeNS(null, 'r', 12);      // radius override for insertion point
   bubble.setAttributeNS(null, 'stroke', '#555555');     // not that great, use below
   bubble.setAttributeNS(null, 'stroke-opacity', '0.6');     // not that great, use below
   bubble.setAttributeNS(null, 'fill-opacity', '0.4');         // SIZE/POINT bubble is even less opaque
   bubble.setAttributeNS(null, 'onmousedown', "setNewPointElement(this);");
-  bubble.setAttributeNS(null, 'onmouseup', 'setEditElement(thisGroup);');
+  bubble.setAttributeNS(null, 'onmouseup', 'exitEditPoint(thisGroup);');
   bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
                                             // will take the form: 'x1-y1', 'x2-y2' for <line>,
-                                            // will take the form: '36', '23.5' for <poly-...>
+                                            // will take the form: '0.5', '23.5' for <poly-...>
   return bubble;
 }
 
@@ -712,21 +744,25 @@ function showStatus(where, element) {
       var span = document.getElementById('mouseStatus');
       span.innerHTML = span.innerHTML.substr(0, 24000);   // clip periodically
     }
-    $("#coords").html('xC: ' + xC.toFixed(1) + ' lastX: ' + lastMouseX.toFixed(3)
-      + ' yC: ' + yC.toFixed(1) + ' lastY: ' + lastMouseY.toFixed(3));
+    logIndex += 1;
+    //$("#coords").html('xC: ' + xC.toFixed(1) + ' lastX: ' + lastMouseX.toFixed(3)
+    //  + ' yC: ' + yC.toFixed(1) + ' lastY: ' + lastMouseY.toFixed(3));
     //var nowStatus = "<br />"+ where + "; " + (element.innerHTML.replace(/['"]+/g, '')).toString();
     var thisGroupTagNameAndID = ' thisGroup: NULL';
     if (thisGroup != null) {
-      thisGroupTagNameAndID = ' thisGroup:' + thisGroup.tagName + '#' + thisGroup.id;
+      thisGroupTagNameAndID = ' thisGroup:' + thisGroup.tagName + '#' + thisGroup.id
+       + 'firstChild:' + thisGroup.firstChild.tagName ;
     }
     var thisElementTagName = ' thisElement: NULL';
     if (thisElement != null) {
       thisElementTagName = ' thisElement:' + thisElement.tagName;
     }
-    var nowStatus = "<br /><br />" + where + "; " + element.outerHTML.replace(/[<]+/g, '&lt;').replace(/[>]+/g, '&gt;') + '<br>'
-      + 'thisElement: ' + thisElementTagName + thisGroupTagNameAndID + '<br>'
-      + (element.innerHTML.replace(/[<]+/g, '&lt;').replace(/[>]+/g, '&gt;')).toString();
-    nowStatus = nowStatus;
+    var thisBubbleID = ' thisBubble: NULL';
+    if (thisBubble != null) thisBubbleID = ' thisBubbleID:' + thisBubble.id;
+    var nowStatus = "<br>" + logIndex + ' ' + where + "; " /*+ element.outerHTML.replace(/[<]+/g, '&lt;').replace(/[>]+/g, '&gt;') + '<br>'*/
+      + thisGroupTagNameAndID + thisElementTagName /*+ '<br>'*/
+     /* + (element.innerHTML.replace(/[<]+/g, '&lt;').replace(/[>]+/g, '&gt;')).toString()*/;
+    nowStatus = nowStatus + 'cursorMode:' + cursorMode + ' saved:' + savedCursorMode + ' svgIP:' + svgInProgress.toString() + thisBubbleID;
     //$('#mouseStatus').html('<br />' + '' + ': ' + where + ' Mode: ' + cursorMode + '; svgInProgress: ' + svgInProgress.toString()
     //  + '. Element: ' + element.innerHTML.toString() + element.attributes['id'].value
     //  + '.mouseover ' + element.attributes['onmouseenter'].value + '. which: ' + element.attributes['onmouseleave'].value + $('#mouseStatus').html());
@@ -817,7 +853,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       this.updateMousePosition(event);
       var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
         + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString();
-      var thesePoints = thisElement.attributes['points'].value;
+      var thesePoints = thisElement.attributes['points'].value.trim();
       var splitPoints = thesePoints.split(' ');
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
         thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
@@ -825,7 +861,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         if (isNumeric(thisBubble.id)) {       // presume integer for now
           splitPoints[parseInt(thisBubble.id)] = thisPoint;
           thesePoints = '';
-          for (var k = 0; k < splitPoints.length - 1; k++) {
+          for (var k = 0; k < splitPoints.length; k++) {
             thesePoints += splitPoints[k] + ' ';
           }
           thisElement.attributes['points'].value = thesePoints
@@ -833,7 +869,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       }
       else {
         thesePoints = '';                               // clear thecollector
-        for (k = 0; k < splitPoints.length - 2; k++) {  // reconstruct except for the last point
+        for (k = 0; k < splitPoints.length - 1; k++) {  // reconstruct except for the last point
           thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
         }
         thisPoint += ' ';
@@ -848,17 +884,17 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       this.updateMousePosition(event);
       var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
         + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString();
-      var thesePoints = thisElement.attributes['points'].value;
+      var thesePoints = thisElement.attributes['points'].value.trim();
       var splitPoints = thesePoints.split(' ');
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
-        // currently, no distinction is made between existing vertex and new point
-        // however, this may change in the future JRF 23NOV15
+                                      // currently, no distinction is made between existing vertex and new point
+                                      // however, this may change in the future JRF 23NOV15
         thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
         thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
         if (isNumeric(thisBubble.id)) {       // presume integer for now
           splitPoints[parseInt(thisBubble.id)] = thisPoint;   // replace this point
           thesePoints = '';
-          for (var k = 0; k < splitPoints.length - 1; k++) {
+          for (var k = 0; k < splitPoints.length; k++) {
             thesePoints += splitPoints[k] + ' ';
           }
           thisElement.attributes['points'].value = thesePoints
@@ -866,7 +902,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       }
       else {
         thesePoints = '';                               // clear the collector
-        for (k = 0; k < splitPoints.length - 2; k++) {  // reconstruct except for the last point
+        for (k = 0; k < splitPoints.length - 1; k++) {  // reconstruct except for the last point
           thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
         }
         thisPoint += ' ';
@@ -1125,20 +1161,32 @@ SVGDraw.prototype.doubleClickHandler = function () {
       svgInProgress = false;
       switch (cursorMode) {
         case 'polygon':
-          checkLeftoverElement();     // ///////// temp patch, since double-click induces extra
-          checkLeftoverElement();     // ///////// identical points.  TODO: look for this condition and truncate points:
+          deleteDuplicatePoints(thisElement);
           thisGroup.innerHTML = thisGroup.innerHTML.replace('polyline', 'polygon').replace('polyline', 'polygon')
           setElementMouseOverOut(thisGroup);
           break;
         case 'polyline':
-          checkLeftoverElement();     // ///////// temp patch
-          checkLeftoverElement();
+          deleteDuplicatePoints(thisElement);
           setElementMouseOverOut(thisGroup);
           break;
       }
+      thisElement = null;
+      thisGroup = null;
       unbindMouseHandlers(self);
     }
   }
+};
+
+function deleteDuplicatePoints(element) {
+  var thesePoints = element.attributes['points'].value.trim();
+  var splitPoints = thesePoints.split(' ');
+  thesePoints = splitPoints[0] + ' ';
+  for (k = 1; k < splitPoints.length; k++) {
+    if (splitPoints[k] != splitPoints[k - 1]) {   // only keep this point
+      thesePoints += splitPoints[k] + ' ';        // if it is "new"
+    }
+  }
+  thisElement.attributes['points'].value = thesePoints;
 }
 
 SVGDraw.prototype.clear = function () {
