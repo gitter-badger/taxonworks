@@ -35,21 +35,21 @@
         var textHeight = 75;
         var textFont = 'Verdana';
 
-        var thisPath;
+        var waitElement = false;
 
         var thisDraw;
 
-//        var thisRectangle;
+        //        var thisRectangle;
 
-//        var thisLine;
+        //        var thisLine;
 
-//        var thisPolyline;
+        //        var thisPolyline;
 
-//        var thisPolygon;
+        //        var thisPolygon;
 
-//        var thisCircle;
+        //        var thisCircle;
 
-//        var thisEllipse;
+        //        var thisEllipse;
 
         var thisGroup;
 
@@ -116,10 +116,10 @@
             yC = 0;
             renderImage();
         }
-//        function setDraw() {
-//            cursorMode = "PATH";
-//            indicateMode();
-//        }
+        //        function setDraw() {
+        //            cursorMode = "PATH";
+        //            indicateMode();
+        //        }
 
         function setMove() {
             cursorMode = "MOVE";
@@ -137,7 +137,9 @@
 
         function clearGroup() {
             var xlt = document.getElementById("xlt");
-            xlt.lastChild.remove();
+            if (xlt.childElementCount > 1) {
+                xlt.lastChild.remove();
+            }
         }
 
         function setCursorMode(mode) {      // detect current mode not completed prior to mode switch
@@ -156,6 +158,7 @@
                 cursorMode = mode.toLowerCase();
             }
 //  eliminated savedCursorMode = 'MOVE';
+            waitElement = true;
             indicateMode(mode);
             showStatus('setCursorMode1', thisGroup);
         }
@@ -169,7 +172,7 @@
             switch (cursorMode) {
                 case 'polyline':
                 case 'polygon':
-            // this seems to ONLY delete the last point, so disabled pending better treatment
+                    // this seems to ONLY delete the last point, so disabled pending better treatment
 //                    var thesePoints = thisElement.attributes['points'].value.trim();
 //                    var splitPoints = thesePoints.split(' ');
 //                    thesePoints = '';
@@ -427,9 +430,6 @@
     <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
          style="position: inherit;">
         <g id="xlt" transform="translate(0,0)scale(0.20)">
-            <!--<image id="xltImage" x="0" y="0" width="4000" height="3000" preserveAspectRatio="none" xlink:href="frost_stage.jpg" ></image>-->
-            <!--<image id="xltImage" x="0" y="0" width="0" height="0" preserveAspectRatio="none"></image>-->
-            <circle id='cursor' cx='250' cy='180' r='20' fill='#ff0000' fill-opacity='0.5'/>
         </g>
     </svg>
     <!--<canvas id="sketch" width="800" height="600" style="opacity: 0.8">-->

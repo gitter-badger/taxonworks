@@ -68,7 +68,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
     //showMouseStatus('onSvgMouseDown0', event);
     if (svgInProgress != false && svgInProgress != cursorMode) {    // terminate in progress svg before continuing
       if (svgInProgress == 'SHIFT') {
-        return;
+        return;                       //  ///////// shold these be returning false?
       }
       else {
         svgInProgress = cursorMode;       //  ??
@@ -299,7 +299,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         //showMouseStatus('onSvgMouseDown2', event);
       }
     }
-    //savedCursorMode = cursorMode;   //    ///////////   make sure this is right
+    waitElement = false;      //    ///////////   new code to allow creation start within extant element
     return event.preventDefault() && false;
   }
 };
@@ -365,7 +365,7 @@ function clearEditElement(group) {     // given containing group
   cursorMode = savedCursorMode;   // on exit of edit mode, restore
   showStatus('clearEditElement1', group);
   if (group.childNodes.length > 1) {   // do I have bubbles? i.e., is there more than just the golden chile?
-                                       //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
+    //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
     group.lastChild.remove();         // this is the group of bubbles if not just the SHIFT bubble
     thisBubble = null;
     //}
@@ -383,7 +383,7 @@ function clearEditElement(group) {     // given containing group
 //  eliminated savedCursorMode = 'MOVE';
 }
 
-function checkElementConflict(group) {  // only invoked by mouseover listener - verify
+function checkElementConflict(group) {  // only invoked by mouseenter/leave listeners
   /* consider potential values of:
    svgInProgress, one of the svg modes, plus move, shift, and size
    cursorMode, the selected (if not always indicated) creation / editing mode
@@ -391,6 +391,9 @@ function checkElementConflict(group) {  // only invoked by mouseover listener - 
    thisGroup, nominally the group of the active element
 
    */
+  if (waitElement) {
+    return true;
+  }
   if (!svgInProgress) {
     return false;     // if no active element
   }
@@ -493,7 +496,7 @@ function setPointElement(bubble) {    // this performs the inline substitution o
 
 function setNewPointElement(bubble) {     // this inserts the new point into the <poly.. element
   if (thisBubble == bubble) {   // this condition implies we mouseDowned on the point we are INSERTING
-                                // /////////  VERY PRELIM
+    // /////////  VERY PRELIM
   }
   thisBubble = bubble;
   var group = bubble.parentNode.parentNode.parentNode;          // set group for mousemove handler
@@ -867,31 +870,31 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       if (svgInProgress == false) {
         return;
       }     // could be POINT or NEW or polygon
-        this.updateMousePosition(event);
-        var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
-          + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString();
-        var thesePoints = thisElement.attributes['points'].value.trim();
-        var splitPoints = thesePoints.split(' ');
-        if (thisBubble != null) {       // look for bubble to denote just move THIS point only
-          thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
-          thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
-          if (isNumeric(thisBubble.id)) {       // presume integer for now
-            splitPoints[parseInt(thisBubble.id)] = thisPoint;
-            thesePoints = '';
-            for (var k = 0; k < splitPoints.length; k++) {
-              thesePoints += splitPoints[k] + ' ';
-            }
-            thisElement.attributes['points'].value = thesePoints
+      this.updateMousePosition(event);
+      var thisPoint = ((lastMouseX - xC) / zoom).toFixed(2).toString()
+        + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString();
+      var thesePoints = thisElement.attributes['points'].value.trim();
+      var splitPoints = thesePoints.split(' ');
+      if (thisBubble != null) {       // look for bubble to denote just move THIS point only
+        thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
+        thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
+        if (isNumeric(thisBubble.id)) {       // presume integer for now
+          splitPoints[parseInt(thisBubble.id)] = thisPoint;
+          thesePoints = '';
+          for (var k = 0; k < splitPoints.length; k++) {
+            thesePoints += splitPoints[k] + ' ';
           }
+          thisElement.attributes['points'].value = thesePoints
         }
-        else {        // svgInProgress = 'polygon', so normal creation of element adding new point to end
-          thesePoints = '';                               // clear thecollector
-          for (k = 0; k < splitPoints.length - 1; k++) {  // reconstruct except for the last point
-            thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
-          }
-          thisPoint += ' ';
-          thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
+      }
+      else {        // svgInProgress = 'polygon', so normal creation of element adding new point to end
+        thesePoints = '';                               // clear thecollector
+        for (k = 0; k < splitPoints.length - 1; k++) {  // reconstruct except for the last point
+          thesePoints += splitPoints[k] + ' ';          // space delimiter at the end of each coordinate
         }
+        thisPoint += ' ';
+        thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
+      }
       thisElement.attributes['stroke'].value = cursorColor;
     }
     else if (cursorMode == "polyline") {
@@ -904,8 +907,8 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       var thesePoints = thisElement.attributes['points'].value.trim();
       var splitPoints = thesePoints.split(' ');
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
-        // currently, no distinction is made between existing vertex and new point
-        // however, this may change in the future JRF 23NOV15
+                                      // currently, no distinction is made between existing vertex and new point
+                                      // however, this may change in the future JRF 23NOV15
         thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
         thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
         if (isNumeric(thisBubble.id)) {       // presume integer for now
