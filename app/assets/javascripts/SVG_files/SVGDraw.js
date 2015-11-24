@@ -77,6 +77,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
     }
     if (cursorMode == 'polygon') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
+        savedCursorMode = cursorMode;     // plant this to prevent immediate post-creation clearing
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
@@ -108,6 +109,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
     }
     if (cursorMode == 'polyline') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
+        savedCursorMode = cursorMode;     // plant this to prevent immediate post-creation clearing
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         thisGroup = group;
@@ -140,6 +142,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
     }
     if (cursorMode == 'rect') {     // mouseDown  // assuming first mouseDown starts creation, second mouseDown ends
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
+        savedCursorMode = cursorMode;     // plant this to prevent immediate post-creation clearing
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
@@ -168,6 +171,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
     }
     if (cursorMode == 'line') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
+        savedCursorMode = cursorMode;     // plant this to prevent immediate post-creation clearing
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         thisGroup = group;
@@ -192,9 +196,10 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
     }
     if (cursorMode == 'circle') {     // mouseDown    // modified to use common element for handlers
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
-        if (thisGroup != null) {
+        if (thisGroup != null) {      //  ////////////// ???
           clearEditElement(thisGroup);    // this group is the one with bubbles, to be obviated
         }
+        savedCursorMode = cursorMode;     // plant this to prevent immediate post-creation clearing
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
@@ -220,6 +225,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
     }
     if (cursorMode == 'ellipse') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
+        savedCursorMode = cursorMode;     // plant this to prevent immediate post-creation clearing
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         thisGroup = group;
@@ -244,6 +250,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
     }
     if (cursorMode == 'draw') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
+        savedCursorMode = cursorMode;     // plant this to prevent immediate post-creation clearing
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
         var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
@@ -267,6 +274,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
     }
     if (cursorMode == "text") {     // mouseDown
       thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
+      savedCursorMode = cursorMode;     // plant this to prevent immediate post-creation clearing
       var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       var newGroupID = 'g' + (document.getElementById("xlt").childElementCount + 1).toString();
       group.setAttributeNS(null, 'id', newGroupID);
@@ -348,8 +356,8 @@ function setEditElement(group) {    // add bubble elements to the group containi
 
 function clearEditElement(group) {     // given containing group
   if (checkElementConflict(group)) {
-    return;
     showStatus('clearEditElement0', group);
+    return;
   }
   //if (!svgInProgress) {
   //  return;
@@ -372,7 +380,7 @@ function clearEditElement(group) {     // given containing group
   svgInProgress = false;
   thisElement = null;
   thisGroup = null;
-  savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
+//  eliminated savedCursorMode = 'MOVE';
 }
 
 function checkElementConflict(group) {  // only invoked by mouseover listener - verify
@@ -406,6 +414,7 @@ function exitEditPoint(group) {    // services mouseUp from SIZE/point bubble
     //group.appendChild(createBubbleGroup(group));    // reconstitutes new bubbles
   }
   thisBubble = null;
+  cursorMode = savedCursorMode;   //  //////////////
   showStatus('exitEditPoint1', group);
   setElementMouseOverOut(group);
 }
@@ -428,7 +437,7 @@ function setMoveElement(bubble) {    // end of SHIFT leaves single bubble; shoul
   group.attributes['onmouseenter'].value = '';    // turn off enter!
   //group.attributes['onmouseleave'].value = '';    // turn off leave!
   //group.setAttribute('onmouseout', 'clearEditElement(this);');      // as of right NOW
-  savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
+//  eliminated savedCursorMode = 'MOVE';
   svgInProgress = 'SHIFT';
   showStatus('setMoveElement2', group);
 }
@@ -449,7 +458,7 @@ function setSizeElement(bubble) {       // this sets up the single point functio
     group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag radius
     showStatus('setSizeElement1', group);
   }
-  savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
+//  eliminated savedCursorMode = 'MOVE';
   svgInProgress = 'SIZE';                     // so we have an active element, and it has been marked in progress
   // look for mousedown in handler for circle to transition to rubber band mode
 }                                       // use mouseup or mousedown to terminate radius drag
@@ -476,7 +485,7 @@ function setPointElement(bubble) {    // this performs the inline substitution o
   //  group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag point
   //  showStatus('setSizeElement1', group);
   //}
-  savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
+//  eliminated savedCursorMode = 'MOVE';
   svgInProgress = 'POINT';                     // so we have an active element, and it has been marked in progress
   showStatus('setPointElement1', group);
   // look for mousedown in handler for circle to transition to rubber band mode
@@ -503,7 +512,7 @@ function setNewPointElement(bubble) {     // this inserts the new point into the
   //group.lastChild.lastChild.removeChild();      // ///////// vaporize the intermediate newPointBubbles' group
 // need mouseup on this bubble to reshfuffle bubbles -- now being handled by removing x.5 bubbles
 //  bubble.attributes['onmouseup'].value = 'setEditElement(this.parentNode.parentNode);';
-  savedCursorMode = 'MOVE';   //  ////////////// SAFE EXIT DUE TO cursorMode interlock issues
+//  eliminated savedCursorMode = 'MOVE';
   svgInProgress = 'NEW';                     // so we have an active element, and it has been marked in progress
   // look for mousedown in handler for circle to transition to rubber band mode
   showStatus('setNewPointElement1', group);
@@ -656,7 +665,6 @@ function createNewPointBubble(cx, cy, id) {    // used for <poly...> inter-verte
   bubble.setAttributeNS(null, 'onmousedown', "setNewPointElement(this);");
   bubble.setAttributeNS(null, 'onmouseup', 'exitEditPoint(thisGroup);');
   bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
-                                            // will take the form: 'x1-y1', 'x2-y2' for <line>,
                                             // will take the form: '0.5', '23.5' for <poly-...>
   return bubble;
 }
@@ -1104,6 +1112,7 @@ SVGDraw.prototype.onSvgMouseUp = function (event) {
       svgInProgress = false;
       setElementMouseOverOut(thisGroup);
       unbindMouseHandlers(self);
+      thisBubble = null;
       thisElement = null;
       thisGroup = null;
     }
@@ -1111,6 +1120,7 @@ SVGDraw.prototype.onSvgMouseUp = function (event) {
       svgInProgress = false;
       setElementMouseOverOut(thisGroup);
       unbindMouseHandlers(self);
+      thisBubble = null;
       thisElement = null;
       thisGroup = null;
     }
@@ -1122,6 +1132,7 @@ SVGDraw.prototype.onSvgMouseUp = function (event) {
         svgInProgress = false;
         setElementMouseOverOut(thisGroup);
         unbindMouseHandlers(self);
+        thisBubble = null;
         thisElement = null;
         thisGroup = null;
       }
@@ -1134,23 +1145,26 @@ SVGDraw.prototype.onSvgMouseUp = function (event) {
         svgInProgress = false;
         setElementMouseOverOut(thisGroup);
         unbindMouseHandlers(self);
+        thisBubble = null;
         thisElement = null;
         thisGroup = null;
       }
     }
     else if (cursorMode == 'circle') {
       showStatus('clearEditElement0', thisGroup);
-      checkLeftoverElement();
+      //checkLeftoverElement();
       svgInProgress = false;
       setElementMouseOverOut(thisGroup);
+      thisBubble = null;
       thisElement = null;
       thisGroup = null;
     }
     else if (cursorMode == 'ellipse') {
       //thisCircle = thisElement;   // patch/hack to have routine below happy
-      checkLeftoverElement();
+      //checkLeftoverElement();
       svgInProgress = false;
       setElementMouseOverOut(thisGroup);
+      thisBubble = null;
       thisElement = null;
       thisGroup = null;
     }
