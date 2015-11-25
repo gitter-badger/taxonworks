@@ -166,6 +166,7 @@
         function setTextMode() {
             setCursorMode('text');
             document.getElementById("text4svg").removeAttribute('disabled');
+            document.getElementById("text4svg").focus();
         }
 
         function checkLeftoverElement() {       // this function is only called when svgInProgress is false (?)
@@ -412,9 +413,9 @@
                            onclick="setCursorColor('#00FF00');"/>
                     <input type="button" id="setBlack" style="background-color: #000000"
                            onclick="setCursorColor('#000000');"/>
-                    <input id="userColor" type="text" value="#AAAAAA" style="width: 6em"
+                    <input id="userColor" type="text" value="#666666" style="width: 5em"
                            onchange="/*setCursorColor(this.value);*/ setUserColor(this.value);"/>
-                    <input type="button" id="setUserColor" style="background-color: #888888"
+                    <input type="button" id="setUserColor" style="background-color: #666666"
                            onclick="setCursorColor(getUserColor());"/> Selected Color:
                     <input type="button" id="cursorColor" style="background-color: #FF0000"/>
 
