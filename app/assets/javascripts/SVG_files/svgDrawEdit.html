@@ -121,8 +121,8 @@
             indicateMode(cursorMode);
             document.getElementById("text4svg").onkeyup = updateSvgText;
         });
-
-        $(svgImage).load(function () {
+        svgImage.onload = function () {
+//        $(svgImage).load(function () {
             xC = 0;
             yC = 0;
             baseZoom = document.getElementById('svgLayer').width.baseVal.value / svgImage.width;     // in general more complicated than this
@@ -143,7 +143,7 @@
             zoom_trans(0, 0, zoom);             //////////// IMPORTANT !!!!!!!!!!!
 
             setMove();
-        });
+        };
 
         function clearCanvas() {
             svgDraw.clear();
@@ -167,7 +167,8 @@
                 coverRect = 'rectangle';        // replace anomalous rect with rectangle
             }
             document.getElementById("mode").textContent = coverRect.toUpperCase();
-            $("#zoom").html("Zoom:" + zoom.toFixed(3));
+//            $("#zoom").html("Zoom:" + zoom.toFixed(3));
+            document.getElementById('zoom').innerHTML = "Zoom:" + zoom.toFixed(3);
         }
 
         function clearGroup() {
@@ -280,7 +281,8 @@
                 zoom_trans(0, 0, newZoom);
                 zoom = newZoom;
                 bubbleRadius = (baseBubbleRadius / zoom).toString();
-                $("#zoom").html("Zoom:" + zoom.toFixed(3));
+//                $("#zoom").html("Zoom:" + zoom.toFixed(3));
+                document.getElementById('zoom').innerHTML = "Zoom:" + zoom.toFixed(3);
             }
         }
 
@@ -293,7 +295,8 @@
                 zoom_trans(0, 0, newZoom);
                 zoom = newZoom;
                 bubbleRadius = (baseBubbleRadius / zoom).toString();
-                $("#zoom").html("Zoom:" + zoom.toFixed(3));
+//                $("#zoom").html("Zoom:" + zoom.toFixed(3));
+                document.getElementById('zoom').innerHTML = "Zoom:" + zoom.toFixed(3);
             }
         }
 
@@ -301,9 +304,10 @@
             var xlt = document.getElementById('xlt');         // DOM svg element g xlt
             var transform = 'translate(' + ((xC)).toString() + ', ' + ((yC)).toString() + ')scale(' + factor.toString() + ')';
             xlt.attributes['transform'].value = transform;
-            $("#zoom").html("Zoom:" + zoom.toFixed(3));
-            $("#coords").html('xC: ' + xC.toFixed(1) + ' xM: ' + x + ' lastX: ' + lastMouseX.toFixed(3)
-                    + ' yC: ' + yC.toFixed(1) + ' y: ' + y + ' lastY: ' + lastMouseY.toFixed(3));
+//            $("#zoom").html("Zoom:" + zoom.toFixed(3));
+            document.getElementById('zoom').innerHTML = "Zoom:" + zoom.toFixed(3);
+            document.getElementById('coords').innerHTML = 'xC: ' + xC.toFixed(1) + ' xM: ' + x + ' lastX: ' + lastMouseX.toFixed(3)
+                    + ' yC: ' + yC.toFixed(1) + ' y: ' + y + ' lastY: ' + lastMouseY.toFixed(3);
         }
 
         function updateSvgText(event) {
