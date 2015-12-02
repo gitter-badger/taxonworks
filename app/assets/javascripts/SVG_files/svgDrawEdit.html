@@ -18,20 +18,61 @@
     <link rel="stylesheet" href="assets/styles.css"/>
 
     <script>
+        /*
+         Discussion/tradeoff issues with SVGDraw as of 01DEC2015:
+
+         Scale and normalize image to container (only partially correct now)
+         (aspect ratio compensation source to target svg)
+         Explicit edit mode versus auto mouseenter
+         Specific style parameters per svg element type
+         "Semantic" zoom applied to bubbles on creation (vis a vis real-time)
+         Tableau of function mode buttons/indicators
+         HOT-KEYS for: abort last individual point (e.g., escape)
+         abort last element (e.g., delete)
+         finish current element (e.g., enter)
+         enter/inhibit mouse"over" editing
+         SPACE held down to drag-pan
+         Export svg markup (currently elements are partially corrupted)
+         Packaging:
+         verbatim
+         style vs element segregation
+
+         "Stacking" issues - tokenize elements for selection outside the image.
+         Move [element] to the top function
+         After the fact grouping
+         Eliminate jQuery?
+         Color picker
+         Measurement specifier and tool (caliper)
+         +/- 90 degree text orientation
+         ARROW super-element
+
+         Librarization:  data- elements to define configuration
+         auto-generate html
+         only require a div with data- elements
+         JSON configuration?
+
+         // bounds check on move (in svgDraw.js) ?
+         // capture svg data - DONE
+         // source image from http://
+
+         */
         var svgDraw = null;
         var xC = 0;
         var yC = 0;
         var cursorMode = "MOVE";
         var cursorColor = '#ff0000'
-        var strokeWidth = '10';
-        var zoom = 0.2;         /////////////////////////////
-        var baseZoom = 0.2;         /////////////////////////////
-        var maxZoom = 4;
+        var zoom = 0.2;         ///////////////////////////  should be set on initialization from baseZoom @ full image
+        var baseStrokeWidth = 1;
+        var baseBubbleRadius = 6;
+        var strokeWidth = (baseStrokeWidth / zoom).toString();    // dynamically recomputed with zoom (not this one)
+        var bubbleRadius = (baseBubbleRadius / zoom).toString(); // and transcoded from/to string (may not be required)
+        var baseZoom = 0.2;         ///////////////////////////// should be calculated from svg and image attributes
+        var maxZoom = 4;        // this is 4 pixels per source image pixel
         var svgImage = new Image();
         var thisSvg = [];            // collect points as [x,y]
-        var svgOffset;              // set on document ready
+        var svgOffset;              // set on document ready ////////// test against fully packaged code
 
-        var thisSvgText;            // pointer to svg control currently being populated
+        var thisSvgText;            // pointer to svg text element currently being populated
         var textHeight = 75;
         var textFont = 'Verdana';
 
@@ -51,23 +92,22 @@
 
         //        var thisEllipse;
 
-        var thisGroup;
+        var thisGroup;              // should be the parent of the current element
 
         var savedCursorMode = cursorMode;
 
         var thisElement;
 
-        var thisBubble;
+        var thisBubble;             // the bubble mousedown-ed in the currently edited element
 
         var svgInProgress = false;
 
         var lastMouseX;
         var lastMouseY;
 
-        var logMouse = false;
-        var logStatus = false;
-        var logIndex = 0;
-        //canvas_image.src = undefined;
+        var logMouse = false;       // debug
+        var logStatus = false;      // flags
+        var logIndex = 0;           // limit counter for above
         //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
         svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
 
@@ -79,10 +119,6 @@
             };
             indicateMode(cursorMode);
             document.getElementById("text4svg").onkeyup = updateSvgText;
-//    canvas = document.getElementById("sketch");
-//    context = canvas.getContext("2d");
-//    setMove();
-//    renderImage();
         });
 
         $(svgImage).load(function () {
@@ -105,8 +141,6 @@
             xlt.appendChild(xltImage);
             zoom_trans(0, 0, zoom);             //////////// IMPORTANT !!!!!!!!!!!
 
-//            canvas = document.getElementById("sketch");     // set up the dynamic draw layer
-//            context = canvas.getContext("2d");
             setMove();
         });
 
@@ -244,6 +278,7 @@
                 yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom;
                 zoom_trans(0, 0, newZoom);
                 zoom = newZoom;
+                bubbleRadius = (baseBubbleRadius / zoom).toString();
                 $("#zoom").html("Zoom:" + zoom.toFixed(3));
             }
         }
@@ -256,6 +291,7 @@
                 yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom;
                 zoom_trans(0, 0, newZoom);
                 zoom = newZoom;
+                bubbleRadius = (baseBubbleRadius / zoom).toString();
                 $("#zoom").html("Zoom:" + zoom.toFixed(3));
             }
         }
@@ -329,36 +365,6 @@
             return document.getElementById('userColor').value;
 
         }
-
-        //        function renderImage() {
-        //            if (xC >= canvas_image.width - canvas.width) {
-        //                xC = canvas_image.width - canvas.width;
-        //            }
-        //    xC, yC is -left, -top boundary of canvas, [also source point of canvas_image - no longer used]
-        //    want to window the canvas_image into the canvas isometrically
-        //    and proportional to zoom level
-        //
-        ////            if ((xC - canvas_image.width) * zoom >= canvas.width) {   // clip on xC
-        ////                xC = (canvas_image.width - canvas.width) * zoom;
-        ////            }
-        //            if (yC >= canvas_image.height - canvas.height) {
-        //                yC = canvas_image.height - canvas.height;
-        //            }
-        //            if (xC < 0) {
-        //                xC = 0;
-        //            }
-        //            if (yC < 0) {
-        //                yC = 0;
-        //            }
-        ////            context.fillOpacity = "0.0";
-        //            context.clearRect(0, 0, canvas.width, canvas.height);
-        //        }
-
-        // TODO:
-        // bounds check on move (in svgDraw.js)
-        // aspect ratio compensation source to target canvas
-        // capture svg data - DONE
-        // source image from http://
     </script>
     <style type='text/css'>
         #container {
@@ -384,7 +390,7 @@
                     </li>
                 </ul>
 
-                <ul class="nav secondary-nav">
+                <ul class="nav secondary-nav"><!-- this should be generated and inserted from configuration code -->
                     <input type="button" class="btn error" value="Clear Last Element" onclick="clearGroup();"/>
                     <input type="button" class="btn error" value="Polygon" onclick="setCursorMode('polygon');"/>
                     <input type="button" class="btn error" value="Polyline" onclick="setCursorMode('polyline');"/>
@@ -392,9 +398,9 @@
                     <input type="button" class="btn error" value="Line" onclick="setCursorMode('line');"/>
                     <input type="button" class="btn error" value="Circle" onclick="setCursorMode('circle');"/>
                     <input type="button" class="btn error" value="Ellipse" onclick="setCursorMode('ellipse');"/>
-                    <!--<input type="button" class="btn error" value="Path" onclick="setCursorMode('PATH');"/>-->
                     <input type="button" class="btn error" value="Draw" onclick="setCursorMode('draw');"/>
-                    <input type="button" class="btn error" value="Curve" onclick="setCursorMode('curve');"/>
+                    <input type="button" class="btn error" value="Cubic" onclick="setCursorMode('curve');"/>
+                    <input type="button" class="btn error" value="Quadratic" onclick="setCursorMode('curve');"/>
                     <span id="mode"></span>
                     <input type="button" value="Move" onclick="setCursorMode('MOVE');"/>
                     <input type="button" value="Text" onclick="setTextMode();"/>
@@ -431,14 +437,11 @@
 <div id="container" style="overflow: hidden; left: 50px; top: 175px; position: absolute;">
     <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
          style="position: inherit;">
-        <g id="xlt" transform="translate(0,0)scale(0.20)">
+        <g id="xlt" transform="translate(0,0)scale(0.20)"><!-- this should be generated and inserted by init JS code -->
         </g>
     </svg>
-    <!--<canvas id="sketch" width="800" height="600" style="opacity: 0.8">-->
-    <!--&lt;!&ndash;<canvas id="sketch" width="800" height="600" style="left: 0px; top: 0px; position: absolute; opacity: 0.8">&ndash;&gt;-->
-    <!--</canvas>-->
 </div>
-<div style="top: 775px; position: absolute;">
+<div style="top: 775px; position: absolute;"><!-- debug output area -->
     <span id="coords"></span><br/><span id="mouseStatus"></span>
 </div>
 </body>

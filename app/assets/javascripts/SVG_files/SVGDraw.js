@@ -273,11 +273,11 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
       }
     }
     if (cursorMode == 'curve') {     // mouseDown
-  // The cubic Bezier curve requires non-symbolic integer values for its path parameters.
-  // This will necessitate the dynamic reconstruction of the "d" attribute using parseInt
-  // on each value.  The edit sister group will have 4 bubbles, ids: p1, c1, c2, p2 to decode
-  // the control points' mousemove action.  Make control points the same as the endpoints initially,
-  // then annotate with bubbles to shape the curve.  This is an extra step more than other elements.
+      // The cubic Bezier curve requires non-symbolic integer values for its path parameters.
+      // This will necessitate the dynamic reconstruction of the "d" attribute using parseInt
+      // on each value.  The edit sister group will have 4 bubbles, ids: p1, c1, c2, p2 to decode
+      // the control points' mousemove action.  Make control points the same as the endpoints initially,
+      // then annotate with bubbles to shape the curve.  This is an extra step more than other elements.
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         savedCursorMode = cursorMode;     // plant this to prevent immediate post-creation clearing
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
@@ -430,7 +430,7 @@ function clearEditElement(group) {     // given containing group
   cursorMode = savedCursorMode;   // on exit of edit mode, restore
   showStatus('clearEditElement1', group);
   if (group.childNodes.length > 1) {   // do I have bubbles? i.e., is there more than just the golden chile?
-    //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
+                                       //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
     group.lastChild.remove();         // this is the group of bubbles if not just the SHIFT bubble
     thisBubble = null;
     //}
@@ -524,8 +524,8 @@ function setSizeElement(bubble) {       // this sets up the single point functio
   showStatus('setSizeElement0', group);
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
   group.attributes['onmouseleave'].value = ''; // disable mouseleaver on real element's containing group
-    if (cursorMode != 'curve') {
-      if (group.childElementCount > 1) {         // if more than one child, we have bubbles
+  if (cursorMode != 'curve') {
+    if (group.childElementCount > 1) {         // if more than one child, we have bubbles
       group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag radius
       showStatus('setSizeElement1', group);
     }
@@ -565,7 +565,7 @@ function setPointElement(bubble) {    // this performs the inline substitution o
 
 function setNewPointElement(bubble) {     // this inserts the new point into the <poly.. element
   if (thisBubble == bubble) {   // this condition implies we mouseDowned on the point we are INSERTING
-    // /////////  VERY PRELIM
+                                // /////////  VERY PRELIM
   }
   thisBubble = bubble;
   var group = bubble.parentNode.parentNode.parentNode;          // set group for mousemove handler
@@ -736,7 +736,7 @@ function createPointBubble(cx, cy, id) {    // used for <poly...> vertices
 
 function createNewPointBubble(cx, cy, id) {    // used for <poly...> inter-vertex insert new point
   var bubble = createBubbleStub(cx, cy);
-  bubble.setAttributeNS(null, 'r', 12);      // radius override for insertion point
+  bubble.setAttributeNS(null, 'r', bubbleRadius * 0.8);      // radius override for insertion point
   bubble.setAttributeNS(null, 'stroke', '#555555');     // not that great, use below
   bubble.setAttributeNS(null, 'stroke-opacity', '0.6');     // not that great, use below
   bubble.setAttributeNS(null, 'fill-opacity', '0.4');         // SIZE/POINT bubble is even less opaque
@@ -749,7 +749,7 @@ function createNewPointBubble(cx, cy, id) {    // used for <poly...> inter-verte
 
 function createCurveBubble(cx, cy, id) {    // used for <poly...> inter-vertex insert new point
   var bubble = createBubbleStub(cx, cy);
-  bubble.setAttributeNS(null, 'r', 25);      // radius override for insertion point
+  bubble.setAttributeNS(null, 'r', bubbleRadius * 1.25);      // radius override for insertion point
   bubble.setAttributeNS(null, 'stroke', '#333333');     // not that great, use below
   bubble.setAttributeNS(null, 'stroke-opacity', '0.6');     // not that great, use below
   bubble.setAttributeNS(null, 'fill-opacity', '0.8');         // make these stand out
@@ -791,10 +791,10 @@ function createBubbleStub(offsetX, offsetY) {   // create same-size bubble
   //thisCircle = group.children[0];     // this var is used to dynamically create the element
   bubble.setAttributeNS(null, 'cx', offsetX);      // start x
   bubble.setAttributeNS(null, 'cy', offsetY);      // start y
-  bubble.setAttributeNS(null, 'r', 15);      // radius
+  bubble.setAttributeNS(null, 'r', bubbleRadius);      // radius
   bubble.setAttributeNS(null, 'fill', '#FFFFFF');
   bubble.setAttributeNS(null, 'stroke', '#222222');   // set scaffold attrs
-  bubble.setAttributeNS(null, 'stroke-width', '3');
+  bubble.setAttributeNS(null, 'stroke-width', bubbleRadius * 0.25);
   //attrs.forEach
   return bubble;
 }
@@ -1006,7 +1006,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         thisPoint += ' ';
         thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
       }
-      thisElement.attributes['stroke'].value = cursorColor;
+      //thisElement.attributes['stroke'].value = cursorColor;   ///// disabled due to unwanted side effects
     }
     else if (cursorMode == "polyline") {
       if (svgInProgress == false) {
@@ -1018,8 +1018,8 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       var thesePoints = thisElement.attributes['points'].value.trim();
       var splitPoints = thesePoints.split(' ');
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
-                                      // currently, no distinction is made between existing vertex and new point
-                                      // however, this may change in the future JRF 23NOV15
+        // currently, no distinction is made between existing vertex and new point
+        // however, this may change in the future JRF 23NOV15
         thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
         thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
         if (isNumeric(thisBubble.id)) {       // presume integer for now
@@ -1039,7 +1039,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         thisPoint += ' ';
         thisElement.attributes['points'].value = thesePoints.concat(thisPoint);
       }
-      thisElement.attributes['stroke'].value = cursorColor;
+      //thisElement.attributes['stroke'].value = cursorColor;   ///// disabled due to unwanted side effects
     }
     else if ((cursorMode == "rect") /*|| (cursorMode == 'bubble')*/) {
       //lastMouseX = this.lastMousePoint.x;
@@ -1063,7 +1063,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         this.updateMousePosition(event);
         thisElement.attributes['width'].value = (lastMouseX - xC) / zoom - thisRectX;
         thisElement.attributes['height'].value = (lastMouseY - yC) / zoom - thisRectY;
-        thisElement.attributes['stroke'] = cursorColor;
+        //thisElement.attributes['stroke'] = cursorColor;   ///// disabled due to unwanted side effects
       }
     }
     else if (cursorMode == "line") {
@@ -1083,7 +1083,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       }
       thisElement.attributes[linePoints[0]].value = (lastMouseX - xC) / zoom;
       thisElement.attributes[linePoints[1]].value = (lastMouseY - yC) / zoom;
-      thisElement.attributes['stroke'] = cursorColor;
+      //thisElement.attributes['stroke'] = cursorColor;   ///// disabled due to unwanted side effects
     }
     else if ((cursorMode == "circle") /*|| (cursorMode == 'bubble')*/) {
       //thisCircle = thisElement;             // first step toward generalizing SHIFT/SIZE handlers
@@ -1115,7 +1115,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         lastMouseY = this.lastMousePoint.y;
         var radius = length2points(thisCircX, thisCircY, (lastMouseX - xC) / zoom, (lastMouseY - yC) / zoom);
         thisElement.attributes['r'].value = radius;
-        thisElement.attributes['stroke'].value = cursorColor;
+        //thisElement.attributes['stroke'].value = cursorColor;   ///// disabled due to unwanted side effects
         showStatus('updateSvgByElementC3', thisElement.parentElement);
       }
     }
@@ -1146,7 +1146,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         thisElement.attributes['rx'].value = Math.abs(thisEllipseX - (lastMouseX - xC) / zoom);
         thisElement.attributes['ry'].value = Math.abs(thisEllipseY - (lastMouseY - yC) / zoom);
       }
-      thisElement.attributes['stroke'].value = cursorColor;
+      //thisElement.attributes['stroke'].value = cursorColor;   ///// disabled due to unwanted side effects
     }
     else if (cursorMode == "draw") {
       if (svgInProgress == false) {
@@ -1168,14 +1168,14 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       }
       this.updateMousePosition(event);
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
-        // currently, no distinction is made between existing vertex and new point
-        // however, this may change in the future JRF 23NOV15
+                                      // currently, no distinction is made between existing vertex and new point
+                                      // however, this may change in the future JRF 23NOV15
         var thisX = (lastMouseX - xC) / zoom;
         var thisY = (lastMouseY - yC) / zoom;
         thisBubble.attributes['cx'].value = thisX;     // translate the bubble
         thisBubble.attributes['cy'].value = thisY;
         var theseCoords = getCurveCoords(thisElement.attributes['d'].value);
-       switch (thisBubble.id) {
+        switch (thisBubble.id) {
           case 'p1':
             theseCoords[0] = thisX;
             theseCoords[1] = thisY;
@@ -1206,13 +1206,13 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         thisElement.parentElement.lastChild.children['poly'].attributes['points'].value = getCurvePoints(theseCoords);
       }
       else {
-      var thisX2 = (lastMouseX - xC) / zoom;
-      var thisY2 = (lastMouseY - yC) / zoom;
-      var theseCurvePoints = (thisElement.attributes['d'].value).split('C ');
-      var thisC1 = theseCurvePoints[1].split(', ');
-      var thisD = theseCurvePoints[0] + ' C ' + curvePoint(thisC1[0], thisC1[1])
-      + curvePoint(thisX2,  thisY2) + pathPoint(thisX2, thisY2);
-      thisElement.attributes['d'].value = thisD;
+        var thisX2 = (lastMouseX - xC) / zoom;
+        var thisY2 = (lastMouseY - yC) / zoom;
+        var theseCurvePoints = (thisElement.attributes['d'].value).split('C ');
+        var thisC1 = theseCurvePoints[1].split(', ');
+        var thisD = theseCurvePoints[0] + ' C ' + curvePoint(thisC1[0], thisC1[1])
+          + curvePoint(thisX2, thisY2) + pathPoint(thisX2, thisY2);
+        thisElement.attributes['d'].value = thisD;
       }
     }
     else if (cursorMode == "text") {
