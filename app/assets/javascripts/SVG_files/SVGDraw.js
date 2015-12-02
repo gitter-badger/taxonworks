@@ -2,11 +2,6 @@ function SVGDraw(canvasID) {
   this.renderFunction = this.updateSvgByElement;
   this.touchSupported = Modernizr.touch;
   this.canvasID = canvasID;
-  //this.canvas = $("#" + canvasID);
-
-  //this.context = this.canvas.get(0).getContext("2d");
-  //this.context.strokeStyle = "#000000";
-  //this.context.lineWidth = 3;
   this.lastMousePoint = {x: 0, y: 0};
 
   if (this.touchSupported) {
@@ -20,29 +15,36 @@ function SVGDraw(canvasID) {
     this.mouseUpEvent = "mouseup";
 
     //this.canvas.bind('dblclick', this.doubleClickHandler());
-    $("#" + canvasID).bind('dblclick', this.doubleClickHandler());
+    //$("#" + canvasID).bind('dblclick', this.doubleClickHandler());
+    var objCanvas = document.getElementById(canvasID);
+    objCanvas.ondblclick = this.doubleClickHandler();
 
     //this.canvas.bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
-    $("#" + canvasID).bind('DOMMouseScroll mousewheel', function (event)     // inline function vs cutout to prototype
-    {
-      event.stopImmediatePropagation();
-      event.stopPropagation();
-      var deltaDiv = 1000;                              // default for non-FireFox
-      if (event.type == "DOMMouseScroll") {
-        deltaDiv = 100
-      }   // adjust for FireFox
-      var delta = parseInt(event.originalEvent.wheelDelta || -event.originalEvent.detail);
-      lastMouseX = (event.originalEvent.clientX - svgOffset.left);      // fixed reference for mouse offset
-      lastMouseY = (event.originalEvent.clientY - svgOffset.top);
-      var zoomDelta = delta / deltaDiv;
-      //showMouseStatus('Mousescroll', event);
-      if (zoomDelta > 0) {
-        zoomIn();
-      } else {
-        zoomOut();
-      }
-      return event.preventDefault() && false;
-    });
+    objCanvas.onwheel = this.mouseWheelScrollHandler();
+    objCanvas.onscroll = this.mouseWheelScrollHandler();
+    //$("#" + canvasID).bind('DOMMouseScroll mousewheel', function (event)     // inline function vs cutout to prototype
+    //{
+    //  event.stopImmediatePropagation();
+    //  event.stopPropagation();
+    //  var deltaDiv = 1000;                              // default for non-FireFox
+    //  if (event.type == "DOMMouseScroll") {
+    //    deltaDiv = 100;
+    //  }   // adjust for FireFox
+    //  //var delta = parseInt(event.deltaY || -event.detail);
+    //  //lastMouseX = (event.clientX - svgOffset.left);      // fixed reference for mouse offset
+    //  //lastMouseY = (event.clientY - svgOffset.top);
+    //  var delta = parseInt(event.originalEvent.wheelDelta || -event.originalEvent.detail);
+    //  lastMouseX = (event.originalEvent.clientX - svgOffset.left);      // fixed reference for mouse offset
+    //  lastMouseY = (event.originalEvent.clientY - svgOffset.top);
+    //  var zoomDelta = delta / deltaDiv;
+    //  //showMouseStatus('Mousescroll', event);
+    //  if (zoomDelta > 0) {
+    //    zoomIn();
+    //  } else {
+    //    zoomOut();
+    //  }
+    //  return event.preventDefault() && false;
+    //});
   }
   //this.canvas.bind(this.mouseDownEvent, this.onSvgMouseDown());
   $("#" + canvasID).on(this.mouseDownEvent, this.onSvgMouseDown());
@@ -53,22 +55,14 @@ function SVGDraw(canvasID) {
 
 }
 
-SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop element generation on mouseDOWN
-  // BUT for PATH, line and MOVE, stop on mouseUP
+SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop element generation on mouseDOWN (true?)
+                                                   // BUT for PATH, line and MOVE, stop on mouseUP
   var self = this;
   return function (event) {
-    //self.context.save();
-    //self.mouseMoveHandler = self.onSvgMouseMove();
-    //self.mouseUpHandler = self.onSvgMouseUp();
-    //$(document).bind(self.mouseUpEvent, self.mouseUpHandler);
-    //$(document).bind(self.mouseMoveEvent, self.mouseMoveHandler);       // binding on mouse OOWN
-
     self.updateMousePosition(event);
-    //self.renderFunction(event);            // ??
-    //showMouseStatus('onSvgMouseDown0', event);
     if (svgInProgress != false && svgInProgress != cursorMode) {    // terminate in progress svg before continuing
       if (svgInProgress == 'SHIFT') {
-        return;                       //  ///////// shold these be returning false?
+        return;                       //  ///////// should these be returning false?
       }
       else {
         svgInProgress = cursorMode;       //  ??
@@ -85,14 +79,14 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         thisGroup = group;
         document.getElementById("xlt").appendChild(group);
         //for (j = 0; j < thisSvg.length; j++) {              // for text mode there is only one
-        var element = createElement('polyline');        //YES, I KNOW
+        var element = createElement('polyline');        //YES, I KNOW... polyline behavior mimics google maps better
 
         group.appendChild(element);
         thisElement = group.children[0];
         element.setAttributeNS(null, 'points', thisSvg[0][0].toFixed(2).toString()
           + ',' + thisSvg[0][1].toFixed(2).toString() + ' '
           + thisSvg[0][0].toFixed(2).toString()
-          + ',' + thisSvg[0][1].toFixed(2).toString() + ' ');      // start x,y
+          + ',' + thisSvg[0][1].toFixed(2).toString() + ' ');      // start x,y for both points initially
         //}
         svgInProgress = cursorMode;     // mark in progress
       }
@@ -125,7 +119,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         element.setAttributeNS(null, 'points', thisSvg[0][0].toFixed(2).toString()
           + ',' + thisSvg[0][1].toFixed(2).toString() + ' '
           + thisSvg[0][0].toFixed(2).toString()
-          + ',' + thisSvg[0][1].toFixed(2).toString() + ' ');      // start x,y
+          + ',' + thisSvg[0][1].toFixed(2).toString() + ' ');      // start x,y for both points initially
         //}
         svgInProgress = cursorMode;     // mark in progress
       }
@@ -273,11 +267,11 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
       }
     }
     if (cursorMode == 'curve') {     // mouseDown
-      // The cubic Bezier curve requires non-symbolic integer values for its path parameters.
-      // This will necessitate the dynamic reconstruction of the "d" attribute using parseInt
-      // on each value.  The edit sister group will have 4 bubbles, ids: p1, c1, c2, p2 to decode
-      // the control points' mousemove action.  Make control points the same as the endpoints initially,
-      // then annotate with bubbles to shape the curve.  This is an extra step more than other elements.
+                                     // The cubic Bezier curve requires non-symbolic integer values for its path parameters.
+                                     // This will necessitate the dynamic reconstruction of the "d" attribute using parseInt
+                                     // on each value.  The edit sister group will have 4 bubbles, ids: p1, c1, c2, p2 to decode
+                                     // the control points' mousemove action.  Make control points the same as the endpoints initially,
+                                     // then annotate with bubbles to shape the curve.  This is an extra step more than other elements.
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
         savedCursorMode = cursorMode;     // plant this to prevent immediate post-creation clearing
         thisSvg[0] = [(self.lastMousePoint.x - xC) / zoom, (self.lastMousePoint.y - yC) / zoom];
@@ -430,7 +424,7 @@ function clearEditElement(group) {     // given containing group
   cursorMode = savedCursorMode;   // on exit of edit mode, restore
   showStatus('clearEditElement1', group);
   if (group.childNodes.length > 1) {   // do I have bubbles? i.e., is there more than just the golden chile?
-                                       //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
+    //if (group.lastChild.childElementCount > 1) {    // if I have bubbles, how many?
     group.lastChild.remove();         // this is the group of bubbles if not just the SHIFT bubble
     thisBubble = null;
     //}
@@ -565,7 +559,7 @@ function setPointElement(bubble) {    // this performs the inline substitution o
 
 function setNewPointElement(bubble) {     // this inserts the new point into the <poly.. element
   if (thisBubble == bubble) {   // this condition implies we mouseDowned on the point we are INSERTING
-                                // /////////  VERY PRELIM
+    // /////////  VERY PRELIM
   }
   thisBubble = bubble;
   var group = bubble.parentNode.parentNode.parentNode;          // set group for mousemove handler
@@ -876,9 +870,6 @@ function showStatus(where, element) {
       span.innerHTML = span.innerHTML.substr(0, 24000);   // clip periodically
     }
     logIndex += 1;
-    //$("#coords").html('xC: ' + xC.toFixed(1) + ' lastX: ' + lastMouseX.toFixed(3)
-    //  + ' yC: ' + yC.toFixed(1) + ' lastY: ' + lastMouseY.toFixed(3));
-    //var nowStatus = "<br />"+ where + "; " + (element.innerHTML.replace(/['"]+/g, '')).toString();
     var thisGroupTagNameAndID = ' thisGroup: NULL';
     if (thisGroup != null) {
       thisGroupTagNameAndID = ' thisGroup:' + thisGroup.tagName + '#' + thisGroup.id
@@ -891,12 +882,9 @@ function showStatus(where, element) {
     var thisBubbleID = ' thisBubble: NULL';
     if (thisBubble != null) thisBubbleID = ' thisBubbleID:' + thisBubble.id;
     var nowStatus = "<br>" + logIndex + ' ' + where + "; " /*+ element.outerHTML.replace(/[<]+/g, '&lt;').replace(/[>]+/g, '&gt;') + '<br>'*/
-      + thisGroupTagNameAndID + thisElementTagName /*+ '<br>'*/
-    /* + (element.innerHTML.replace(/[<]+/g, '&lt;').replace(/[>]+/g, '&gt;')).toString()*/;
+      + thisGroupTagNameAndID + thisElementTagName
+    /*+ '<br>'*/
     nowStatus = nowStatus + ' cursorMode:' + cursorMode + ' saved:' + savedCursorMode + ' svgIP:' + svgInProgress.toString() + thisBubbleID;
-    //$('#mouseStatus').html('<br />' + '' + ': ' + where + ' Mode: ' + cursorMode + '; svgInProgress: ' + svgInProgress.toString()
-    //  + '. Element: ' + element.innerHTML.toString() + element.attributes['id'].value
-    //  + '.mouseover ' + element.attributes['onmouseenter'].value + '. which: ' + element.attributes['onmouseleave'].value + $('#mouseStatus').html());
     $('#mouseStatus').html(nowStatus.toString() + ' ' + $('#mouseStatus').html());
   }
 }
@@ -904,9 +892,6 @@ function showStatus(where, element) {
 SVGDraw.prototype.onSvgMouseMove = function () {
   var self = this;
   return function (event) {
-    //showMouseStatus('onSvgMouseMove', event);
-    //self.mouseUpHandler = self.onSvgMouseUp();
-    //$(document).bind(self.mouseUpEvent, self.mouseUpHandler);   // binding on mouse MOVE
 
     self.renderFunction(event);
     event.preventDefault();
@@ -1018,8 +1003,8 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       var thesePoints = thisElement.attributes['points'].value.trim();
       var splitPoints = thesePoints.split(' ');
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
-        // currently, no distinction is made between existing vertex and new point
-        // however, this may change in the future JRF 23NOV15
+                                      // currently, no distinction is made between existing vertex and new point
+                                      // however, this may change in the future JRF 23NOV15
         thisBubble.attributes['cx'].value = (lastMouseX - xC) / zoom;     // translate the bubble
         thisBubble.attributes['cy'].value = (lastMouseY - yC) / zoom;
         if (isNumeric(thisBubble.id)) {       // presume integer for now
@@ -1168,8 +1153,8 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
       }
       this.updateMousePosition(event);
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
-                                      // currently, no distinction is made between existing vertex and new point
-                                      // however, this may change in the future JRF 23NOV15
+        // currently, no distinction is made between existing vertex and new point
+        // however, this may change in the future JRF 23NOV15
         var thisX = (lastMouseX - xC) / zoom;
         var thisY = (lastMouseY - yC) / zoom;
         thisBubble.attributes['cx'].value = thisX;     // translate the bubble
@@ -1375,6 +1360,32 @@ SVGDraw.prototype.doubleClickHandler = function () {
     }
   }
 };
+
+SVGDraw.prototype.mouseWheelScrollHandler = function() {
+  var self = this;
+  return function(event) {
+    event.stopImmediatePropagation();
+    event.stopPropagation();
+    var deltaDiv = 1000;                              // default for non-FireFox
+    if (event.type == "DOMMouseScroll") {
+      deltaDiv = 100
+    }   // adjust for FireFox
+    //var delta = parseInt(event.originalEvent.wheelDelta || -event.originalEvent.detail);
+    //lastMouseX = (event.originalEvent.clientX - svgOffset.left);      // fixed reference for mouse offset
+    //lastMouseY = (event.originalEvent.clientY - svgOffset.top);
+    var delta = -parseInt(event.deltaY || -event.detail);
+    lastMouseX = (event.clientX - svgOffset.left);      // fixed reference for mouse offset
+    lastMouseY = (event.clientY - svgOffset.top);
+    var zoomDelta = delta / deltaDiv;
+    //showMouseStatus('Mousescroll', event);
+    if (zoomDelta > 0) {
+      zoomIn();
+    } else {
+      zoomOut();
+    }
+    return event.preventDefault() && false;
+  }
+}
 
 function deleteDuplicatePoints(element) {
   var thesePoints = element.attributes['points'].value.trim();

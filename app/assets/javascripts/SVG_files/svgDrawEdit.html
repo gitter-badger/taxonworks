@@ -68,6 +68,7 @@
         var bubbleRadius = (baseBubbleRadius / zoom).toString(); // and transcoded from/to string (may not be required)
         var baseZoom = 0.2;         ///////////////////////////// should be calculated from svg and image attributes
         var maxZoom = 4;        // this is 4 pixels per source image pixel
+        var zoomDelta = 0.02;   // this can be altered to discriminate legacy firefox dommousescroll event
         var svgImage = new Image();
         var thisSvg = [];            // collect points as [x,y]
         var svgOffset;              // set on document ready ////////// test against fully packaged code
@@ -227,7 +228,7 @@
                 case 'circle':
                     if (thisElement == null) return;
                     if (((thisElement.attributes['cy'].value - thisElement.attributes['r'].value) < 0)     // off canvas
-                            || (thisElement.attributes['r'].value < 2))                                          // single click
+                            || (thisElement.attributes['r'].value < 2))                                  // single click
                     {
                         clearGroup();       // this was a leftover
                     }
@@ -268,7 +269,7 @@
         }
 
         function zoomIn() {
-            var zoomDelta = 0.05;
+//            var zoomDelta = 0.05;
             if (zoom < maxZoom) {           // zoom of 1 iz pixel-per-pixel on canvas/svg
                 var newZoom = zoom * ( 1.0 + zoomDelta);
                 if (newZoom > maxZoom) {
@@ -284,7 +285,7 @@
         }
 
         function zoomOut() {
-            var zoomDelta = 0.05;
+//            var zoomDelta = 0.05;
             if (zoom > baseZoom / 3) {
                 var newZoom = zoom / (1.0 + zoomDelta);
                 xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom;
