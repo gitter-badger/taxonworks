@@ -16,12 +16,12 @@ function SVGDraw(canvasID) {
 
     //this.canvas.bind('dblclick', this.doubleClickHandler());
     //$("#" + canvasID).bind('dblclick', this.doubleClickHandler());
-    var objCanvas = document.getElementById(canvasID);
-    objCanvas.ondblclick = this.doubleClickHandler();
+    var objCanvas = document.getElementById(canvasID);      // replace jquery references
+    objCanvas.ondblclick = this.doubleClickHandler();       // replace jquery reference
 
     //this.canvas.bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
-    objCanvas.onwheel = this.mouseWheelScrollHandler();
-    objCanvas.onscroll = this.mouseWheelScrollHandler();
+    objCanvas.onwheel = this.mouseWheelScrollHandler();        // replace jquery reference
+    //objCanvas.onscroll = this.mouseWheelScrollHandler();       // replace jquery reference
     //$("#" + canvasID).bind('DOMMouseScroll mousewheel', function (event)     // inline function vs cutout to prototype
     //{
     //  event.stopImmediatePropagation();
@@ -47,11 +47,14 @@ function SVGDraw(canvasID) {
     //});
   }
   //this.canvas.bind(this.mouseDownEvent, this.onSvgMouseDown());
-  $("#" + canvasID).on(this.mouseDownEvent, this.onSvgMouseDown());
-  this.mouseMoveHandler = this.onSvgMouseMove();
-  this.mouseUpHandler = this.onSvgMouseUp();
-  $(document).on(this.mouseUpEvent, this.mouseUpHandler);
-  $(document).on(this.mouseMoveEvent, this.mouseMoveHandler);       // binding FOREVER not just on mouse OOWN
+  //$("#" + canvasID).on(this.mouseDownEvent, this.onSvgMouseDown());
+  objCanvas.onmousedown = this.onSvgMouseDown();       // replace jquery reference
+  this.mouseMoveHandler = this.onSvgMouseMove;
+  this.mouseUpHandler = this.onSvgMouseUp;
+  //$(document).on(this.mouseUpEvent, this.mouseUpHandler);
+  objCanvas.onmouseup = this.mouseUpHandler();       // replace jquery reference
+  //$(document).on(this.mouseMoveEvent, this.mouseMoveHandler);       // binding FOREVER not just on mouse OOWN
+  objCanvas.onmousemove = this.mouseMoveHandler();       // replace jquery reference
 
 }
 
@@ -839,34 +842,35 @@ function isNumeric(n) {
 }
 
 
-function unbindMouseHandlers(self) {
+function unbindMouseHandlers(self) {    //   /////////////  this routine and its usages should be excised
   if (self.event != 'mouseup') {
     return false;                 // ////// this is always happening
   }
-  $(document).unbind(self.mouseMoveEvent, self.mouseMoveHandler);   // unbinding on mouse UP
-  $(document).unbind(self.mouseUpEvent, self.mouseUpHandler);
+  //$(document).unbind(self.mouseMoveEvent, self.mouseMoveHandler);   // unbinding on mouse UP
+  //$(document).unbind(self.mouseUpEvent, self.mouseUpHandler);
 // kill the linkage to the handler
-  self.mouseMoveHandler = null;
-  self.mouseUpHandler = null;
+//  self.mouseMoveHandler = null;
+//  self.mouseUpHandler = null;
 }
 
 function showMouseStatus(where, event) {
   if (logMouse) {
-    if ($('#mouseStatus').html().length > 8192) {
-      var span = document.getElementById('mouseStatus');
-      span.innerHTML = span.innerHTML.substr(0, 6144);   // clip periodically
+    var span = document.getElementById('mouseStatus');
+    if (span.innerHTML.length > 32768) {
+      //if ($('#mouseStatus').html().length > 8192) {
+      span.innerHTML = span.innerHTML.substr(0, 24000);   // clip periodically
     }
-    $("#coords").html('xC: ' + xC.toFixed(1) + ' lastX: ' + lastMouseX.toFixed(3)
-      + ' yC: ' + yC.toFixed(1) + ' lastY: ' + lastMouseY.toFixed(3));
-    $('#mouseStatus').html('<br />' + event.timeStamp + ': ' + where + ' Mode: ' + cursorMode + '; svgInProgress: ' + svgInProgress.toString()
-      + '. Event: ' + event.type + '. button: ' + event.button + '. which: ' + event.which + $('#mouseStatus').html());
+    document.getElementById('coords').innerHTML = 'xC: ' + xC.toFixed(1) + ' lastX: ' + lastMouseX.toFixed(3)
+      + ' yC: ' + yC.toFixed(1) + ' lastY: ' + lastMouseY.toFixed(3);
+    span.innerHTML ='<br />' + event.timeStamp + ': ' + where + ' Mode: ' + cursorMode + '; svgInProgress: ' + svgInProgress.toString()
+      + '. Event: ' + event.type + '. button: ' + event.button + '. which: ' + event.which + span.innerHTML;
   }
 }
 
 function showStatus(where, element) {
   if (logStatus) {
-    if ($('#mouseStatus').html().length > 32768) {
-      var span = document.getElementById('mouseStatus');
+    var span = document.getElementById('mouseStatus');
+    if (span.innerHTML.length > 32768) {
       span.innerHTML = span.innerHTML.substr(0, 24000);   // clip periodically
     }
     logIndex += 1;
@@ -885,7 +889,7 @@ function showStatus(where, element) {
       + thisGroupTagNameAndID + thisElementTagName
     /*+ '<br>'*/
     nowStatus = nowStatus + ' cursorMode:' + cursorMode + ' saved:' + savedCursorMode + ' svgIP:' + svgInProgress.toString() + thisBubbleID;
-    $('#mouseStatus').html(nowStatus.toString() + ' ' + $('#mouseStatus').html());
+    span.innerHTML = nowStatus.toString() + ' ' + span.innerHTML;
   }
 }
 
