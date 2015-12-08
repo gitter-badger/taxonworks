@@ -21,30 +21,6 @@ function SVGDraw(canvasID) {
 
     //this.canvas.bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
     objCanvas.onwheel = this.mouseWheelScrollHandler();        // replace jquery reference
-    //objCanvas.onscroll = this.mouseWheelScrollHandler();       // replace jquery reference
-    //$("#" + canvasID).bind('DOMMouseScroll mousewheel', function (event)     // inline function vs cutout to prototype
-    //{
-    //  event.stopImmediatePropagation();
-    //  event.stopPropagation();
-    //  var deltaDiv = 1000;                              // default for non-FireFox
-    //  if (event.type == "DOMMouseScroll") {
-    //    deltaDiv = 100;
-    //  }   // adjust for FireFox
-    //  //var delta = parseInt(event.deltaY || -event.detail);
-    //  //lastMouseX = (event.clientX - svgOffset.left);      // fixed reference for mouse offset
-    //  //lastMouseY = (event.clientY - svgOffset.top);
-    //  var delta = parseInt(event.originalEvent.wheelDelta || -event.originalEvent.detail);
-    //  lastMouseX = (event.originalEvent.clientX - svgOffset.left);      // fixed reference for mouse offset
-    //  lastMouseY = (event.originalEvent.clientY - svgOffset.top);
-    //  var zoomDelta = delta / deltaDiv;
-    //  //showMouseStatus('Mousescroll', event);
-    //  if (zoomDelta > 0) {
-    //    zoomIn();
-    //  } else {
-    //    zoomOut();
-    //  }
-    //  return event.preventDefault() && false;
-    //});
   }
   //this.canvas.bind(this.mouseDownEvent, this.onSvgMouseDown());
   //$("#" + canvasID).on(this.mouseDownEvent, this.onSvgMouseDown());
@@ -1408,3 +1384,219 @@ SVGDraw.prototype.clear = function () {
   var c = this.canvas[0];
   //this.context.clearRect(0, 0, c.width, c.height);
 };
+
+function setCursorMode(mode) {      // detect current mode not completed prior to mode switch
+  if (true/*(cursorMode != mode) && (svgInProgress == cursorMode)*/) {        // iff switched mode while in progress
+    svgInProgress = false;                                      // //////// does this ^ matter?
+    if (thisElement != null) {
+      showStatus('setCursorMode0', thisGroup);
+      checkLeftoverElement();     // look for dangling element, most likely off of svg image element ( - Y coord)
+      clearEditElement(thisGroup);        //  TODO: make sure all cases complete
+    }
+  }
+  if (mode.toUpperCase() == 'MOVE') {
+    cursorMode = mode;
+  }
+  else {
+    cursorMode = mode.toLowerCase();
+  }
+//  eliminated savedCursorMode = 'MOVE';
+  waitElement = true;
+  indicateMode(mode);
+  showStatus('setCursorMode1', thisGroup);
+}
+
+function setTextMode() {
+  setCursorMode('text');
+  document.getElementById("text4svg").removeAttribute('disabled');
+  document.getElementById("text4svg").focus();
+}
+
+function checkLeftoverElement() {       // this function is only called when svgInProgress is false (?)
+  switch (cursorMode) {
+    case 'polyline':
+    case 'polygon':
+      // this seems to ONLY delete the last point, so disabled pending better treatment
+//                    var thesePoints = thisElement.attributes['points'].value.trim();
+//                    var splitPoints = thesePoints.split(' ');
+//                    thesePoints = '';
+//                    for (k = 0; k < splitPoints.length - 2; k++) {
+//                        thesePoints += splitPoints[k] + ' ';
+//                    }
+//                    thisElement.attributes['points'].value = thesePoints;
+      break;
+//                    var thesePoints = thisElement.attributes['points'].value;
+//                    var splitPoints = thesePoints.split(' ');
+//                    thesePoints = '';
+//                    for (k = 0; k < splitPoints.length - 2; k++) {
+//                        thesePoints += splitPoints[k] + ' ';
+//                    }
+//                    thisElement.attributes['points'].value = thesePoints;
+//                    break;
+    case 'circle':
+      if (thisElement == null) return;
+      if (((thisElement.attributes['cy'].value - thisElement.attributes['r'].value) < 0)     // off canvas
+        || (thisElement.attributes['r'].value < 2))                                  // single click
+      {
+        clearGroup();       // this was a leftover
+      }
+      break;
+    case 'ellipse':
+      if (thisElement == null) return;
+      if ((thisElement.attributes['cy'].value - thisElement.attributes['ry'].value) < 0) {
+        clearGroup();       // this was a leftover
+      }
+      break;
+    case 'rect':
+      if (thisElement == null) return;
+      if ((thisElement.attributes['height'].value) < 0) {
+        clearGroup();       // this was a leftover
+      }
+      break;
+    case 'line':
+      if ((thisElement.attributes['y2'].value) < 0) {
+        clearGroup();       // this was a leftover
+      }
+      break;
+  }
+}
+
+function clearGroup() {
+  var xlt = document.getElementById("xlt");
+  if (xlt.childElementCount > 1) {
+    xlt.lastChild.remove();
+  }
+}
+
+function inverseColor(color) {          // color is required to be string as #RRGGBB hexadecimal
+  var red = makeHex8(color.slice(1, 3));
+  var grn = makeHex8(color.slice(3, 5));
+  var blu = makeHex8(color.slice(5, 7));
+  return '#' + red + grn + blu;
+}
+
+function makeHex8(colorSegment) {       // colorSegment is 8 bit hex encoded string
+  var izit = ((parseInt('0X' + colorSegment)) ^ 0xFF).toString(16)
+  if (izit.length == 2) {
+    return izit;
+  }
+  return '0' + izit;
+}
+
+function zoomIn() {
+//            var zoomDelta = 0.05;
+  if (zoom < maxZoom) {           // zoom of 1 iz pixel-per-pixel on canvas/svg
+    var newZoom = zoom * ( 1.0 + zoomDelta);
+    if (newZoom > maxZoom) {
+      newZoom = maxZoom;
+    }
+    xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom;
+    yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom;
+    zoom_trans(0, 0, newZoom);
+    zoom = newZoom;
+    bubbleRadius = (baseBubbleRadius / zoom).toString();
+//                $("#zoom").html("Zoom:" + zoom.toFixed(3));
+    document.getElementById('zoom').innerHTML = "Zoom:" + zoom.toFixed(3);
+  }
+}
+
+function zoomOut() {
+//            var zoomDelta = 0.05;
+  if (zoom > baseZoom / 3) {
+    var newZoom = zoom / (1.0 + zoomDelta);
+    xC = lastMouseX - (lastMouseX - xC) * newZoom / zoom;
+    yC = lastMouseY - (lastMouseY - yC) * newZoom / zoom;
+    zoom_trans(0, 0, newZoom);
+    zoom = newZoom;
+    bubbleRadius = (baseBubbleRadius / zoom).toString();
+//                $("#zoom").html("Zoom:" + zoom.toFixed(3));
+    document.getElementById('zoom').innerHTML = "Zoom:" + zoom.toFixed(3);
+  }
+}
+
+function zoom_trans(x, y, factor) {
+  var xlt = document.getElementById('xlt');         // DOM svg element g xlt
+  var transform = 'translate(' + ((xC)).toString() + ', ' + ((yC)).toString() + ')scale(' + factor.toString() + ')';
+  xlt.attributes['transform'].value = transform;
+//            $("#zoom").html("Zoom:" + zoom.toFixed(3));
+  document.getElementById('zoom').innerHTML = "Zoom:" + zoom.toFixed(3);
+  document.getElementById('coords').innerHTML = 'xC: ' + xC.toFixed(1) + ' xM: ' + x + ' lastX: ' + lastMouseX.toFixed(3)
+    + ' yC: ' + yC.toFixed(1) + ' y: ' + y + ' lastY: ' + lastMouseY.toFixed(3);
+}
+
+function updateSvgText(event) {
+  var text4svg = document.getElementById("text4svg");
+  if (thisSvgText == null) {
+    return false
+  }
+  if (event.keyCode == 27) {      // terminate this text block on ESC
+    if (thisSvgText.parentElement.lastChild.innerHTML.length == 0) {
+      thisSvgText.parentElement.lastChild.remove();
+    }
+    closeSvgText();
+    checkLeftoverElement();
+    return false;
+  }
+  thisSvgText.innerHTML = text4svg.value;
+  thisSvgText.attributes['stroke'].value = cursorColor;       // allow in-line whole line color/font/size over-ride
+  thisSvgText.attributes['style'].value = 'font-family: ' + textFont + '; fill: ' + cursorColor + ';';    //  including fill
+  thisSvgText.attributes['font-size'].value = textHeight;
+  var nextX = thisSvgText.attributes['x'].value;
+  var nextY = parseInt(thisSvgText.attributes['y'].value) + parseInt(textHeight);
+  var nextLine = thisSvgText.cloneNode();
+  if (event.keyCode == 13) {      // line feed on ENTER/CR
+    var thisInverse = inverseColor(cursorColor);
+//                thisSvgText.attributes['onmouseover'] = 'this.attributes["stroke"].value = ' + thisInverse + ';';
+    nextLine.attributes['x'].value = nextX;
+    nextLine.attributes['y'].value = nextY;
+    thisSvgText.parentElement.appendChild(nextLine);
+    thisSvgText = nextLine;
+    text4svg.value = '';
+  }
+}
+
+function closeSvgText() {
+  var text4svg = document.getElementById("text4svg");
+  text4svg.value = '';
+  text4svg.setAttribute('disabled', 'true');
+  text4svg.blur();
+//            thisSvgText.attributes['onmouseover'].value = "this.attributes['stroke'].value = '" + inverseColor(cursorColor)
+//                    + "'; this.attributes['fill'].value = '" + inverseColor(cursorColor) + "';";
+//            thisSvgText.attributes['onmouseover'].value = "this.attributes['stroke'].value = " + inverseColor(cursorColor) + ";";
+//            thisSvgText.attributes['onmouseout'].value = "this.attributes['stroke'].value = " + cursorColor
+//                    + "; this.attributes['stroke-width'].value = " + strokeWidth + ";";
+
+  thisSvgText = null;         // remove the target
+  thisSvg = [];               // clear the container
+  setCursorMode('MOVE');
+}
+
+function setCursorColor(color) {
+  cursorColor = color;
+  document.getElementById('cursorColor').attributes['style'].value = 'background-color: ' + cursorColor;
+}
+
+function setUserColor(color) {          // only sets up the color for later selection
+  document.getElementById('setUserColor').attributes['style'].value = 'background-color: ' + color;
+}
+
+function getUserColor() {
+  return document.getElementById('userColor').value;
+
+}
+
+function setMove() {
+  cursorMode = "MOVE";
+  indicateMode(cursorMode);
+}
+
+function indicateMode(mode) {
+  var coverRect = mode;
+  if (mode == 'rect') {
+    coverRect = 'rectangle';        // replace anomalous rect with rectangle
+  }
+  document.getElementById("mode").textContent = coverRect.toUpperCase();
+//            $("#zoom").html("Zoom:" + zoom.toFixed(3));
+  document.getElementById('zoom').innerHTML = "Zoom:" + zoom.toFixed(3);
+}
+
