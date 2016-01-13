@@ -245,7 +245,7 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         unbindMouseHandlers(self);
       }
     }
-    if (cursorMode == 'curve') {     // mouseDown
+    if ((cursorMode == 'cubic') || (cursorMode == 'quadratic')) {     // mouseDown
                                      // The cubic Bezier curve requires non-symbolic integer values for its path parameters.
                                      // This will necessitate the dynamic reconstruction of the "d" attribute using parseInt
                                      // on each value.  The edit sister group will have 4 bubbles, ids: p1, c1, c2, p2 to decode
@@ -315,8 +315,11 @@ function curvePoint(x, y) {
 }
 
 function getCurvePath(x1, y1, cx1, cy1, cx2, cy2, x2, y2) {
-  return "M " + pathPoint(x1, y1) + " C " + curvePoint(cx1, cy1)
-    + curvePoint(cx2, cy2) + pathPoint(x2, y2);
+  if (cursorMode == 'cubic') {
+    return "M " + pathPoint(x1, y1) + " C " + curvePoint(cx1, cy1)
+      + curvePoint(cx2, cy2) + pathPoint(x2, y2);
+  }
+  else return "M " + pathPoint(x1, y1) + " Q " + curvePoint(cx2, cy2) + pathPoint(x2, y2);
 }
 
 function getCurveCoords(d) {
@@ -374,8 +377,11 @@ function setEditElement(group) {    // add bubble elements to the group containi
   if (group.firstChild.tagName != 'path') {
     cursorMode = group.firstChild.tagName;
   }
-  else {
-    cursorMode = 'curve';   // ///////// finesse path
+  else {                  // now that there are both cubic and quadratic curves, we must detect this one's type
+    cursorMode = 'cubic';   // ///////// finesse path
+    if(group.firstChild.innerHTML.indexOf('C ') == -1) {
+      cursorMode = 'quadratic';
+    }
   }
   svgInProgress = false;      //  ////////// we have set bubbles but no action taken yet
   indicateMode(cursorMode);
@@ -491,13 +497,13 @@ function setSizeElement(bubble) {       // this sets up the single point functio
   var group = bubble.parentNode.parentNode;          // set group for mousemove
   thisGroup = group;
   thisElement = group.firstChild;    // this is the real element
-  if (cursorMode != 'curve') {
+  if (!((cursorMode == 'cubic') || (cursorMode == 'quadratic'))) {      // tagName will be 'path'
     cursorMode = thisElement.tagName;
   }
   showStatus('setSizeElement0', group);
   group.attributes['onmouseenter'].value = ''; // disable mouseover on real element's containing group
   group.attributes['onmouseleave'].value = ''; // disable mouseleaver on real element's containing group
-  if (cursorMode != 'curve') {
+  if (!((cursorMode == 'cubic') || (cursorMode == 'quadratic'))) {      // tagName will be 'path'
     if (group.childElementCount > 1) {         // if more than one child, we have bubbles
       group.lastChild.remove();      // remove ALL bubbles, since we are going to drop into drag radius
       showStatus('setSizeElement1', group);
@@ -632,16 +638,28 @@ function createBubbleGroup(group) {
       bubbleGroup.appendChild(createPointBubble(x1, y1, 'x1-y1'));     // this is the 1st line coordinate
       bubbleGroup.appendChild(createPointBubble(x2, y2, 'x2-y2'));    // this is the 2nd (terminal) line point
       return bubbleGroup;
-    case 'path':           // this is a major exception to the other cases, used for curve
+    case 'path':           // this is a major exception to the other cases, used for curve !! articulate for type !!
       var theseCurvePoints = element.attributes['d'].value;
-      var theseCoords = getCurveCoords(theseCurvePoints);       // stack control points after end points afterr helpers
+      var thisCurveTypeCubic = theseCurvePoints.indexOf('C ') > 0;
+      var theseCoords = getCurveCoords(theseCurvePoints);       // stack control points after end points after helpers
       bubbleGroup.appendChild(createControlLine(theseCoords[0], theseCoords[1], theseCoords[2], theseCoords[3], 'l1'));
+      if (!thisCurveTypeCubic) {          // if quadratic
+        theseCoords[6] = theseCoords[4];  // replicate p2
+        theseCoords[7] = theseCoords[5];  // into last coord set
+      }
+      theseCoords[2] = ((parseInt(theseCoords[0]) + parseInt(theseCoords[6])) / 2).toFixed();   // set to
+      theseCoords[3] = ((parseInt(theseCoords[1]) + parseInt(theseCoords[7])) / 2).toFixed();   // mean point
+      theseCoords[4] = theseCoords[2];
+      theseCoords[5] = theseCoords[3];
+
       bubbleGroup.appendChild(createControlLine(theseCoords[4], theseCoords[5], theseCoords[6], theseCoords[7], 'l2'));
       bubbleGroup.appendChild(createCurvePoly(theseCoords, 'poly'));
       bubbleGroup.appendChild(createCurveBubble(theseCoords[0], theseCoords[1], 'p1'));   // first endpoint
       bubbleGroup.appendChild(createCurveBubble(theseCoords[6], theseCoords[7], 'p2'));   // second endpoint
       bubbleGroup.appendChild(createCurveBubble(theseCoords[2], theseCoords[3], 'c1'));   // first control point
-      bubbleGroup.appendChild(createCurveBubble(theseCoords[4], theseCoords[5], 'c2'));   // second control point
+      if (thisCurveTypeCubic) {
+        bubbleGroup.appendChild(createCurveBubble(theseCoords[4], theseCoords[5], 'c2'));   // second control point
+      }
       return bubbleGroup;
     case 'polygon':
     case 'polyline':      // create a parallel structure to the point attr, using its coords
@@ -650,9 +668,8 @@ function createBubbleGroup(group) {
       var thisPoint = splitPoints[0].split(',');   // prime the pump for iteration
       thisX = parseFloat(thisPoint[0]);
       thisY = parseFloat(thisPoint[1]);
-      var nextPoint;                      // these are used to bound
-      nextX;                             // and calculate the intermediate
-      nextY;                            // insert new point bubbles in separate parallel group
+      var nextPoint;                      // nextX,nextY these are used to bound and calculate the intermediate
+    // insert new point bubbles in separate parallel group
       var newBubbleGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       for (var k = 0; k < splitPoints.length; k++) {    // append this point and an intermediary point
         //thisPoint  = splitPoints[k].split(',');
@@ -720,7 +737,7 @@ function createNewPointBubble(cx, cy, id) {    // used for <poly...> inter-verte
   return bubble;
 }
 
-function createCurveBubble(cx, cy, id) {    // used for <poly...> inter-vertex insert new point
+function createCurveBubble(cx, cy, id) {    // used for <path...> inter-vertex control point
   var bubble = createBubbleStub(cx, cy);
   bubble.setAttributeNS(null, 'r', bubbleRadius * 1.25);      // radius override for insertion point
   bubble.setAttributeNS(null, 'stroke', '#333333');     // not that great, use below
@@ -729,7 +746,7 @@ function createCurveBubble(cx, cy, id) {    // used for <poly...> inter-vertex i
   bubble.setAttributeNS(null, 'onmousedown', "setSizeElement(this);");    //  ///////////  change?
   bubble.setAttributeNS(null, 'onmouseup', 'exitEditPoint(thisGroup);');
   bubble.setAttributeNS(null, 'id', id);    // use this identifier to attach cursor in onSvgMouseMove
-                                            // will take the form: '0.5', '23.5' for <poly-...>
+                                            // will take the form: 'c1', 'c2' for <path-...>
   return bubble;
 }
 
@@ -744,7 +761,7 @@ function createControlLine(x1, y1, x2, y2, id) {
   return line;
 }
 
-function createCurvePoly(coords) {
+function createCurvePoly(coords) {        // used by createBubbleGroup.path
   var poly = createElement('polyline');
   poly.setAttributeNS(null, 'id', 'poly');
   poly.setAttributeNS(null, 'points', getCurvePoints(coords));
@@ -1125,7 +1142,7 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         + ',' + ((lastMouseY - yC) / zoom).toFixed(2).toString() + ' ';
       thisDraw.attributes['points'].value = thesePoints.concat(thisPoint);
     }
-    else if (cursorMode == 'curve') {
+    else if ((cursorMode == 'cubic') || (cursorMode == 'quadratic')) {
       lastMouseX = this.lastMousePoint.x;
       lastMouseY = this.lastMousePoint.y;
       if ((event.type == 'mousedown') || (svgInProgress == false)) {    // extra condition for line
@@ -1150,16 +1167,18 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
             theseCoords[7] = thisY;
             break;
           case 'c1':
-            theseCoords[2] = thisX;
-            theseCoords[3] = thisY;
+            theseCoords[2] = thisX;   //  technically (theseCoords[0] + theseCoords[6]) / 2
+            theseCoords[3] = thisY;   //  technically (theseCoords[0] + theseCoords[6]) / 2
             break;
           case 'c2':
-            theseCoords[4] = thisX;
-            theseCoords[5] = thisY;
+            theseCoords[4] = thisX;   //  technically (theseCoords[0] + theseCoords[6]) / 2
+            theseCoords[5] = thisY;   //  technically (theseCoords[0] + theseCoords[6]) / 2
             break;
         }
+        // 'd' is the string containing the path parameters; set it to the updated values
         thisElement.attributes['d'].value = getCurvePath(theseCoords[0], theseCoords[1], theseCoords[2], theseCoords[3],
           theseCoords[4], theseCoords[5], theseCoords[6], theseCoords[7]);
+        // now set the lines for the control points; two lines whether cubic or quadratic
         thisElement.parentElement.lastChild.children['l1'].attributes['x1'].value = theseCoords[0];
         thisElement.parentElement.lastChild.children['l1'].attributes['y1'].value = theseCoords[1];
         thisElement.parentElement.lastChild.children['l1'].attributes['x2'].value = theseCoords[2];
@@ -1168,15 +1187,21 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         thisElement.parentElement.lastChild.children['l2'].attributes['y1'].value = theseCoords[5];
         thisElement.parentElement.lastChild.children['l2'].attributes['x2'].value = theseCoords[6];
         thisElement.parentElement.lastChild.children['l2'].attributes['y2'].value = theseCoords[7];
+     // 'poly' is bounding polygon of endpoints and control points
         thisElement.parentElement.lastChild.children['poly'].attributes['points'].value = getCurvePoints(theseCoords);
       }
       else {
         var thisX2 = (lastMouseX - xC) / zoom;
         var thisY2 = (lastMouseY - yC) / zoom;
-        var theseCurvePoints = (thisElement.attributes['d'].value).split('C ');
+        var thisPathType = 'C ';
+        if (cursorMode == 'quadratic')  thisPathType = 'Q ';
+        var theseCurvePoints = (thisElement.attributes['d'].value).split(thisPathType);
         var thisC1 = theseCurvePoints[1].split(', ');
-        var thisD = theseCurvePoints[0] + ' C ' + curvePoint(thisC1[0], thisC1[1])
-          + curvePoint(thisX2, thisY2) + pathPoint(thisX2, thisY2);
+        var thisD = theseCurvePoints[0] + ' ' + thisPathType + curvePoint(thisC1[0], thisC1[1]);
+        if (cursorMode == 'cubic') {
+          thisD += curvePoint(thisX2, thisY2);
+        }
+        thisD += pathPoint(thisX2, thisY2);
         thisElement.attributes['d'].value = thisD;
       }
     }
@@ -1238,7 +1263,7 @@ SVGDraw.prototype.onSvgMouseUp = function (event) {
       svgInProgress = false;
       unbindMouseHandlers(self);
     }
-    else if (cursorMode == 'curve') {
+    else if ((cursorMode == 'cubic') || (cursorMode == 'quadratic')) {
       svgInProgress = false;
       setElementMouseOverOut(thisGroup);
       unbindMouseHandlers(self);
@@ -1326,7 +1351,7 @@ SVGDraw.prototype.doubleClickHandler = function () {
       switch (cursorMode) {
         case 'polygon':
           deleteDuplicatePoints(thisElement);
-          thisGroup.innerHTML = thisGroup.innerHTML.replace('polyline', 'polygon').replace('polyline', 'polygon')
+          thisGroup.innerHTML = thisGroup.innerHTML.replace('polyline', 'polygon').replace('polyline', 'polygon');
           setElementMouseOverOut(thisGroup);
           break;
         case 'polyline':
