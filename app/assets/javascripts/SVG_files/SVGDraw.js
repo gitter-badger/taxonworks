@@ -327,7 +327,7 @@ function getCurveCoords(d) {
   var j = 0;
   var coords = [];
   for (var k = 0; k < pieces.length; k++) {
-    if (isNumeric(pieces[k])) {
+    if (isNumeric(pieces[k])) {   // bypass the curve type symbol
       coords[j] = pieces[k];
       j++;
     }
@@ -379,7 +379,7 @@ function setEditElement(group) {    // add bubble elements to the group containi
   }
   else {                  // now that there are both cubic and quadratic curves, we must detect this one's type
     cursorMode = 'cubic';   // ///////// finesse path
-    if(group.firstChild.innerHTML.indexOf('C ') == -1) {
+    if(group.firstChild.attributes.d.value.indexOf('C ') == -1) {   // is the path a qudratic because it's not a cubic?
       cursorMode = 'quadratic';
     }
   }
@@ -640,24 +640,26 @@ function createBubbleGroup(group) {
       return bubbleGroup;
     case 'path':           // this is a major exception to the other cases, used for curve !! articulate for type !!
       var theseCurvePoints = element.attributes['d'].value;
-      var thisCurveTypeCubic = theseCurvePoints.indexOf('C ') > 0;
+      var thisCurveTypeQuadratic = theseCurvePoints.indexOf('Q ') > 0;
       var theseCoords = getCurveCoords(theseCurvePoints);       // stack control points after end points after helpers
-      bubbleGroup.appendChild(createControlLine(theseCoords[0], theseCoords[1], theseCoords[2], theseCoords[3], 'l1'));
-      if (!thisCurveTypeCubic) {          // if quadratic
+    // fill out both control points in either case
+      if (thisCurveTypeQuadratic) {          // if quadratic
         theseCoords[6] = theseCoords[4];  // replicate p2
         theseCoords[7] = theseCoords[5];  // into last coord set
+        theseCoords[4] = theseCoords[2];          // for both control points
+        theseCoords[5] = theseCoords[3];          // for control lines
       }
-      theseCoords[2] = ((parseInt(theseCoords[0]) + parseInt(theseCoords[6])) / 2).toFixed();   // set to
-      theseCoords[3] = ((parseInt(theseCoords[1]) + parseInt(theseCoords[7])) / 2).toFixed();   // mean point
-      theseCoords[4] = theseCoords[2];
-      theseCoords[5] = theseCoords[3];
-
+      //theseCoords[2] = ((parseInt(theseCoords[0]) + parseInt(theseCoords[6])) / 2).toFixed();   // set to
+      //theseCoords[3] = ((parseInt(theseCoords[1]) + parseInt(theseCoords[7])) / 2).toFixed();   // mean point
+    // create the lines between the control point(s) and the endpoints
+      bubbleGroup.appendChild(createControlLine(theseCoords[0], theseCoords[1], theseCoords[2], theseCoords[3], 'l1'));
       bubbleGroup.appendChild(createControlLine(theseCoords[4], theseCoords[5], theseCoords[6], theseCoords[7], 'l2'));
+    // create the "bounding" polygon  'poly'
       bubbleGroup.appendChild(createCurvePoly(theseCoords, 'poly'));
       bubbleGroup.appendChild(createCurveBubble(theseCoords[0], theseCoords[1], 'p1'));   // first endpoint
       bubbleGroup.appendChild(createCurveBubble(theseCoords[6], theseCoords[7], 'p2'));   // second endpoint
       bubbleGroup.appendChild(createCurveBubble(theseCoords[2], theseCoords[3], 'c1'));   // first control point
-      if (thisCurveTypeCubic) {
+      if (!thisCurveTypeQuadratic) {
         bubbleGroup.appendChild(createCurveBubble(theseCoords[4], theseCoords[5], 'c2'));   // second control point
       }
       return bubbleGroup;
@@ -1149,6 +1151,8 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         return;
       }
       this.updateMousePosition(event);
+      var thisDvalue = thisElement.attributes['d'].value;
+      var thisCurveQuadratic = thisDvalue.indexOf('Q ') > 0;
       if (thisBubble != null) {       // look for bubble to denote just move THIS point only
         // currently, no distinction is made between existing vertex and new point
         // however, this may change in the future JRF 23NOV15
@@ -1156,7 +1160,13 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         var thisY = (lastMouseY - yC) / zoom;
         thisBubble.attributes['cx'].value = thisX;     // translate the bubble
         thisBubble.attributes['cy'].value = thisY;
-        var theseCoords = getCurveCoords(thisElement.attributes['d'].value);
+        var theseCoords = getCurveCoords(thisDvalue);
+        if (thisCurveQuadratic){    // populate cubic curve coordinates from quadratic values
+          theseCoords[6] = theseCoords[4];
+          theseCoords[7] = theseCoords[5];
+          theseCoords[4] = theseCoords[2];
+          theseCoords[5] = theseCoords[3];
+        }
         switch (thisBubble.id) {
           case 'p1':
             theseCoords[0] = thisX;
@@ -1190,14 +1200,22 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
      // 'poly' is bounding polygon of endpoints and control points
         thisElement.parentElement.lastChild.children['poly'].attributes['points'].value = getCurvePoints(theseCoords);
       }
-      else {
+      else {    // defining initial curve as straight line
         var thisX2 = (lastMouseX - xC) / zoom;
         var thisY2 = (lastMouseY - yC) / zoom;
-        var thisPathType = 'C ';
-        if (cursorMode == 'quadratic')  thisPathType = 'Q ';
-        var theseCurvePoints = (thisElement.attributes['d'].value).split(thisPathType);
-        var thisC1 = theseCurvePoints[1].split(', ');
-        var thisD = theseCurvePoints[0] + ' ' + thisPathType + curvePoint(thisC1[0], thisC1[1]);
+        var thisPathType = ' C ';              // set quadratic control point at midpoint, cubic at p1 and p2
+        if (cursorMode == 'quadratic')  thisPathType = ' Q ';
+        var theseCurvePoints = thisDvalue.split(thisPathType);      // isolate control point(s) and p2
+        var thisP1 = theseCurvePoints[0].split('M ');               // isolate p1
+        thisP1 = thisP1[1].split(', ');
+        var theseControlPoints = theseCurvePoints[1].split(', ');              // get array of x,y,x,y(,x,y)
+        if (thisPathType == ' Q ') {
+          theseControlPoints[0] = ((parseInt(thisP1[0]) + thisX2) / 2).toFixed();
+          theseControlPoints[1] = ((parseInt(thisP1[1]) + thisY2) / 2).toFixed();
+        }
+        //theseCoords[2] = ((parseInt(theseCoords[0]) + parseInt(theseCoords[6])) / 2).toFixed();   // set to
+        //theseCoords[3] = ((parseInt(theseCoords[1]) + parseInt(theseCoords[7])) / 2).toFixed();   // mean point
+        var thisD = theseCurvePoints[0] + thisPathType + curvePoint(theseControlPoints[0], theseControlPoints[1]);
         if (cursorMode == 'cubic') {
           thisD += curvePoint(thisX2, thisY2);
         }
