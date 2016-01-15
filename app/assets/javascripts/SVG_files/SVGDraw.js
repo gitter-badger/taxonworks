@@ -319,7 +319,7 @@ function getCurvePath(x1, y1, cx1, cy1, cx2, cy2, x2, y2) {
     return "M " + pathPoint(x1, y1) + " C " + curvePoint(cx1, cy1)
       + curvePoint(cx2, cy2) + pathPoint(x2, y2);
   }
-  else return "M " + pathPoint(x1, y1) + " Q " + curvePoint(cx2, cy2) + pathPoint(x2, y2);
+  else return "M " + pathPoint(x1, y1) + " Q " + curvePoint(cx1, cy1) + pathPoint(x2, y2);
 }
 
 function getCurveCoords(d) {
@@ -1161,49 +1161,53 @@ SVGDraw.prototype.updateSvgByElement = function (event) {
         thisBubble.attributes['cx'].value = thisX;     // translate the bubble
         thisBubble.attributes['cy'].value = thisY;
         var theseCoords = getCurveCoords(thisDvalue);
-        if (thisCurveQuadratic){    // populate cubic curve coordinates from quadratic values
-          theseCoords[6] = theseCoords[4];
-          theseCoords[7] = theseCoords[5];
-          theseCoords[4] = theseCoords[2];
-          theseCoords[5] = theseCoords[3];
+        if (thisCurveQuadratic){
+          theseCoords[6] = theseCoords[4];    // populate cubic curve p2
+          theseCoords[7] = theseCoords[5];    // coordinates from quadratic values
         }
         switch (thisBubble.id) {
           case 'p1':
-            theseCoords[0] = thisX;
-            theseCoords[1] = thisY;
+            theseCoords[0] = thisX.toFixed();
+            theseCoords[1] = thisY.toFixed();
             break;
           case 'p2':
-            theseCoords[6] = thisX;
-            theseCoords[7] = thisY;
+            theseCoords[6] = thisX.toFixed();
+            theseCoords[7] = thisY.toFixed();
             break;
           case 'c1':
-            theseCoords[2] = thisX;   //  technically (theseCoords[0] + theseCoords[6]) / 2
-            theseCoords[3] = thisY;   //  technically (theseCoords[0] + theseCoords[6]) / 2
+            theseCoords[2] = thisX.toFixed();
+            theseCoords[3] = thisY.toFixed();
             break;
           case 'c2':
-            theseCoords[4] = thisX;   //  technically (theseCoords[0] + theseCoords[6]) / 2
-            theseCoords[5] = thisY;   //  technically (theseCoords[0] + theseCoords[6]) / 2
+            theseCoords[4] = thisX.toFixed();
+            theseCoords[5] = thisY.toFixed();
             break;
+        }
+        if (thisCurveQuadratic){    // populate cubic curve control points from quadratic values
+          theseCoords[4] = theseCoords[2];
+          theseCoords[5] = theseCoords[3];
         }
         // 'd' is the string containing the path parameters; set it to the updated values
         thisElement.attributes['d'].value = getCurvePath(theseCoords[0], theseCoords[1], theseCoords[2], theseCoords[3],
-          theseCoords[4], theseCoords[5], theseCoords[6], theseCoords[7]);
-        // now set the lines for the control points; two lines whether cubic or quadratic
+          theseCoords[4], theseCoords[5], theseCoords[6], theseCoords[7]);    // responds to both C and Q curves
+        // now set the lines for the control points; two lines (l1 and l2) whether cubic or quadratic
         thisElement.parentElement.lastChild.children['l1'].attributes['x1'].value = theseCoords[0];
         thisElement.parentElement.lastChild.children['l1'].attributes['y1'].value = theseCoords[1];
         thisElement.parentElement.lastChild.children['l1'].attributes['x2'].value = theseCoords[2];
         thisElement.parentElement.lastChild.children['l1'].attributes['y2'].value = theseCoords[3];
+
         thisElement.parentElement.lastChild.children['l2'].attributes['x1'].value = theseCoords[4];
         thisElement.parentElement.lastChild.children['l2'].attributes['y1'].value = theseCoords[5];
         thisElement.parentElement.lastChild.children['l2'].attributes['x2'].value = theseCoords[6];
         thisElement.parentElement.lastChild.children['l2'].attributes['y2'].value = theseCoords[7];
-     // 'poly' is bounding polygon of endpoints and control points
-        thisElement.parentElement.lastChild.children['poly'].attributes['points'].value = getCurvePoints(theseCoords);
+
+        thisElement.parentElement.lastChild.children['poly'].attributes['points'].value = getCurvePoints(theseCoords)
+          + theseCoords[0] + ', ' + theseCoords[1];     // 'poly' is bounding polygon of endpoints and control points
       }
-      else {    // defining initial curve as straight line
+      else {    // defining initial curve as straight line, i.e., rubber-banding p2 until mouseup
         var thisX2 = (lastMouseX - xC) / zoom;
         var thisY2 = (lastMouseY - yC) / zoom;
-        var thisPathType = ' C ';              // set quadratic control point at midpoint, cubic at p1 and p2
+        var thisPathType = ' C ';              // set quadratic control point at midpoint, cubic's at p1 and p2
         if (cursorMode == 'quadratic')  thisPathType = ' Q ';
         var theseCurvePoints = thisDvalue.split(thisPathType);      // isolate control point(s) and p2
         var thisP1 = theseCurvePoints[0].split('M ');               // isolate p1
