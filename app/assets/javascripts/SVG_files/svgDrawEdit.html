@@ -49,7 +49,7 @@
          Librarization:  data- elements to define configuration
          auto-generate html
          only require a div with data- elements
-         JSON configuration?
+         JSON configuration? Is grabtag JSON? review again!
 
          // bounds check on move (in svgDraw.js) ?
          // capture svg data - DONE, then removed
@@ -64,6 +64,7 @@
         var zoom = 0.2;         ///////////////////////////  should be set on initialization from baseZoom @ full image
         var baseStrokeWidth = 1;
         var baseBubbleRadius = 6;
+        // transform below to functions?
         var strokeWidth = (baseStrokeWidth / zoom).toString();    // dynamically recomputed with zoom (not this one)
         var bubbleRadius = (baseBubbleRadius / zoom).toString(); // and transcoded from/to string (may not be required)
         var baseZoom = 0.2;         ///////////////////////////// should be calculated from svg and image attributes
@@ -106,7 +107,7 @@
             indicateMode(cursorMode);
             document.getElementById("text4svg").onkeyup = updateSvgText;
         });
-        svgImage.onload = function () {
+        svgImage.onload = function () {             ///////// how to transfer this into self-populating version?
 //        $(svgImage).load(function () {
             xC = 0;
             yC = 0;
@@ -150,8 +151,8 @@
                 <ul class="nav">
                     <li class="active">Annotate image using heavily modified sketcher app using its mouse events
                         structure<br>
-                        with scroll zoom. Implemented: Text, Circle, Ellipse, Polygon, Polyline, Rectangle, Line and
-                        Draw.
+                        with scroll zoom. Implemented: Text, Circle, Ellipse, Polygon, Polyline, Rectangle, Line, Cubic,
+                         Quadratic, and Draw.
                     </li>
                 </ul>
 
