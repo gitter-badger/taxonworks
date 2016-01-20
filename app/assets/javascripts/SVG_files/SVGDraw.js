@@ -1367,26 +1367,47 @@ SVGDraw.prototype.onSvgMouseUp = function (event) {
 
 SVGDraw.prototype.doubleClickHandler = function () {
   var self = this;
-  return function (event) {
-    if ((cursorMode == 'polygon') || (cursorMode == 'polyline')) {
-      svgInProgress = false;
-      switch (cursorMode) {
-        case 'polygon':
-          deleteDuplicatePoints(thisElement);
-          thisGroup.innerHTML = thisGroup.innerHTML.replace('polyline', 'polygon').replace('polyline', 'polygon');
-          setElementMouseOverOut(thisGroup);
-          break;
-        case 'polyline':
-          deleteDuplicatePoints(thisElement);
-          setElementMouseOverOut(thisGroup);
-          break;
-      }
-      thisElement = null;
-      thisGroup = null;
-      unbindMouseHandlers(self);
-    }
-  }
+  //return function () {
+  //  if ((cursorMode == 'polygon') || (cursorMode == 'polyline')) {
+  //    svgInProgress = false;
+  //    switch (cursorMode) {
+  //      case 'polygon':
+  //        deleteDuplicatePoints(thisElement);
+  //        thisGroup.innerHTML = thisGroup.innerHTML.replace('polyline', 'polygon').replace('polyline', 'polygon');
+  //        setElementMouseOverOut(thisGroup);
+  //        break;
+  //      case 'polyline':
+  //        deleteDuplicatePoints(thisElement);
+  //        setElementMouseOverOut(thisGroup);
+  //        break;
+  //    }
+  //    thisElement = null;
+  //    thisGroup = null;
+  //    unbindMouseHandlers(self);
+  //  }
+  //}
+return function () {dblClick()}
 };
+
+function dblClick() {
+  if ((cursorMode == 'polygon') || (cursorMode == 'polyline')) {
+    svgInProgress = false;
+    switch (cursorMode) {
+      case 'polygon':
+        deleteDuplicatePoints(thisElement);
+        thisGroup.innerHTML = thisGroup.innerHTML.replace('polyline', 'polygon').replace('polyline', 'polygon');
+        setElementMouseOverOut(thisGroup);
+        break;
+      case 'polyline':
+        deleteDuplicatePoints(thisElement);
+        setElementMouseOverOut(thisGroup);
+        break;
+    }
+    thisElement = null;
+    thisGroup = null;
+    unbindMouseHandlers(self);
+  }
+}
 
 SVGDraw.prototype.mouseWheelScrollHandler = function() {
   var self = this;
