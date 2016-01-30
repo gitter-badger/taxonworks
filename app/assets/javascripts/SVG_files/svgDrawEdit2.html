@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <!--<meta name=viewport-->
+          <!--content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">-->
+
+    <title>HTML5 draw and drag</title>
+
+    <!--<script src="http://code.jquery.com/jquery-1.11.3.min.js">// js/jquery-1.7.min.js"</script>-->
+    <script src="modernizr.custom.34982.js"></script>
+    <script src = "Mousetrap.js"></script>
+    <script src="SVGDraw.js"></script>
+    <!--<script src="js/trigonometry.js"></script>-->
+
+    <link rel="stylesheet" href="assets/bootstrap.css"/>
+    <link rel="stylesheet" href="assets/styles.css"/>
+
+    <script>
+        /*
+         Discussion/tradeoff issues with SVGDraw as of 01DEC2015:
+
+         Scale and normalize image to container (only partially correct now)
+         (aspect ratio compensation source to target svg)
+         Explicit edit mode versus auto mouseenter
+         Specific style parameters per svg element type
+         "Semantic" zoom applied to bubbles on creation (vis a vis real-time)
+         Tableau of function mode buttons/indicators
+         HOT-KEYS for: abort last individual point (e.g., escape)
+            return cursor to previous point
+            escape at initial point aborts element?
+            on edit of poly-element, only allow one reversion of currently edited point
+              (use same mechanism?  i.e., stash reversion point on creation - no, this is a sequenced element)
+         abort last element (e.g., delete)
+         finish current element (e.g., enter)
+         ^B to move current element to bottom
+         enter/inhibit mouse"over" editing
+         SPACE held down to drag-pan
+         Export svg markup (currently elements are partially corrupted)
+         Packaging:
+         verbatim
+         style vs element segregation
+
+         "Stacking" issues - tokenize elements for selection outside the image.
+         Move [element] to the top function
+         After the fact grouping
+         Eliminate jQuery? - DONE
+         Color picker
+         Measurement specifier and tool (caliper)
+         +/- 90 degree text orientation
+         ARROW super-element
+
+         Libraryization:  data- elements to define configuration
+         auto-generate html
+         only require a div with data- elements
+         JSON configuration? Is grabtag JSON? review again!
+
+         // bounds check on move (in svgDraw.js) ?
+         // capture svg data - DONE, then removed
+         // source image from http://
+
+         */
+//        var svgDraw = null;
+//        var xC = 0;
+//        var yC = 0;
+//        var cursorMode = "MOVE";
+//        var cursorColor = '#ff0000'
+//        var zoom = 0.2;         ///////////////////////////  should be set on initialization from baseZoom @ full image
+//        var baseStrokeWidth = 1;
+//        var baseBubbleRadius = 6;
+//        // transform below to functions?
+//        var strokeWidth = (baseStrokeWidth / zoom).toString();    // dynamically recomputed with zoom (not this one)
+//        var bubbleRadius = (baseBubbleRadius / zoom).toString(); // and transcoded from/to string (may not be required)
+//        var baseZoom = 0.2;         ///////////////////////////// should be calculated from svg and image attributes
+//        var maxZoom = 4;        // this is 4 pixels per source image pixel
+//        var zoomDelta = 0.02;   // this can be altered to discriminate legacy firefox dommousescroll event
+        var svgImage = new Image();
+//        var thisSvg = [];            // collect points as [x,y]
+//        var svgOffset;              // set on document ready ////////// test against fully packaged code
+//
+//        var thisSvgText;            // pointer to svg text element currently being populated
+//        var textHeight = 75;
+//        var textFont = 'Verdana';
+//
+//        var waitElement = false;   // interlock flag to prevent mouseenter mode change after selecting a create mode
+//
+//        var thisGroup;              // should be the parent of the current element
+//
+//        var savedCursorMode = cursorMode;
+//
+        var thisElement;              // should be the current element
+//
+//        var thisBubble;             // the bubble mousedown-ed in the currently edited element
+//
+        var svgInProgress = false;
+//
+//        var lastMouseX;
+//        var lastMouseY;
+//
+//        var logMouse = false;       // debug
+//        var logStatus = false;      // flags
+//        var logIndex = 0;           // limit counter for above
+        //        svgImage.src = "../../../../spec/support/images/frost_stage.jpg";
+        svgImage.src = 'frost_stage.jpg';  //'tiger.svg';     // 'stitch-3.tif';
+        document.addEventListener("DOMContentLoaded", function(event) {
+            svgDraw = new SVGDraw("svgLayer");
+            svgOffset = {
+                top: document.getElementById(svgDraw.canvasID).parentNode.style.top.split('px')[0],
+                left: document.getElementById(svgDraw.canvasID).parentNode.style.left.split('px')[0]
+            };
+            indicateMode(cursorMode);
+            document.getElementById("text4svg").onkeyup = updateSvgText;
+            Mousetrap.bind('enter', svgDraw.doubleClickHandler());     // invokes handler vs handler's returned function
+        });
+        svgImage.onload = function () {             ///////// how to transfer this into self-populating version?
+//        $(svgImage).load(function () {
+            xC = 0;
+            yC = 0;
+            baseZoom = document.getElementById('svgLayer').width.baseVal.value / svgImage.width;     // in general more complicated than this
+            zoom = baseZoom;
+            lastMouseX = baseZoom * svgImage.width / 2;
+            lastMouseY = baseZoom * svgImage.height / 2;
+            // insert the svg base image into the transformable group <g id='xlt'>
+            var xlt = document.getElementById('xlt');
+            var xltImage = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+            xltImage.setAttributeNS(null, 'id', "xltImage");
+            xltImage.setAttributeNS(null, 'x', "0");
+            xltImage.setAttributeNS(null, 'y', "0");
+            xltImage.setAttributeNS(null, 'width', svgImage.width.toString());
+            xltImage.setAttributeNS(null, 'height', svgImage.height.toString());
+            xltImage.setAttributeNS(null, 'preserveAspectRatio', "none");
+            xltImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', svgImage.src);
+            xlt.appendChild(xltImage);
+            zoom_trans(0, 0, zoom);             //////////// IMPORTANT !!!!!!!!!!!
+
+            setMove();
+        };
+
+    </script>
+    <style type='text/css'>
+        #container {
+            overflow: hidden;
+            width: 800px;
+            height: 600px;
+        }
+    </style>
+
+</head>
+
+<div class="topbar-wrapper" style="z-index: 5;">
+    <div class="topbar" data-dropdown="dropdown">
+        <div class="topbar-inner">
+            <div class="container">
+                <h3><a href="#">Image annotation using direct overlay on svg root element</a></h3>
+
+                <ul class="nav">
+                    <li class="active">Annotate image using heavily modified sketcher app using its mouse events
+                        structure<br>
+                        with scroll zoom. Implemented: Text, Circle, Ellipse, Polygon, Polyline, Rectangle, Line, Cubic,
+                         Quadratic, and Draw.
+                    </li>
+                </ul>
+
+                <ul class="nav secondary-nav"><!-- this should be generated and inserted from configuration code -->
+                    <input type="button" class="btn error" value="Clear Last Element" onclick="clearGroup();"/>
+                    <input type="button" class="btn error" value="Polygon" onclick="setCursorMode('polygon');"/>
+                    <input type="button" class="btn error" value="Polyline" onclick="setCursorMode('polyline');"/>
+                    <input type="button" class="btn error" value="Rectangle" onclick="setCursorMode('rect');"/>
+                    <input type="button" class="btn error" value="Line" onclick="setCursorMode('line');"/>
+                    <input type="button" class="btn error" value="Circle" onclick="setCursorMode('circle');"/>
+                    <input type="button" class="btn error" value="Ellipse" onclick="setCursorMode('ellipse');"/>
+                    <input type="button" class="btn error" value="Draw" onclick="setCursorMode('draw');"/>
+                    <input type="button" class="btn error" value="Cubic" onclick="setCursorMode('cubic');"/>
+                    <input type="button" class="btn error" value="Quadratic" onclick="setCursorMode('quadratic');"/>
+                    <span id="mode"></span>
+                    <input type="button" value="Move" onclick="setCursorMode('MOVE');"/>
+                    <input type="button" value="Text" onclick="setTextMode();"/>
+                    <input type="button" value="Zoom IN" onclick="zoomIn();"/>
+                    <span id="zoom">Zoom: ---</span>
+                    <input type="button" value="Zoom OUT" onclick="zoomOut();"/>
+                    Text size:
+                    <input id=textSize type="number" min="5" max="300" step="5" value="75" style="width: 4em"
+                           onchange="textHeight=this.value;"/>
+                    <input type="text" id="text4svg" disabled/>
+                    <br>
+                    <input type="button" id="setRed" style="background-color: #FF0000"
+                           onclick="setCursorColor('#FF0000');"/>
+                    <input type="button" id="setBlue" style="background-color: #0000FF"
+                           onclick="setCursorColor('#0000FF');"/>
+                    <input type="button" id="setGreen" style="background-color: #00FF00"
+                           onclick="setCursorColor('#00FF00');"/>
+                    <input type="button" id="setBlack" style="background-color: #000000"
+                           onclick="setCursorColor('#000000');"/>
+                    <input id="userColor" type="text" value="#666666" style="width: 5em"
+                           onchange="/*setCursorColor(this.value);*/ setUserColor(this.value);"/>
+                    <input type="button" id="setUserColor" style="background-color: #666666"
+                           onclick="setCursorColor(getUserColor());"/> Selected Color:
+                    <input type="button" id="cursorColor" style="background-color: #FF0000"/>
+
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /topbar-inner -->
+    </div>
+    <!-- /topbar -->
+</div>
+<div id="container" style="overflow: hidden; left: 50px; top: 175px; position: absolute;">
+    <svg id="svgLayer" width="800" height="600" xmlns="http://www.w3.org/2000/svg" version="1.1"
+         style="position: inherit;">
+        <g id="xlt" transform="translate(0,0)scale(0.20)"><!-- this should be generated and inserted by init JS code -->
+        </g>
+    </svg>
+</div>
+<div style="top: 775px; position: absolute;"><!-- debug output area -->
+    <span id="coords"></span><br/><span id="mouseStatus"></span>
+</div>
+</body>
+</html>

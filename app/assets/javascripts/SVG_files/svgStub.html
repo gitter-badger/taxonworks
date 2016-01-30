@@ -1,0 +1,27 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>HTML5 draw and drag</title>
+    <script src="modernizr.custom.34982.js"></script>
+    <script src = "Mousetrap.js"></script>
+    <script src="SVGDraw2.js"></script>
+</head>
+<body>
+<div id="container" style="overflow: hidden; left: 50px; top: 175px; position: absolute;" width="1000" height="750"
+        data-image="frost_stage.jpg"
+        data-buttons='{"buttons": [
+            {"function": "polygon", "color": "FF0000"},
+            {"function": "polyline", "color": "FF0000"},
+            {"function": "line", "color": "FF0000"},
+            {"function": "rectangle", "color": "FF0000"},
+            {"function": "circle", "color": "FF0000"},
+            {"function": "ellipse", "color": "FF0000"},
+            {"function": "cubic", "color": "FF0000"}
+            {"function": "quadratic", "color": "FF0000"}
+        ]}'>
+</div>
+<script>
+    var svgDraw = new SVGDraw(document.getElementById("container"));
+</script>
+</body>
+</html>
