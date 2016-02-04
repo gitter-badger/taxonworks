@@ -25,17 +25,25 @@ var thisGroup;              // should be the parent of the current element
 
 var savedCursorMode = cursorMode;
 
-//var thisElement;              // should be the current element
+var thisElement;              // should be the current element
 
 var thisBubble;             // the bubble mousedown-ed in the currently edited element
 
-//var svgInProgress = false;
+var svgInProgress = false;
 
 var lastMouseX;
 var lastMouseY;
 
+var logMouse = false;       // debug
+var logStatus = false;      // flags
+var logIndex = 0;           // limit counter for above
+
 function SVGDraw(containerID) {     // container:<svgLayer>:<xlt>:<svgImage>
   // contruct svgLayer from container's attributes and data-attributes
+  //////////
+  //  Previous version pssed svgLayer as argument, not container
+  //  therefore we must "step in" one level to bind handlers to the correct object
+  //////////
   /*
    Discussion/tradeoff issues with SVGDraw as of 01DEC2015:
 
@@ -101,7 +109,7 @@ function SVGDraw(containerID) {     // container:<svgLayer>:<xlt>:<svgImage>
   textHeight = 75;
   textFont = 'Verdana';
 
-  waitElement = false;   // interlock flag to prevent mouseenter mode change after selecting a create mode
+  //waitElement = false;   // interlock flag to prevent mouseenter mode change after selecting a create mode
 
   //var thisGroup;              // should be the parent of the current element
 
@@ -111,18 +119,15 @@ function SVGDraw(containerID) {     // container:<svgLayer>:<xlt>:<svgImage>
 
   //var thisBubble;             // the bubble mousedown-ed in the currently edited element
 
-  svgInProgress = false;
+  //svgInProgress = false;
 
   //var lastMouseX;
   //var lastMouseY;
 
-  var cWidth = parseInt(containerID.attributes['width'].value);
-  var cHeight = parseInt(containerID.attributes['height'].value);
+  var cWidth = parseInt(containerID.attributes['data-width'].value);
+  var cHeight = parseInt(containerID.attributes['data-height'].value);
 
 
-  var logMouse = false;       // debug
-  var logStatus = false;      // flags
-  var logIndex = 0;           // limit counter for above
   svgImage.src = containerID.attributes['data-image'].value;
 
   //document.addEventListener("DOMContentLoaded", function(event) {
@@ -148,12 +153,15 @@ function SVGDraw(containerID) {     // container:<svgLayer>:<xlt>:<svgImage>
 
   var svgLayer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svgLayer.setAttributeNS(null, 'id', 'svgLayer');
+  svgLayer.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svgLayer.setAttributeNS(null, 'version', '1.1');
   svgLayer.setAttributeNS(null, 'style', 'position: inherit;');
   svgLayer.setAttributeNS(null, 'width', cWidth);
   svgLayer.setAttributeNS(null, 'height', cHeight);
   containerID.appendChild(svgLayer);
 
-  baseZoom = document.getElementById('svgLayer').width.baseVal.value / svgImage.width;     // in general more complicated than this
+  //baseZoom = document.getElementById('svgLayer').width.baseVal.value / svgImage.width;     // in general more complicated than this
+  baseZoom = svgLayer.width.baseVal.value / svgImage.width;     // in general more complicated than this
   zoom = baseZoom;
 
   strokeWidth = (baseStrokeWidth / zoom).toString();    // dynamically recomputed with zoom (not this one)
@@ -201,7 +209,9 @@ function SVGDraw(containerID) {     // container:<svgLayer>:<xlt>:<svgImage>
 
     //this.canvas.bind('dblclick', this.doubleClickHandler());
     //$("#" + canvasID).bind('dblclick', this.doubleClickHandler());
-    var objCanvas = document.getElementById(canvasID);      // replace jquery references
+    //var objCanvas = document.getElementById(containerID);      // replace jquery references
+    //var objCanvas = containerID;      // replace jquery references
+    var objCanvas = svgLayer;      // replace jquery references
     objCanvas.ondblclick = this.doubleClickHandler();       // replace jquery reference
 
     //this.canvas.bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
