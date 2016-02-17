@@ -1,7 +1,66 @@
+// contruct svgLayer from container's attributes and data-attributes
+//////////
+//  Previous version pssed svgLayer as argument, not container
+//  therefore we must "step in" one level to bind handlers to the correct object
+//////////
+/*
+ Discussion/tradeoff issues with SVGDraw as of 17FEB2016:
+
+Priorities (JRF):
+ 1. BUG text broken after integration of Mousetrap (just discovered in testing)
+ 2. BUG need encapsulated listener for image load complete, otherwise scaling faults, etc.
+ 3. (a) below
+ 4. (e) below in progress but currently suspended
+ 5. (f) below, f.v implemented; f.i/ii, f.vi
+ 6. (l) below
+ 7. (g) below
+
+Features/Issues:
+a. Scale and normalize image to container (only partially correct now)
+ (aspect ratio compensation source to target svg)
+b. Explicit edit mode versus auto mouseenter
+c. Specific style parameters per svg element type
+d. "Semantic" zoom applied to bubbles on creation (vis a vis real-time)
+e. Tableau of function mode buttons/indicators
+  (auto-build controls on invocation from div data- element)
+f. HOT-KEYS for: abort last individual point (e.g., escape)
+ i. return cursor to previous point (what key/combination?)
+ ii. escape at initial point aborts element? combine with (i)?
+ iii. on edit of poly-element, only allow one reversion of currently edited point
+ (use same mechanism?  i.e., stash reversion point on creation - no, this is a sequenced element)
+ iv. abort last/current element (e.g., delete)
+ v. finish current element (e.g., enter)
+ vi. ^B to move current element to bottom
+   (or Move [element] to the top function - harder to make sure it works)
+ vii. enter/inhibit mouse"over" editing
+ viii. SPACE held down to drag-pan
+g. Export svg markup (currently elements are partially corrupted)
+ Packaging:
+ verbatim
+ style vs element segregation
+
+h. "Stacking" issues - tokenize elements for selection outside the image.
+i. After the fact grouping
+j. Eliminate jQuery? - DONE
+k. Color picker
+l. Measurement specifier and tool (caliper)
+m. +/- 90 degree text orientation
+n. ARROW super-element
+
+ Libraryization:  data- elements to define configuration
+ auto-generate html
+ only require a div with data- elements
+ JSON configuration? Is grabtag JSON? review again!
+
+ // bounds check on move (in svgDraw.js) ?
+ // capture svg data - DONE, then removed due to closing tag artifact in DOM
+ // source image from http://
+
+ */
 var xC = 0;
 var yC = 0;
 var cursorMode = "MOVE";
-var cursorColor = '#ff0000'
+var cursorColor = '#ff0000';
 var zoom;         ///////////////////////////  = 0.2 should be set on initialization from baseZoom @ full image
 var baseStrokeWidth = 1;
 var baseBubbleRadius = 6;
@@ -39,54 +98,6 @@ var logStatus = false;      // flags
 var logIndex = 0;           // limit counter for above
 
 function SVGDraw(containerID) {     // container:<svgLayer>:<xlt>:<svgImage>
-  // contruct svgLayer from container's attributes and data-attributes
-  //////////
-  //  Previous version pssed svgLayer as argument, not container
-  //  therefore we must "step in" one level to bind handlers to the correct object
-  //////////
-  /*
-   Discussion/tradeoff issues with SVGDraw as of 01DEC2015:
-
-   Scale and normalize image to container (only partially correct now)
-   (aspect ratio compensation source to target svg)
-   Explicit edit mode versus auto mouseenter
-   Specific style parameters per svg element type
-   "Semantic" zoom applied to bubbles on creation (vis a vis real-time)
-   Tableau of function mode buttons/indicators
-   HOT-KEYS for: abort last individual point (e.g., escape)
-   return cursor to previous point
-   escape at initial point aborts element?
-   on edit of poly-element, only allow one reversion of currently edited point
-   (use same mechanism?  i.e., stash reversion point on creation - no, this is a sequenced element)
-   abort last element (e.g., delete)
-   finish current element (e.g., enter)
-   ^B to move current element to bottom
-   enter/inhibit mouse"over" editing
-   SPACE held down to drag-pan
-   Export svg markup (currently elements are partially corrupted)
-   Packaging:
-   verbatim
-   style vs element segregation
-
-   "Stacking" issues - tokenize elements for selection outside the image.
-   Move [element] to the top function
-   After the fact grouping
-   Eliminate jQuery? - DONE
-   Color picker
-   Measurement specifier and tool (caliper)
-   +/- 90 degree text orientation
-   ARROW super-element
-
-   Libraryization:  data- elements to define configuration
-   auto-generate html
-   only require a div with data- elements
-   JSON configuration? Is grabtag JSON? review again!
-
-   // bounds check on move (in svgDraw.js) ?
-   // capture svg data - DONE, then removed
-   // source image from http://
-
-   */
   //var svgDraw/* = null*/;
   //var xC = 0;
   //var yC = 0;
@@ -105,7 +116,7 @@ function SVGDraw(containerID) {     // container:<svgLayer>:<xlt>:<svgImage>
   thisSvg = [];            // collect points as [x,y]
   //var svgOffset;              // set on document ready ////////// test against fully packaged code
 
-  thisSvgText;            // pointer to svg text element currently being populated
+  //thisSvgText;            // pointer to svg text element currently being populated
   textHeight = 75;
   textFont = 'Verdana';
 
