@@ -20,7 +20,7 @@ a. Scale and normalize image to container (only partially correct now)
  (aspect ratio compensation source to target svg)
 b. Explicit edit mode versus auto mouseenter
 c. Specific style parameters per svg element type
-d. "Semantic" zoom applied to bubbles on creation (vis a vis real-time)
+d. DONE "Semantic" zoom applied to bubbles on creation (vis a vis real-time)
 e. Tableau of function mode buttons/indicators
   (auto-build controls on invocation from div data- element)
 f. HOT-KEYS for: abort last individual point (e.g., escape)
@@ -34,7 +34,7 @@ f. HOT-KEYS for: abort last individual point (e.g., escape)
    (or Move [element] to the top function - harder to make sure it works)
  vii. enter/inhibit mouse"over" editing
  viii. SPACE held down to drag-pan
-g. Export svg markup (currently elements are partially corrupted)
+g. Export svg markup (currently elements are partially corrupted - i.e., incomplete end tag)
  Packaging:
  verbatim
  style vs element segregation
@@ -140,104 +140,105 @@ function SVGDraw(containerID) {     // container:<svgLayer>:<xlt>:<svgImage>
 
 
   svgImage.src = containerID.attributes['data-image'].value;
+  var self = this;
+  svgImage.onload = function(event) {
+    //svgDraw = new SVGDraw("svgLayer");
+    //svgOffset = {
+    //  top: document.getElementById(containerID).style.top.split('px')[0],
+    //  left: document.getElementById(containerID).style.left.split('px')[0]
+    //};
 
-  //document.addEventListener("DOMContentLoaded", function(event) {
-  //svgDraw = new SVGDraw("svgLayer");
-  //svgOffset = {
-  //  top: document.getElementById(containerID).style.top.split('px')[0],
-  //  left: document.getElementById(containerID).style.left.split('px')[0]
-  //};
-  svgOffset = {
-    top: containerID.offsetTop,   // .split('px')[0],
-    left: containerID.offsetLeft  // .split('px')[0]
-  };
-  //indicateMode(cursorMode);
-  //document.getElementById("text4svg").onkeyup = updateSvgText;
-  Mousetrap.bind('enter', this.doubleClickHandler());     // invokes handler vs handler's returned function
-  //});
-  //  svgImage.onload = function () {             ///////// how to transfer this into self-populating version?
+    svgOffset = {
+      top: containerID.offsetTop,   // .split('px')[0],
+      left: containerID.offsetLeft  // .split('px')[0]
+    };
+    //indicateMode(cursorMode);
+    //document.getElementById("text4svg").onkeyup = updateSvgText;
+    Mousetrap.bind('enter', self.doubleClickHandler());     // invokes handler vs handler's returned function
+    //});
+    //  svgImage.onload = function () {             ///////// how to transfer this into self-populating version?
 //        $(svgImage).load(function () {
-  xC = 0;
-  yC = 0;
-  var cAR = cWidth / cHeight;
-  var iAR = svgImage.width / svgImage.height;
+    xC = 0;
+    yC = 0;
+    var cAR = cWidth / cHeight;
+    var iAR = svgImage.width / svgImage.height;
 
-  var svgLayer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svgLayer.setAttributeNS(null, 'id', 'svgLayer');
-  svgLayer.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  svgLayer.setAttributeNS(null, 'version', '1.1');
-  svgLayer.setAttributeNS(null, 'style', 'position: inherit;');
-  svgLayer.setAttributeNS(null, 'width', cWidth);
-  svgLayer.setAttributeNS(null, 'height', cHeight);
-  containerID.appendChild(svgLayer);
+    var svgLayer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svgLayer.setAttributeNS(null, 'id', 'svgLayer');
+    svgLayer.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svgLayer.setAttributeNS(null, 'version', '1.1');
+    svgLayer.setAttributeNS(null, 'style', 'position: inherit;');
+    svgLayer.setAttributeNS(null, 'width', cWidth);
+    svgLayer.setAttributeNS(null, 'height', cHeight);
+    containerID.appendChild(svgLayer);
 
-  //baseZoom = document.getElementById('svgLayer').width.baseVal.value / svgImage.width;     // in general more complicated than this
-  baseZoom = svgLayer.width.baseVal.value / svgImage.width;     // in general more complicated than this
-  zoom = baseZoom;
+    //baseZoom = document.getElementById('svgLayer').width.baseVal.value / svgImage.width;     // in general more complicated than this
+    baseZoom = svgLayer.width.baseVal.value / svgImage.width;     // in general more complicated than this
+    zoom = baseZoom;
 
-  strokeWidth = (baseStrokeWidth / zoom).toString();    // dynamically recomputed with zoom (not this one)
-  bubbleRadius = (baseBubbleRadius / zoom).toString(); // and transcoded from/to string (may not be required)
+    strokeWidth = (baseStrokeWidth / zoom).toString();    // dynamically recomputed with zoom (not this one)
+    bubbleRadius = (baseBubbleRadius / zoom).toString(); // and transcoded from/to string (may not be required)
 
-  lastMouseX = baseZoom * svgImage.width / 2;
-  lastMouseY = baseZoom * svgImage.height / 2;
-  // insert the svg base image into the transformable group <g id='xlt'>
-  //var xlt = document.getElementById('xlt');
-  var xlt = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  xlt.setAttributeNS(null, 'id', 'xlt');
-  xlt.setAttributeNS(null, 'transform', 'translate(0,0)scale(' + parseFloat(zoom) + ')');
-  svgLayer.appendChild((xlt));
-  //xlt.setAttributeNS(null, '', '');
-  //xlt.setAttributeNS(null, '', '');
-  //xlt.setAttributeNS(null, '', '');
-  var xltImage = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-  xltImage.setAttributeNS(null, 'id', "xltImage");
-  xltImage.setAttributeNS(null, 'x', "0");
-  xltImage.setAttributeNS(null, 'y', "0");
-  xltImage.setAttributeNS(null, 'width', svgImage.width.toString());
-  xltImage.setAttributeNS(null, 'height', svgImage.height.toString());
-  xltImage.setAttributeNS(null, 'preserveAspectRatio', "none");
-  xltImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', svgImage.src);
-  xlt.appendChild(xltImage);
-  zoom_trans(0, 0, zoom);             //////////// IMPORTANT !!!!!!!!!!!
+    lastMouseX = baseZoom * svgImage.width / 2;
+    lastMouseY = baseZoom * svgImage.height / 2;
+    // insert the svg base image into the transformable group <g id='xlt'>
+    //var xlt = document.getElementById('xlt');
+    var xlt = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    xlt.setAttributeNS(null, 'id', 'xlt');
+    xlt.setAttributeNS(null, 'transform', 'translate(0,0)scale(' + parseFloat(zoom) + ')');
+    svgLayer.appendChild((xlt));
+    //xlt.setAttributeNS(null, '', '');
+    //xlt.setAttributeNS(null, '', '');
+    //xlt.setAttributeNS(null, '', '');
+    var xltImage = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    xltImage.setAttributeNS(null, 'id', "xltImage");
+    xltImage.setAttributeNS(null, 'x', "0");
+    xltImage.setAttributeNS(null, 'y', "0");
+    xltImage.setAttributeNS(null, 'width', svgImage.width.toString());
+    xltImage.setAttributeNS(null, 'height', svgImage.height.toString());
+    xltImage.setAttributeNS(null, 'preserveAspectRatio', "none");
+    xltImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', svgImage.src);
+    xlt.appendChild(xltImage);
+    zoom_trans(0, 0, zoom);             //////////// IMPORTANT !!!!!!!!!!!
 
-  setMove();
-  //};
+    setMove();
+    //};
 
-  this.renderFunction = this.updateSvgByElement;
-  this.touchSupported = Modernizr.touch;
-  this.containerID = containerID;
-  this.lastMousePoint = {x: 0, y: 0};
+    self.renderFunction = self.updateSvgByElement;
+    self.touchSupported = Modernizr.touch;
+    self.containerID = containerID;
+    self.lastMousePoint = {x: 0, y: 0};
 
-  if (this.touchSupported) {
-    this.mouseDownEvent = "touchstart";
-    this.mouseMoveEvent = "touchmove";
-    this.mouseUpEvent = "touchend";
-  }
-  else {
-    this.mouseDownEvent = "mousedown";
-    this.mouseMoveEvent = "mousemove";
-    this.mouseUpEvent = "mouseup";
+    if (self.touchSupported) {
+      self.mouseDownEvent = "touchstart";
+      self.mouseMoveEvent = "touchmove";
+      self.mouseUpEvent = "touchend";
+    }
+    else {
+      self.mouseDownEvent = "mousedown";
+      self.mouseMoveEvent = "mousemove";
+      self.mouseUpEvent = "mouseup";
 
-    //this.canvas.bind('dblclick', this.doubleClickHandler());
-    //$("#" + canvasID).bind('dblclick', this.doubleClickHandler());
-    //var objCanvas = document.getElementById(containerID);      // replace jquery references
-    //var objCanvas = containerID;      // replace jquery references
-    var objCanvas = svgLayer;      // replace jquery references
-    objCanvas.ondblclick = this.doubleClickHandler();       // replace jquery reference
+      //this.canvas.bind('dblclick', this.doubleClickHandler());
+      //$("#" + canvasID).bind('dblclick', this.doubleClickHandler());
+      //var objCanvas = document.getElementById(containerID);      // replace jquery references
+      //var objCanvas = containerID;      // replace jquery references
+      var objCanvas = svgLayer;      // replace jquery references
+      objCanvas.ondblclick = self.doubleClickHandler();       // replace jquery reference
 
-    //this.canvas.bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
-    objCanvas.onwheel = this.mouseWheelScrollHandler();        // replace jquery reference
-  }
-  //this.canvas.bind(this.mouseDownEvent, this.onSvgMouseDown());
-  //$("#" + containerID).on(this.mouseDownEvent, this.onSvgMouseDown());
-  objCanvas.onmousedown = this.onSvgMouseDown();       // replace jquery reference
-  this.mouseMoveHandler = this.onSvgMouseMove;
-  this.mouseUpHandler = this.onSvgMouseUp;
-  //$(document).on(this.mouseUpEvent, this.mouseUpHandler);
-  objCanvas.onmouseup = this.mouseUpHandler();       // replace jquery reference
-  //$(document).on(this.mouseMoveEvent, this.mouseMoveHandler);       // binding FOREVER not just on mouse OOWN
-  objCanvas.onmousemove = this.mouseMoveHandler();       // replace jquery reference
-
+      //this.canvas.bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
+      objCanvas.onwheel = self.mouseWheelScrollHandler();        // replace jquery reference
+    }
+    //this.canvas.bind(this.mouseDownEvent, this.onSvgMouseDown());
+    //$("#" + containerID).on(this.mouseDownEvent, this.onSvgMouseDown());
+    objCanvas.onmousedown = self.onSvgMouseDown();       // replace jquery reference
+    self.mouseMoveHandler = self.onSvgMouseMove;
+    self.mouseUpHandler = self.onSvgMouseUp;
+    //$(document).on(this.mouseUpEvent, this.mouseUpHandler);
+    objCanvas.onmouseup = self.mouseUpHandler();       // replace jquery reference
+    //$(document).on(this.mouseMoveEvent, this.mouseMoveHandler);       // binding FOREVER not just on mouse OOWN
+    objCanvas.onmousemove = self.mouseMoveHandler();       // replace jquery reference
+  };
 }
 
 SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop element generation on mouseDOWN (true?)
