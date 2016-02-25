@@ -98,66 +98,31 @@ var logStatus = false;      // flags
 var logIndex = 0;           // limit counter for above
 
 function SVGDraw(containerID) {     // container:<svgLayer>:<xlt>:<svgImage>
-  //var svgDraw/* = null*/;
-  //var xC = 0;
-  //var yC = 0;
-  //var cursorMode = "MOVE";
-  //var cursorColor = '#ff0000'
-  //var zoom;         ///////////////////////////  = 0.2 should be set on initialization from baseZoom @ full image
-  //var baseStrokeWidth = 1;
-  //var baseBubbleRadius = 6;
-  //// transform below to functions?
-  //strokeWidth = (baseStrokeWidth / zoom).toString();    // dynamically recomputed with zoom (not this one)
-  //bubbleRadius = (baseBubbleRadius / zoom).toString(); // and transcoded from/to string (may not be required)
-  //var baseZoom = 0.2;         ///////////////////////////// should be calculated from svg and image attributes
-  //var maxZoom = 4;        // this is 4 pixels per source image pixel
-  //var zoomDelta = 0.02;   // this can be altered to discriminate legacy firefox dommousescroll event
+
   svgImage = new Image();
   thisSvg = [];            // collect points as [x,y]
-  //var svgOffset;              // set on document ready ////////// test against fully packaged code
 
-  //thisSvgText;            // pointer to svg text element currently being populated
   textHeight = 75;
   textFont = 'Verdana';
 
-  //waitElement = false;   // interlock flag to prevent mouseenter mode change after selecting a create mode
-
-  //var thisGroup;              // should be the parent of the current element
-
   savedCursorMode = cursorMode;
-
-  //var thisElement;              // should be the current element
-
-  //var thisBubble;             // the bubble mousedown-ed in the currently edited element
-
-  //svgInProgress = false;
-
-  //var lastMouseX;
-  //var lastMouseY;
 
   var cWidth = parseInt(containerID.attributes['data-width'].value);
   var cHeight = parseInt(containerID.attributes['data-height'].value);
 
 
   svgImage.src = containerID.attributes['data-image'].value;
-  var self = this;
+  var self = this;      ////////////// prior "this" usages below converted to "self" through end of sgImage.onload fn
   svgImage.onload = function(event) {
-    //svgDraw = new SVGDraw("svgLayer");
-    //svgOffset = {
-    //  top: document.getElementById(containerID).style.top.split('px')[0],
-    //  left: document.getElementById(containerID).style.left.split('px')[0]
-    //};
 
     svgOffset = {
       top: containerID.offsetTop,   // .split('px')[0],
       left: containerID.offsetLeft  // .split('px')[0]
     };
     //indicateMode(cursorMode);
-    //document.getElementById("text4svg").onkeyup = updateSvgText;
+    document.getElementById("text4svg").onkeyup = updateSvgText;
     Mousetrap.bind('enter', self.doubleClickHandler());     // invokes handler vs handler's returned function
-    //});
-    //  svgImage.onload = function () {             ///////// how to transfer this into self-populating version?
-//        $(svgImage).load(function () {
+
     xC = 0;
     yC = 0;
     var cAR = cWidth / cHeight;
@@ -219,11 +184,7 @@ function SVGDraw(containerID) {     // container:<svgLayer>:<xlt>:<svgImage>
       self.mouseMoveEvent = "mousemove";
       self.mouseUpEvent = "mouseup";
 
-      //this.canvas.bind('dblclick', this.doubleClickHandler());
-      //$("#" + canvasID).bind('dblclick', this.doubleClickHandler());
-      //var objCanvas = document.getElementById(containerID);      // replace jquery references
-      //var objCanvas = containerID;      // replace jquery references
-      var objCanvas = svgLayer;      // replace jquery references
+      var objCanvas = svgLayer;      // replace jquery references -- is this really necessary?
       objCanvas.ondblclick = self.doubleClickHandler();       // replace jquery reference
 
       //this.canvas.bind('DOMMouseScroll mousewheel', function (e)     // inline function vs cutout to prototype
@@ -341,13 +302,6 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         svgInProgress = cursorMode;     // mark in progress
       }
 // now using mouseUp event to terminate rect
-      //else {      // this is the terminus of this instance, so dissociate mouse move handler
-      //if (event.type == 'mousemove') {
-      //  return;}
-      //svgInProgress = false;
-      //setMouseoverOut(thisRectangle);
-      //unbindMouseHandlers(self);
-      //}
     }
     if (cursorMode == 'line') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
@@ -396,12 +350,6 @@ SVGDraw.prototype.onSvgMouseDown = function () {    // in general, start or stop
         svgInProgress = cursorMode;     // mark in progress
       }
       // now using mouseup event exclusively to terminate circle
-      //else {      // this is the terminus of this instance, so dissociate mouse move handler
-      //  svgInProgress = false;
-      //  //setCircleMouseoverOut(thisCircle);    // replaced below by newer paradigm
-      //  setElementMouseOverOut(thisGroup);    // new reference method 14NOV
-      //  unbindMouseHandlers(self);    //  this function has been deactivated
-      //}
     }
     if (cursorMode == 'ellipse') {     // mouseDown
       if (svgInProgress == false) {       // this is a new instance of this svg type (currently by definition)
